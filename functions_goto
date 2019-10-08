@@ -31,35 +31,11 @@ forwardUserInput=false; #variable used in navigation mode to determine if the us
 editPrevCommand=false; #variable used for determinining if an entry from command history is fed to the user for editing so a new command is executed based on previous input
 #
 nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negative number
+pythonPath='/usr/bin/python3'
 #
 # GLOBAL FUNCTIONS
 #
-# This is a helper function shared by more of the below global functions (its purpose is to consolidate the persistent and recent history into a single file in a useful manner)
-#
-function consolidateHistory {
-    # first sort the recent history file by name of each directory (not path) and add it to consolidated history
-    > "$temp_file";
-    > "$aux_temp_file";
-    while read currentEntry;
-    do
-	currentEntryConverted=`basename "$currentEntry"`':'"$currentEntry";
-	echo "$currentEntryConverted" >> "$temp_file";
-    done < "$r_hist_file"
-    sort -f "$temp_file" | cut -f 2 -d ':' > "$hist_file";
-    rm "$temp_file";
-    # do the same for persistent history and append it to consolidated history
-    head -"$pHistMaxRows" "$p_hist_file" | cut -f 1 -d ';' > "$temp_file";
-    while read currentEntry;
-    do
-	currentEntryConverted=`basename "$currentEntry"`':'"$currentEntry";
-	echo "$currentEntryConverted" >> "$aux_temp_file";
-    done < "$temp_file"
-    sort -f "$aux_temp_file" | cut -f 2 -d ':' >> "$hist_file";
-    rm "$temp_file";
-    rm "$aux_temp_file";
-}
-#
-# Same as previous function but this time for command history (in this stage it only sorts the recent command entries)
+# This function consolidates command history (in this stage it only sorts the recent command entries)
 #
 function consolidateCommandHistory {
     sort "$c_r_hist_file" > "$temp_file";
@@ -95,7 +71,7 @@ function init {
     head -"$cHistMaxRows" "$c_r_hist_file" > "$temp_file";
     mv "$temp_file" "$c_r_hist_file";
     # consolidate history (in case the user just modified the number of entries allowed in recent and persistent history)
-    consolidateHistory;
+    eval "$pythonPath $scriptDir/.consolidate_history.py"
     # ensure the command history is sorted
     consolidateCommandHistory;
     # create log directory if not already existent
@@ -216,7 +192,7 @@ function goToDir {
 	return 0;
     fi
     updateIndividualHistoryFiles;
-    consolidateHistory;
+    eval "$pythonPath $scriptDir/.consolidate_history.py"
     unset -f updateIndividualHistoryFiles;
 }
 #
@@ -311,7 +287,7 @@ function goToMenu {
 	    grep -xv "$dirPath" "$fav_file" > "$temp_file";
 	    mv "$temp_file" "$fav_file";
 	    # history should be consolidated again
-	    consolidateHistory;
+	    eval "$pythonPath $scriptDir/.consolidate_history.py"
 	    # confirm removal has been successfully performed
 	    echo;
 	    echo "Entry $dirPath has been removed from the menus.";
@@ -412,7 +388,7 @@ function goToMenu {
 		fi
 	    fi
 	    # history should be consolidated again
-	    consolidateHistory;
+	    eval "$pythonPath $scriptDir/.consolidate_history.py"
 	    # confirm mapping has been successfully performed
 	    echo;
 	    echo "Missing directory replaced with: $replacingDir";
@@ -545,7 +521,7 @@ function addToFavorites {
 	    sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
 	    rm "$temp_file";
 	    # history should be consolidated again
-	    consolidateHistory;
+	    eval "$pythonPath $scriptDir/.consolidate_history.py"
 	    # update excluded history file
 	    echo $entryToExclude >> "$e_hist_file";
 	else
@@ -631,7 +607,7 @@ function removeFromFavorites {
 	    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 	    mv "$temp_file" "$p_hist_file";
 	    # history should be consolidated again
-	    consolidateHistory;
+	    eval "$pythonPath $scriptDir/.consolidate_history.py"
 	fi
 	# actual remove operation
 	sed "$dirNr"'d' "$fav_file" > "$temp_file";
@@ -1032,7 +1008,7 @@ function navigate {
 # These functions are only helper functions that are used by the global functions in order to perform specific operations
 # Direct access from user side might cause unexpected behavior
 # In addition to this "global disable" (which is run only once when the file is loaded by shell) the private functions also need to be disabled each time they are used
-# The exceptions are the consolidateHistory and sortFavoritesByBaseName functions which cannot be disabled as they are being used by multiple global functions and are declared outside them
+# The exception is sortFavoritesByBaseName functions which cannot be disabled as it is being used by multiple global functions and is declared outside them
 #
 unset -f formatFileContent;
 unset -f displayHistory;
