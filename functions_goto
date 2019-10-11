@@ -94,6 +94,9 @@ function goToDir {
     #
     # This function updates the three individual history files (recent, persistent, excluded) but does not perform any consolidation (this is done separately after update)
     function updateIndividualHistoryFiles {
+	# first ensure the log file for the current day exists; normally the init method does this when opening the terminal but what if the scripts continue to be open in the terminal after midnight? 
+	w_log_file="$logDir"/`date +"%Y%m%d"`;
+	touch "$w_log_file";
 	# Step 1: update the recent history file
 	nrOfRows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
 	matchedRow=`grep -xn "$currentDir" "$r_hist_file"`;
@@ -1028,7 +1031,7 @@ unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
 unset -f displayGeneralNavigationOutput;
 unset -f handleNavigationOption;
-unset -f updateHistory;
+unset -f updateIndividualHistoryFiles;
 unset -f clearHistory;
 #
 #
