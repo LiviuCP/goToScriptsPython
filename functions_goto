@@ -71,7 +71,7 @@ function init {
     head -"$cHistMaxRows" "$c_r_hist_file" > "$temp_file";
     mv "$temp_file" "$c_r_hist_file";
     # consolidate history (in case the user just modified the number of entries allowed in recent and persistent history)
-    eval "$pythonPath $scriptDir/.consolidate_history.py"
+    "$pythonPath" "$scriptDir"/.consolidate_history.py
     # ensure the command history is sorted
     consolidateCommandHistory;
     # create log directory if not already existent
@@ -91,74 +91,6 @@ unset -f init;
 # The function returns value 0 for successful execution and 1 in any other situation
 #
 function goToDir {
-    #
-    # This function updates the three individual history files (recent, persistent, excluded) but does not perform any consolidation (this is done separately after update)
-    function updateIndividualHistoryFiles {
-	# first ensure the log file for the current day exists; normally the init method does this when opening the terminal but what if the scripts continue to be open in the terminal after midnight? 
-	w_log_file="$logDir"/`date +"%Y%m%d"`;
-	touch "$w_log_file";
-	# Step 1: update the recent history file
-	nrOfRows=`wc -l "$r_hist_file" | awk '{print $1;}'`;
-	matchedRow=`grep -xn "$currentDir" "$r_hist_file"`;
-	#remove previous current directory path from history file if path is contained
-	if [[ $? == 0 ]]; then
-	    matchedRowNr=`echo $matchedRow | cut -f 1 -d : `;
-	    sed "$matchedRowNr"'d' "$r_hist_file" > "$temp_file";
-	#if number of rows is at maximum, remove a row to make room for the new entry
-	elif [[ $nrOfRows -eq $rHistMaxRows ]]; then
-	    sed "$rHistMaxRows"'d' "$r_hist_file" > "$temp_file";
-	#copy the history file to temporary file to maintain consistency with above cases
-	else
-	    cp "$r_hist_file" "$temp_file";
-	fi
-	echo $currentDir > "$r_hist_file";
-	cat "$temp_file" >> "$r_hist_file";
-	rm "$temp_file";
-	#
-	# Step 2: check if the visited directory path is contained in the log file of the current day:
-	# - if yes: consolidate history, no more actions required
-	# - if not: go to next step
-	grep -x "$currentDir" "$w_log_file" > /dev/null;
-	if [[ $? == 0 ]]; then
-	    return 0;
-	else
-	    echo "$currentDir" >> "$w_log_file";
-	fi
-	# Step 3: check if the entry already exists in the persistent history file
-	# - if yes: update the persistent history file, then sort it in reverse order by number of visits
-	# - if not, check if included in excluded history file
-	#   - if yes: update the excluded history file by incrementing the number of visits for the directory (no sorting required)
-	#   - if not: add the entry to persistent history file and sort the file
-	#
-	# #use the ';' separator for the grep in order to avoid multiple matches
-	pHistMatchedRow=`grep "$currentDir"';' "$p_hist_file"`;
-	#
-	if [[ $? == 0 ]]; then
-	    extractedPath=`echo $pHistMatchedRow | cut -f 1 -d ';'`;
-	    visitsCount=`echo $pHistMatchedRow | cut -f 2 -d ';'`;
-	    let "visitsCount=visitsCount+1";
-	    pHistReplacingRow="$extractedPath"';'"$visitsCount";
-	    grep -v "$pHistMatchedRow" "$p_hist_file" > "$temp_file";
-	    echo "$pHistReplacingRow" >> "$temp_file";
-	    sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
-	else
-	    eHistMatchedRow=`grep "$currentDir"';' "$e_hist_file"`;
-	    if [[ $? == 0 ]]; then
-		extractedPath=`echo $eHistMatchedRow | cut -f 1 -d ';'`;
-		visitsCount=`echo $eHistMatchedRow | cut -f 2 -d ';'`;
-		let "visitsCount=visitsCount+1";
-		eHistReplacingRow="$extractedPath"';'"$visitsCount";
-		grep -v "$eHistMatchedRow" "$e_hist_file" > "$temp_file";
-		echo "$eHistReplacingRow" >> "$temp_file";
-		mv "$temp_file" "$e_hist_file";
-	    else
-		echo "$currentDir"';1' >> "$p_hist_file";
-		sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-		mv "$temp_file" "$p_hist_file";
-	    fi
-	fi
-    }
-
     #
     # Step 1: if an argument was entered check that the argument is valid (entered path exists and is a directory);
     if [[ ! -z $1 ]] && [[ ! -d $1 ]]; then
@@ -194,9 +126,8 @@ function goToDir {
     if [[ $currentDir == $prevDir ]]; then
 	return 0;
     fi
-    updateIndividualHistoryFiles;
-    eval "$pythonPath $scriptDir/.consolidate_history.py"
-    unset -f updateIndividualHistoryFiles;
+    "$pythonPath" "$scriptDir"/.update_individual_history_files.py "$currentDir"
+    "$pythonPath" "$scriptDir"/.consolidate_history.py
 }
 #
 # ******************************************************************************************************************
@@ -290,7 +221,7 @@ function goToMenu {
 	    grep -xv "$dirPath" "$fav_file" > "$temp_file";
 	    mv "$temp_file" "$fav_file";
 	    # history should be consolidated again
-	    eval "$pythonPath $scriptDir/.consolidate_history.py"
+	    "$pythonPath" "$scriptDir"/.consolidate_history.py;
 	    # confirm removal has been successfully performed
 	    echo;
 	    echo "Entry $dirPath has been removed from the menus.";
@@ -391,7 +322,7 @@ function goToMenu {
 		fi
 	    fi
 	    # history should be consolidated again
-	    eval "$pythonPath $scriptDir/.consolidate_history.py"
+	    "$pythonPath" "$scriptDir"/.consolidate_history.py;
 	    # confirm mapping has been successfully performed
 	    echo;
 	    echo "Missing directory replaced with: $replacingDir";
@@ -524,7 +455,7 @@ function addToFavorites {
 	    sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
 	    rm "$temp_file";
 	    # history should be consolidated again
-	    eval "$pythonPath $scriptDir/.consolidate_history.py"
+	    "$pythonPath" "$scriptDir"/.consolidate_history.py;
 	    # update excluded history file
 	    echo $entryToExclude >> "$e_hist_file";
 	else
@@ -610,7 +541,7 @@ function removeFromFavorites {
 	    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
 	    mv "$temp_file" "$p_hist_file";
 	    # history should be consolidated again
-	    eval "$pythonPath $scriptDir/.consolidate_history.py"
+	    "$pythonPath" "$scriptDir"/.consolidate_history.py
 	fi
 	# actual remove operation
 	sed "$dirNr"'d' "$fav_file" > "$temp_file";
@@ -1031,7 +962,6 @@ unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
 unset -f displayGeneralNavigationOutput;
 unset -f handleNavigationOption;
-unset -f updateIndividualHistoryFiles;
 unset -f clearHistory;
 #
 #
