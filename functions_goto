@@ -54,36 +54,12 @@ function sortFavoritesByBaseName {
     sort -f "$temp_file" | cut -f 2 -d ':' > "$fav_file";
     rm "$temp_file";
 }
-#
-# This function is only run once (when this file is loaded) and prepares the environment for usage
-#
-function init {
-    # create the required history and favorites files if they don't already exist
-    touch "$r_hist_file";
-    touch "$p_hist_file";
-    touch "$e_hist_file";
-    touch "$c_r_hist_file";
-    touch "$fav_file";
-    # ensure the recent history file has the maximum allowed number of entries
-    head -"$rHistMaxRows" "$r_hist_file" > "$temp_file";
-    mv "$temp_file" "$r_hist_file";
-    # ensure the recent commands history file has the maximum allowed number of entries
-    head -"$cHistMaxRows" "$c_r_hist_file" > "$temp_file";
-    mv "$temp_file" "$c_r_hist_file";
-    # consolidate history (in case the user just modified the number of entries allowed in recent and persistent history)
-    "$pythonPath" "$scriptDir"/.consolidate_history.py
-    # ensure the command history is sorted
-    consolidateCommandHistory;
-    # create log directory if not already existent
-    if [[ ! -d "$logDir" ]]; then
-	mkdir "$logDir";
-    fi
-    # ensure the log file for the current day exists; this file tracks all visited directories for the day and ensure they are not added to persistent history more than once
-    w_log_file="$logDir"/`date +"%Y%m%d"`;
-    touch "$w_log_file";
-}
-init;
-unset -f init;
+# initialize the environment
+"$pythonPath" "$scriptDir"/.init.py
+# consolidate history (in case the user just modified the number of entries allowed in recent and persistent history)
+"$pythonPath" "$scriptDir"/.consolidate_history.py
+# ensure the command history is sorted
+consolidateCommandHistory;
 #
 # This function is used for navigating to a new directory by using a cd command
 # It also memorizes the visited directories in history files
