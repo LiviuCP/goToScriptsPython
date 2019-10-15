@@ -10,6 +10,10 @@ def update():
     e_hist_file = home_dir + ".excluded_history"
     l_hist_file = home_dir + ".goToLogs/" + datetime.datetime.now().strftime("%Y%m%d")
 
+    # Step 0: create log file if not existent
+    with open(l_hist_file, "a") as l_hist:
+        l_hist.write("")
+
     # Step 1: update the recent history file
     with open(r_hist_file, "r") as r_hist:
         r_hist_content = []
