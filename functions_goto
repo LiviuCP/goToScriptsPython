@@ -41,19 +41,6 @@ function consolidateCommandHistory {
     sort "$c_r_hist_file" > "$temp_file";
     mv "$temp_file" "$c_hist_file";
 }
-#
-# Shared helper function that sorts the favorites file by taking into account the name of each directory and not the path
-#
-function sortFavoritesByBaseName {
-    > "$temp_file";
-    while read currentEntry;
-    do
-	currentEntryConverted=`basename "$currentEntry"`':'"$currentEntry";
-	echo "$currentEntryConverted" >> "$temp_file";
-    done < "$fav_file"
-    sort -f "$temp_file" | cut -f 2 -d ':' > "$fav_file";
-    rm "$temp_file";
-}
 # initialize the environment
 "$pythonPath" "$scriptDir"/.init.py
 # consolidate history (in case the user just modified the number of entries allowed in recent and persistent history)
@@ -272,7 +259,7 @@ function goToMenu {
 		# if missing dir had been in the excluded history file: re-create favorites file after update (and re-sort)
 		else
 		    cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
-		    sortFavoritesByBaseName;
+		    "$pythonPath" "$scriptDir"/.sort_favorites_by_basename.py
 		fi
 	    # - case 2: the replacing directory is contained either in the persistent history file or in the favorites file
 	    else
@@ -294,7 +281,7 @@ function goToMenu {
 		# if missing dir had been in the excluded history file: re-create favorites file after update (and re-sort)
 		else
 		    cat "$e_hist_file" | cut -f 1 -d ';' > "$fav_file";
-		    sortFavoritesByBaseName;
+		    "$pythonPath" "$scriptDir"/.sort_favorites_by_basename.py;
 		fi
 	    fi
 	    # history should be consolidated again
@@ -445,7 +432,7 @@ function addToFavorites {
 	grep -x "$dirToAdd" "$fav_file" > /dev/null;
 	if [[ $? != 0 ]]; then
 	    echo $dirToAdd >> "$fav_file";
-	    sortFavoritesByBaseName;
+	    "$pythonPath" "$scriptDir"/.sort_favorites_by_basename.py;
 	    echo "Directory $dirToAdd added to favorites.";
 	    excludeFromPersistentHistory;
 	    unset -f excludeFromPersistentHistory;
@@ -918,7 +905,6 @@ function navigate {
 # These functions are only helper functions that are used by the global functions in order to perform specific operations
 # Direct access from user side might cause unexpected behavior
 # In addition to this "global disable" (which is run only once when the file is loaded by shell) the private functions also need to be disabled each time they are used
-# The exception is sortFavoritesByBaseName functions which cannot be disabled as it is being used by multiple global functions and is declared outside them
 #
 unset -f formatFileContent;
 unset -f displayHistory;
