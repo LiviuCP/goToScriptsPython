@@ -35,18 +35,12 @@ pythonPath='/usr/bin/python3'
 #
 # GLOBAL FUNCTIONS
 #
-# This function consolidates command history (in this stage it only sorts the recent command entries)
-#
-function consolidateCommandHistory {
-    sort "$c_r_hist_file" > "$temp_file";
-    mv "$temp_file" "$c_hist_file";
-}
 # initialize the environment
 "$pythonPath" "$scriptDir"/.init.py
 # consolidate history (in case the user just modified the number of entries allowed in recent and persistent history)
 "$pythonPath" "$scriptDir"/.consolidate_history.py
 # ensure the command history is sorted
-consolidateCommandHistory;
+"$pythonPath" "$scriptDir"/.consolidate_command_history.py
 #
 # This function is used for navigating to a new directory by using a cd command
 # It also memorizes the visited directories in history files
@@ -589,7 +583,7 @@ function navigate {
 	if [[ ${#commandToExecute} -ge $minNrOfCmdChars ]]; then
 	    "$pythonPath" "$scriptDir"/.update_individual_command_history_files.py "$commandToExecute";
 	    #sort the file so user can spot the commands easier
-	    consolidateCommandHistory;
+	    "$pythonPath" "$scriptDir"/.consolidate_command_history.py
 	fi
 	echo "Command is being executed: $commandToExecute";
 	echo '--------------------------';
