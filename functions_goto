@@ -576,27 +576,6 @@ function navigate {
 	    forwardUserInput=true;
 	fi
     }
-    # updates the file with most recently executed commands and sorts it
-    function updateCommandHistory {
-	nrOfCmdRows=`wc -l "$c_r_hist_file" | awk '{print $1;}'`;
-	matchedCmdRow=`grep -Fxn "$prevCommand" "$c_r_hist_file"`;
-	#remove previous command from history file if already contained
-	if [[ $? == 0 ]]; then
-	    matchedCmdRowNr=`echo $matchedCmdRow | cut -f 1 -d : `;
-	    sed "$matchedCmdRowNr"'d' "$c_r_hist_file" > "$temp_file";
-	#if number of rows is at maximum, remove a row to make room for the new entry
-	elif [[ $nrOfCmdRows -eq $cHistMaxRows ]]; then
-	    sed "$cHistMaxRows"'d' "$c_r_hist_file" > "$temp_file";
-	#copy the history file to temporary file to maintain consistency with above cases
-	else
-	    cp "$c_r_hist_file" "$temp_file";
-	fi
-	echo "$prevCommand" > "$c_r_hist_file";
-	cat "$temp_file" >> "$c_r_hist_file";
-	rm "$temp_file";
-	#finally sort the file so user can spot the commands easier
-	consolidateCommandHistory;
-    }
     # erases the command history (this operation is done independently of the one that erases navigation history)
     function clearCommandHistory {
 	> "$c_r_hist_file";
@@ -608,7 +587,9 @@ function navigate {
 	# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
 	prevCommand="$commandToExecute";
 	if [[ ${#commandToExecute} -ge $minNrOfCmdChars ]]; then
-	    updateCommandHistory;
+	    "$pythonPath" "$scriptDir"/.update_individual_command_history_files.py "$commandToExecute";
+	    #sort the file so user can spot the commands easier
+	    consolidateCommandHistory;
 	fi
 	echo "Command is being executed: $commandToExecute";
 	echo '--------------------------';
@@ -879,7 +860,6 @@ function navigate {
 	if [[ $navigationInput == '!' ]]; then
 	    echo 'You exited navigation mode.';
 	    unset -f goToCommandMenu;
-	    unset -f updateCommandHistory;
 	    unset -f clearCommandHistory;
 	    unset -f executeNewCommand;
 	    unset -f repeatPrevCommand;
@@ -913,7 +893,6 @@ unset -f handleMissingDirectory;
 unset -f excludeFromPersistentHistory;
 unset -f displayFavoritesFile;
 unset -f goToCommandMenu;
-unset -f updateCommandHistory;
 unset -f clearCommandHistory;
 unset -f executeNewCommand;
 unset -f repeatPrevCommand;
