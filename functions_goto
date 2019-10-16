@@ -770,24 +770,6 @@ function navigate {
 	echo 'Enter ? for the list of of available commands or ! to quit navigation mode.';
 	echo;
     }
-    # helper function for erasing the navigation history
-    function clearHistory {
-	> "$hist_file";
-	> "$r_hist_file";
-	> "$p_hist_file";
-	> "$e_hist_file";
-	# the working log file also needs to be reset to ensure consistency with the history content
-	w_log_file="$logDir"/`date +"%Y%m%d"`;
-	if [[ -f "$w_log_file" ]]; then
-	    > "$w_log_file";
-	fi
-	# favorites file should be kept so excluded history should be re-created (0 visits per entry)
-	while read currentEntry;
-	do
-	    echo "$currentEntry"';0' >> "$e_hist_file";
-	done < "$fav_file"
-	echo 'Content of navigation history menu has been erased.';
-    }
     # helper function that handles all possible options entered by user in navigation mode
     function handleNavigationOption {
 	case $navigationInput in
@@ -829,7 +811,7 @@ function navigate {
 	    removeFromFavorites;
 	    ;;
 	'!<>')
-	    clearHistory;
+	    "$pythonPath" "$scriptDir"/.clear_history.py;
 	    ;;
 	'!')
 	    return 0;
@@ -870,7 +852,6 @@ function navigate {
 	    unset -f execCommandBasedOnPrevInput;
 	    unset -f displayGeneralNavigationOutput;
 	    unset -f handleNavigationOption;
-	    unset -f clearHistory;
 	    return 0;
 	fi
     done
@@ -903,7 +884,6 @@ unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
 unset -f displayGeneralNavigationOutput;
 unset -f handleNavigationOption;
-unset -f clearHistory;
 #
 #
 #
