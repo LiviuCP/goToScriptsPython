@@ -20,6 +20,7 @@ format_file=$scriptDir/.goto_format; #file used for formatting output (either th
 c_hist_file=$scriptDir/.command_history; #file containing the last commands executed by user in navigation mode (sorted)
 temp_file=$scriptDir/.temp; #temporary file used for various operations (to be removed each time the operation it is used in finishes)
 aux_temp_file=$scriptDir/.aux_temp; #auxiliary temporary file (in case the first temp file is not enough)
+input_storage_file=$scriptDir/.store_input; # temporary solution for getting the user input from the python scripts connected to .functions_goto
 #
 rHistMaxRows=10; #maximum number of entries allowed in the recent history file
 pHistMaxRows=15; #maximum number of entries allowed in the persistent history file
@@ -408,70 +409,15 @@ function addToFavorites {
 #
 # this function removes the entry from favorites and moves it back to persistent history
 function removeFromFavorites {
-    #
-    # Step 1: check if the favorites file exists and is not empty
-    if [[ ! -f "$fav_file" ]]; then
-	echo "The favorites file $fav_file does not exist or has been deleted.";
-	echo 'Please add a directory to favorites and then try again.';
-	unset -f displayFavoritesFile;
-	return 1;
-    fi
-    if [[ ! -s "$fav_file" ]]; then
-	echo "File $fav_file is empty!";
-	echo 'Nothing to remove';
-	unset -f displayFavoritesFile;
-	return 1;
-    fi
-    #
-    # Step 2: display the file and prompt the user to choose the line to be deleted
-    function displayFavoritesFile {
-	clear;
-	echo 'REMOVE DIRECTORY FROM FAVORITES';
-	echo;
-	cat -n "$fav_file";
-	echo;
-	echo 'Current directory: '`pwd`;
-	echo;
-	echo 'Enter the number of the entry to be removed';
-	echo 'Enter ! to quit';
-	echo;
-    }
-    displayFavoritesFile;
-    read -e dirNr;
-    #
-    # Step 3: check the input entered by user and perform the required actions
-    tempVar=`wc -l "$fav_file"`;
-    currentNumberOfEntries=`echo $tempVar | cut -f 1 -d ' '`;
-    if [[ $dirNr =~  $nonNegativeInteger     ]] &&
-       [[ $dirNr -ge 1                       ]] &&
-       [[ $dirNr -le $currentNumberOfEntries ]]; then
-	favDirToRemove=`sed "$dirNr"'q;d' "$fav_file"`;
-	exclDirToRemove=`grep "$favDirToRemove"';' "$e_hist_file"`;
-	visitsCount=`echo "$exclDirToRemove" | cut -f 2 -d ';'`;
-	grep -v "$exclDirToRemove" "$e_hist_file" > "$temp_file";
-	mv "$temp_file" "$e_hist_file";
-	# Also move the entry back to the persistent history file if it has at least one visit
-	if [[ $visitsCount -gt 0 ]]; then
-	    echo $exclDirToRemove >> "$p_hist_file";
-	    # Always sort the persistent history file when it is modified
-	    sort -n -r -k2 -t ';' "$p_hist_file" > "$temp_file";
-	    mv "$temp_file" "$p_hist_file";
-	    # history should be consolidated again
-	    "$pythonPath" "$scriptDir"/.consolidate_history.py
-	fi
-	# actual remove operation
-	sed "$dirNr"'d' "$fav_file" > "$temp_file";
-	mv "$temp_file" "$fav_file";
-	clear;
-	echo "Entry $favDirToRemove removed from the favorites menu.";
-    elif [[ $dirNr == '!' ]]; then
-	clear;
-	echo 'No entry removed from favorites.';
-	unset -f displayFavoritesFile;
-    else
+    "$pythonPath" "$scriptDir"/.remove_dir_from_favorites.py;
+    exit_code=$?;
+    if [[ $exit_code == 1 || $exit_code == 0 ]]; then
+	return $exit_code;
+    elif [[ $exit_code == 2 ]]; then
 	# handle the input as "normal" navigation input
-	navigationInput="$dirNr";
+	navigationInput=`head -1 $input_storage_file`;
 	forwardUserInput=true;
+	return 0;
     fi
 }
 #
