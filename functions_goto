@@ -161,28 +161,7 @@ function goToMenu {
 	read -e userChoice;
 	# user chooses to remove the entry from menus (consolidated history and/or favorites)
 	if [[ $userChoice == '!r' ]]; then
-	    # ensure the entry gets removed from the working log file (if the file had been created in the current day)
-	    if [[ -f "$w_log_file" ]]; then
-		grep -xv "$dirPath" "$w_log_file" > "$temp_file";
-		mv "$temp_file" "$w_log_file";
-	    fi
-	    # ensure the entry is removed from recent history (if there)
-	    grep -xv "$dirPath" "$r_hist_file" > "$temp_file";
-	    mv "$temp_file" "$r_hist_file";
-	    # ensure the entry is removed from persistent history (if there)
-	    grep -v "$dirPath"';' "$p_hist_file" > "$temp_file";
-	    sort -n -r -k2 -t ';' "$temp_file" > "$p_hist_file";
-	    rm "$temp_file";
-	    # ensure the entry is removed from favorites file (if there)
-	    grep -v "$dirPath"';' "$e_hist_file" > "$temp_file";
-	    mv "$temp_file" "$e_hist_file";
-	    grep -xv "$dirPath" "$fav_file" > "$temp_file";
-	    mv "$temp_file" "$fav_file";
-	    # history should be consolidated again
-	    "$pythonPath" "$scriptDir"/.consolidate_history.py;
-	    # confirm removal has been successfully performed
-	    echo;
-	    echo "Entry $dirPath has been removed from the menus.";
+	    "$pythonPath" "$scriptDir"/.remove_missing_dir.py "$dirPath"
 	# user chooses to replace the directory entry with another (existing) path
 	elif [[ $userChoice == '!m' ]]; then
 	    clear;
