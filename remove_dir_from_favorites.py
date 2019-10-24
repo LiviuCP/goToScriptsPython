@@ -86,7 +86,7 @@ def displayFavoritesContent():
         line_nr = 1
         for entry in fav_file_content:
             entry = entry.strip('\n')
-            print(str(line_nr) + "\t" + os.path.basename(entry) + "\t\t" + entry)
+            print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
             line_nr = line_nr + 1
 
 def isValidInput(user_input):
