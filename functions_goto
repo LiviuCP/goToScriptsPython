@@ -9,23 +9,14 @@ scriptDir=~; #get script directory in order to build the paths of the supporting
 prevDir=''; #this variable is used both by the goto function and the function that jumps to previous directory
 logDir=$scriptDir/.goToLogs; #in this directory the script stores the "log" files which contain the paths of the visited directories for each day
 #
-r_hist_file=$scriptDir/.recent_history; #file containing a list of the most recently visited directories
-p_hist_file=$scriptDir/.persistent_history; #file containing each visited directory and the number of visits (used for determining the most visited directories, which will be copied in the consolidated history file)
-e_hist_file=$scriptDir/.excluded_history; #file containing the entries excluded from the persistent history file due to the fact that they had been added to favorites
 c_r_hist_file=$scriptDir/.recent_command_history; #file containing the last commands executed by user in navigation mode (unsorted)
 #
-hist_file=$scriptDir/.goto_history; #file containing the consolidated directory access history (most recently and most frequently visited dirs)
-fav_file=$scriptDir/.goto_favorites; #file containing the directories saved to favorites
-format_file=$scriptDir/.goto_format; #file used for formatting output (either the content of the favorites file or the content of the consolidated history file)
 c_hist_file=$scriptDir/.command_history; #file containing the last commands executed by user in navigation mode (sorted)
 temp_file=$scriptDir/.temp; #temporary file used for various operations (to be removed each time the operation it is used in finishes)
 aux_temp_file=$scriptDir/.aux_temp; #auxiliary temporary file (in case the first temp file is not enough)
 input_storage_file=$scriptDir/.store_input; # temporary solution for getting the user input from the python scripts connected to .functions_goto
 output_storage_file=$scriptDir/.store_output; # temporary solution for getting the python script output connected to .functions_goto
 #
-rHistMaxRows=10; #maximum number of entries allowed in the recent history file
-pHistMaxRows=15; #maximum number of entries allowed in the persistent history file
-cHistMaxRows=25; #maximum number of entries allowed in the command history file
 maxNrOfItems=50; #maximum number of files/dirs listed from current directory in navigation mode
 maxNrOfChars=25; #maximum number of characters to be displayed for each item from current directory in navigation mode
 minNrOfCmdChars=10; #minimum number of characters (including spaces) that a command should have to be included in command history
@@ -552,16 +543,7 @@ function navigate {
     done
 }
 #
-#
-#
-#
-# *****************************************************************************************************************
-#
 # Disable all "private" functions so they cannot be accessed by user from CLI
-# These functions are only helper functions that are used by the global functions in order to perform specific operations
-# Direct access from user side might cause unexpected behavior
-# In addition to this "global disable" (which is run only once when the file is loaded by shell) the private functions also need to be disabled each time they are used
-#
 unset -f handleMissingDirectory;
 unset -f goToCommandMenu;
 unset -f clearCommandHistory;
@@ -574,12 +556,3 @@ unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
 unset -f displayGeneralNavigationOutput;
 unset -f handleNavigationOption;
-#
-#
-#
-#
-# *****************************************************************************************************************
-#
-# Naming conventions used in this file:
-# - variables containing path of working files (e.g. $p_hist_file): to be named using Python convention (underscore)
-# - all other variables and all functions: to be named using lower camelCase convention
