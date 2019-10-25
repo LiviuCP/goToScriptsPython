@@ -21,6 +21,7 @@ c_hist_file=$scriptDir/.command_history; #file containing the last commands exec
 temp_file=$scriptDir/.temp; #temporary file used for various operations (to be removed each time the operation it is used in finishes)
 aux_temp_file=$scriptDir/.aux_temp; #auxiliary temporary file (in case the first temp file is not enough)
 input_storage_file=$scriptDir/.store_input; # temporary solution for getting the user input from the python scripts connected to .functions_goto
+output_storage_file=$scriptDir/.store_output; # temporary solution for getting the python script output connected to .functions_goto
 #
 rHistMaxRows=10; #maximum number of entries allowed in the recent history file
 pHistMaxRows=15; #maximum number of entries allowed in the persistent history file
@@ -92,59 +93,6 @@ function goToDir {
 #
 # This function reads a line either from the favorites or the history file and feeds it as argument to the goto function so the user navigates to that directory
 function goToMenu {
-    # Helper functions for display
-    #
-    # formats the content of the consolidated history file or the favorites file; output is written into a file that is used by one of the display functions listed below
-    function formatFileContent {
-	input_file=$1;
-	> "$format_file";
-	while read currentEntry;
-	do
-	    currentEntryFormatted=`basename "$currentEntry"`':     '"$currentEntry";
-	    echo "$currentEntryFormatted" >> "$format_file";
-	done < "$input_file"
-	column -t -s ':' "$format_file" > "$temp_file";
-	mv "$temp_file" "$format_file";
-    }
-    #displays the consolidated history menu in a convenient manner for the user
-    function displayHistory {
-	tempVar1=`wc -l "$r_hist_file"`;
-	tempVar2=`wc -l "$hist_file"`;
-	rHistEntries=`echo $tempVar1 | cut -f 1 -d ' '`;
-	histEntries=`echo $tempVar2 | cut -f 1 -d ' '`;
-	let pHistEntries=histEntries-rHistEntries;
-	formatFileContent "$hist_file";
-	clear;
-	echo 'NAVIGATION HISTORY';
-	echo;
-	echo '-- RECENTLY VISITED DIRECTORIES --';
-	echo;
-	cat -n "$format_file" | head -"$rHistEntries";
-	echo;
-	echo '--   MOST VISITED DIRECTORIES   --';
-	echo;
-	cat -n "$format_file" | tail -"$pHistEntries";
-	echo;
-	echo 'Current directory: '`pwd`;
-	echo;
-	echo 'Enter the number of the directory you want to navigate to.';
-	echo 'Enter ! to quit.';
-	echo;
-    }
-    #displays the favorites menu in a different (tailor-made) manner from the history menu
-    function displayFavorites {
-	formatFileContent "$fav_file";
-	clear;
-	echo 'FAVORITE DIRECTORIES';
-	echo;
-	cat -n "$format_file";
-	echo;
-	echo 'Current directory: '`pwd`;
-	echo;
-	echo 'Enter the number of the directory you want to navigate to.';
-	echo 'Enter ! to quit.';
-	echo;
-    }
     # handles the case when the directory chosen for visiting does not exist
     function handleMissingDirectory {
 	# working log file for the current day also needs update (if existing and if the entry is present)
@@ -192,76 +140,27 @@ function goToMenu {
 	    forwardUserInput=true;
 	fi
     }
-    # unsets all helper functions so they are not accessible by user from CLI
-    # should be called before the main function returns, otherwise the helpers might become inaccessible earlier than required
-    # the unsetHelpers function should be itself unset (right after it runs)
-    function unsetHelpers {
-	unset -f formatFileContent;
-	unset -f displayHistory;
-	unset -f displayFavorites;
-	unset -f handleMissingDirectory;
-    }
-    #
-    # Step 0: choose the file to be used for navigating, check if it is empty, (if not) display it and prompt the user to enter the number of the entry that contains the path the user wants to navigate to
-    if [[ "$1" == '-f' ]]; then
-	input_file="$fav_file";
-	display='displayFavorites';
-	menuType='favorites';
-    elif [[ "$1" == '-h' ]]; then
-	input_file="$hist_file";
-	display='displayHistory';
-	menuType='history';
-    else
-	echo 'Invalid first argument of the goToMenu function.';
-	unsetHelpers 2> /dev/null;
-	unset -f unsetHelpers;
-	return 1;
-    fi
-    #
-    if [[ ! -s "$input_file" ]]; then
-	echo "There are no entries in the $menuType menu.";
-	unsetHelpers 2> /dev/null;
-	unset -f unsetHelpers;
-	return 1;
-    fi
-    # display menu only if user hasn't given the entry explicitly in the command
+
+    # Step 1: provide input for choosing a path from history/favorites
     if [[ -z "$2" ]]; then
-	eval "$display";
-	read -e dirNr;
+	"$pythonPath" "$scriptDir"/.choose_path_from_menu.py "$1";
     else
-	dirNr=$2;
+	"$pythonPath" "$scriptDir"/.choose_path_from_menu.py "$1" "$2";
     fi
-    #
-    # Step 1: handle the user input
-    tempVar=`wc -l "$input_file"`;
-    currentNumberOfEntries=`echo $tempVar | cut -f 1 -d ' '`;
-    # 1a: user entered the number of an entry from the history/favorites file
-    if [[ $dirNr =~  $nonNegativeInteger     ]] &&
-       [[ $dirNr -ge 1                       ]] &&
-       [[ $dirNr -le $currentNumberOfEntries ]]; then
-	# read the line from the input file
-	dirPath=`sed "$dirNr"'q;d' "$input_file"`;
-	# if the line of the input file contains a valid directory path, then visit the directory
+
+    # Step 2: handle python script output (navigate only if a valid and existing path has been chosen)
+    dirPath=`head -1 $output_storage_file`;
+    if [[ "$dirPath" == ":1" ]]; then
+	navigationInput=`head -1 $input_storage_file`;
+	forwardUserInput=true;
+    elif [[ "$dirPath" != ":2" ]] && [[ "$dirPath" != ":3" ]] && [[ "$dirPath" != ":4" ]]; then
 	if [[ ! -d "$dirPath" ]]; then
 	    handleMissingDirectory;
-	    unsetHelpers 2> /dev/null;
-	    unset -f unsetHelpers;
+	    unset -f handleMissingDirectory;
 	    return 1;
 	fi
 	goToDir "$dirPath";
-    # 1b: user chose to quit the function
-    elif [[ $dirNr == '!' ]]; then
-	clear;
-	echo "You exited the $menuType menu.";
-    # 1c: any other input to be passed further to the navigate function (if goToMenu had been called from navigation mode)
-    else
-	navigationInput="$dirNr";
-	forwardUserInput=true;
-	return 0;
     fi
-    #
-    unsetHelpers 2> /dev/null;
-    unset -f unsetHelpers;
 }
 #
 # ******************************************************************************************************************
@@ -663,11 +562,7 @@ function navigate {
 # Direct access from user side might cause unexpected behavior
 # In addition to this "global disable" (which is run only once when the file is loaded by shell) the private functions also need to be disabled each time they are used
 #
-unset -f formatFileContent;
-unset -f displayHistory;
-unset -f displayFavorites;
 unset -f handleMissingDirectory;
-unset -f displayFavoritesFile;
 unset -f goToCommandMenu;
 unset -f clearCommandHistory;
 unset -f executeNewCommand;
