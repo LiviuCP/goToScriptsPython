@@ -362,37 +362,6 @@ function navigate {
 	fi
 	rm "$aux_temp_file";
     }
-    # helper function used for displaying the help menu of the navigation mode
-    function displayHelp {
-	helpMenu='';
-	helpMenu="$helpMenu"'echo "Navigation functions";';
-	helpMenu="$helpMenu"'echo;';
-	helpMenu="$helpMenu"'echo "For executing any shell command please enter : followed by the command string.";';
-	helpMenu="$helpMenu"'echo "For example enter :ls -l to list the contents of the current directory in detail.";';
-	helpMenu="$helpMenu"'echo;';
-	helpMenu="$helpMenu"'echo;';
-	helpMenu="$helpMenu"'echo "Other useful navigation options: ";';
-	helpMenu="$helpMenu"'echo;';
-	helpMenu="$helpMenu"'echo ":-    -  repeat last executed shell command (if any)";';
-	helpMenu="$helpMenu"'echo ":     -  enter a shell command based on previous command (only available in BASH 4)";';
-	helpMenu="$helpMenu"'echo ":<    -  enter command history menu";';
-	helpMenu="$helpMenu"'echo "::    -  enter command history menu to edit a previous command (only available in BASH 4)";';
-	helpMenu="$helpMenu"'echo ":<>   -  clear command history";';
-	helpMenu="$helpMenu"'echo "<     -  enter history menu";';
-	helpMenu="$helpMenu"'echo ">     -  enter favorites menu";';
-	helpMenu="$helpMenu"'echo ",     -  go to the previously visited directory";';
-	helpMenu="$helpMenu"'echo "+>    -  add current directory to favorites";';
-	helpMenu="$helpMenu"'echo "->    -  remove a directory from favorites";';
-	helpMenu="$helpMenu"'echo "!<>   -  clear navigation history";';
-	helpMenu="$helpMenu"'echo;';
-	helpMenu="$helpMenu"'echo "For direct navigation to a history or favorites menu entry please enter < or > followed by a number";';
-	helpMenu="$helpMenu"'echo "Please do not put any spaces between operator and number";';
-	helpMenu="$helpMenu"'echo;';
-	helpMenu="$helpMenu"'echo "Press q to exit";';
-	helpMenu="$helpMenu"'echo;';
-	eval "$helpMenu" | less;
-	echo 'You exited navigation help menu';
-    }
     # helper function for handling general input (new commands or directories to navigate to)
     function handleGeneralInput {
 	# A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
@@ -460,7 +429,7 @@ function navigate {
     function handleNavigationOption {
 	case $navigationInput in
 	'?')
-	    displayHelp;
+	    "$pythonPath" "$scriptDir"/.display_help.py;
 	    ;;
 	':-')
 	    repeatPrevCommand;
@@ -513,7 +482,9 @@ function navigate {
     clear;
     echo 'Welcome to navigation mode!';
     while [[ '1' == '1' ]]; do
-	displayGeneralNavigationOutput;
+	if [[ $navigationInput != "?" ]]; then
+	    displayGeneralNavigationOutput;
+	fi
 	read -e navigationInput;
 	# stay in this loop as long as the function called by choosing a navigation option forwards user input back to the navigate function
 	while [[ '1' == '1' ]]; do
@@ -533,7 +504,6 @@ function navigate {
 	    unset -f repeatPrevCommand;
 	    unset -f editAndExecCmdFromHistory;
 	    unset -f displayCurrentDirContent;
-	    unset -f displayHelp;
 	    unset -f handleGeneralInput;
 	    unset -f execCommandBasedOnPrevInput;
 	    unset -f displayGeneralNavigationOutput;
@@ -551,7 +521,6 @@ unset -f executeNewCommand;
 unset -f repeatPrevCommand;
 unset -f editAndExecCmdFromHistory;
 unset -f displayCurrentDirContent;
-unset -f displayHelp;
 unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
 unset -f displayGeneralNavigationOutput;
