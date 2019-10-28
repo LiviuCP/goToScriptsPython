@@ -17,8 +17,6 @@ aux_temp_file=$scriptDir/.aux_temp; #auxiliary temporary file (in case the first
 input_storage_file=$scriptDir/.store_input; # temporary solution for getting the user input from the python scripts connected to .functions_goto
 output_storage_file=$scriptDir/.store_output; # temporary solution for getting the python script output connected to .functions_goto
 #
-maxNrOfItems=50; #maximum number of files/dirs listed from current directory in navigation mode
-maxNrOfChars=25; #maximum number of characters to be displayed for each item from current directory in navigation mode
 minNrOfCmdChars=10; #minimum number of characters (including spaces) that a command should have to be included in command history
 forwardUserInput=false; #variable used in navigation mode to determine if the user input received by a called function should be processed after function exits
 editPrevCommand=false; #variable used for determinining if an entry from command history is fed to the user for editing so a new command is executed based on previous input
@@ -327,41 +325,6 @@ function navigate {
 	    executeNewCommand;
 	fi
     }
-    # helper function used for displaying the content of the current directory
-    function displayCurrentDirContent {
-	# get number of items from current directory
-	ls | tee "$aux_temp_file" | head -"$maxNrOfItems" > "$temp_file";
-	tempOutput=`wc -l "$aux_temp_file"`;
-	nrOfItems=`echo $tempOutput | cut -f 1 -d ' '`;
-	> "$aux_temp_file";
-	# limit the number of characters displayed for each item so current directory content is correctly displayed
-	# (otherwise the content might be too much expanded)
-	while read currentEntry;
-	do
-	    if [[ ${#currentEntry} -gt $maxNrOfChars ]]; then
-		if [[ -d "$currentEntry" ]]; then
-		    echo "${currentEntry:0:$maxNrOfChars}../" >> "$aux_temp_file";
-		else
-		    echo "${currentEntry:0:$maxNrOfChars}..." >> "$aux_temp_file";
-		fi
-	    else
-		if [[ -d "$currentEntry" ]]; then
-		    echo "$currentEntry"'/' >> "$aux_temp_file";
-		else
-		    echo "$currentEntry" >> "$aux_temp_file";
-		fi
-	    fi
-	done < "$temp_file"
-	rm "$temp_file";
-	column "$aux_temp_file";
-	echo;
-	if [[ $nrOfItems -gt $maxNrOfItems ]]; then
-	    echo "Number of items contained in the directory ($nrOfItems) exceeds the displayed ones ($maxNrOfItems)! Type :ls -p | less to display all directory items.";
-	else
-	    echo "Number of items contained in the directory: $nrOfItems";
-	fi
-	rm "$aux_temp_file";
-    }
     # helper function for handling general input (new commands or directories to navigate to)
     function handleGeneralInput {
 	# A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
@@ -406,7 +369,7 @@ function navigate {
 	echo;
 	echo "Directory content (hidden items are excluded):";
 	echo;
-	displayCurrentDirContent;
+	"$pythonPath" "$scriptDir"/.display_current_dir_content.py
 	echo;
 	echo '----------------------------------------------------------------------------------------------------';
 	echo;
@@ -503,7 +466,6 @@ function navigate {
 	    unset -f executeNewCommand;
 	    unset -f repeatPrevCommand;
 	    unset -f editAndExecCmdFromHistory;
-	    unset -f displayCurrentDirContent;
 	    unset -f handleGeneralInput;
 	    unset -f execCommandBasedOnPrevInput;
 	    unset -f displayGeneralNavigationOutput;
@@ -520,7 +482,6 @@ unset -f clearCommandHistory;
 unset -f executeNewCommand;
 unset -f repeatPrevCommand;
 unset -f editAndExecCmdFromHistory;
-unset -f displayCurrentDirContent;
 unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
 unset -f displayGeneralNavigationOutput;
