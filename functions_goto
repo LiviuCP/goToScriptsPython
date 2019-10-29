@@ -9,7 +9,6 @@ scriptDir=~; #get script directory in order to build the paths of the supporting
 prevDir=''; #this variable is used both by the goto function and the function that jumps to previous directory
 logDir=$scriptDir/.goToLogs; #in this directory the script stores the "log" files which contain the paths of the visited directories for each day
 #
-c_hist_file=$scriptDir/.command_history; #file containing the last commands executed by user in navigation mode (sorted)
 temp_file=$scriptDir/.temp; #temporary file used for various operations (to be removed each time the operation it is used in finishes)
 aux_temp_file=$scriptDir/.aux_temp; #auxiliary temporary file (in case the first temp file is not enough)
 input_storage_file=$scriptDir/.store_input; # temporary solution for getting the user input from the python scripts connected to .functions_goto
@@ -19,7 +18,6 @@ minNrOfCmdChars=10; #minimum number of characters (including spaces) that a comm
 forwardUserInput=false; #variable used in navigation mode to determine if the user input received by a called function should be processed after function exits
 editPrevCommand=false; #variable used for determinining if an entry from command history is fed to the user for editing so a new command is executed based on previous input
 #
-nonNegativeInteger='^[0-9]+$'; #regex used to test if the input is a non-negative number
 pythonPath='/usr/bin/python3'
 #
 # GLOBAL FUNCTIONS
@@ -212,35 +210,19 @@ function removeFromFavorites {
 function navigate {
     # accesses the menu with the most recent executed commands, user can choose one entry to execute that command again
     function goToCommandMenu {
-	if [[ ! -s "$c_hist_file" ]]; then
-	    echo "There are no entries in the command history menu.";
-	    return 1;
-	fi
-	clear;
-	echo 'COMMAND HISTORY';
-	echo;
+	# Step 1: handle user input
 	if [[ $editPrevCommand == false ]]; then
-	    echo '-- EXECUTE COMMAND --';
+	    "$pythonPath" "$scriptDir"/.choose_command_from_menu.py --execute
 	else
-	    echo '-- EDIT COMMAND --';
+	    "$pythonPath" "$scriptDir"/.choose_command_from_menu.py --edit
 	fi
-	echo;
-	cat -n "$c_hist_file";
-	echo;
-	echo 'Current directory: '`pwd`;
-	echo;
-	echo 'Enter command number.';
-	echo 'Enter ! to quit';
-	echo;
-	read -e cmdNr;
-	# check the input entered by user and perform the required actions
-	tempVar=`wc -l "$c_hist_file"`;
-	currentNumberOfCmdEntries=`echo $tempVar | cut -f 1 -d ' '`;
-	if [[ $cmdNr =~  $nonNegativeInteger     ]] &&
-	   [[ $cmdNr -ge 1                       ]] &&
-	   [[ $cmdNr -le $currentNumberOfCmdEntries ]]; then
-	    clear;
-	    commandHistoryEntry=`sed "$cmdNr"'q;d' "$c_hist_file"`;
+
+	# Step 2: handle python script output (handle command edit/execution only if a valid command has been chosen from menu file)
+	commandHistoryEntry=`head -1 $output_storage_file`;
+	if [[ "$commandHistoryEntry" == ":1" ]]; then
+	    navigationInput=`head -1 $input_storage_file`;
+	    forwardUserInput=true;
+	elif [[ "$commandHistoryEntry" != ":2" ]] && [[ "$commandHistoryEntry" != ":3" ]] && [[ "$commandHistoryEntry" != ":4" ]]; then
 	    if [[ $editPrevCommand == false ]]; then
 		# execute the actual command from command history menu
 		commandToExecute="$commandHistoryEntry";
@@ -249,13 +231,6 @@ function navigate {
 		# edit the chosen command prior to executing
 		editAndExecCmdFromHistory;
 	    fi
-	elif [[ $cmdNr == '!' ]]; then
-	    clear;
-	    echo 'No command chosen.';
-	else
-	    # handle the input as "normal" navigation input
-	    navigationInput="$cmdNr";
-	    forwardUserInput=true;
 	fi
     }
     # helper function for executing a new shell command (either with new input or based on a previous command)
