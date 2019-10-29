@@ -2,9 +2,7 @@
 # - navigating between folders
 # - tracking history of navigated folders and enabling the user to jump directly to one of these directories by choosing the entry number
 # - adding directories to favorites menu and enabling jumping to one of these by just choosing the entry number
-#
-# GLOBAL VARIABLES
-#
+
 scriptDir=~; #get script directory in order to build the paths of the supporting files
 prevDir=''; #this variable is used both by the goto function and the function that jumps to previous directory
 logDir=$scriptDir/.goToLogs; #in this directory the script stores the "log" files which contain the paths of the visited directories for each day
@@ -19,21 +17,13 @@ forwardUserInput=false; #variable used in navigation mode to determine if the us
 editPrevCommand=false; #variable used for determinining if an entry from command history is fed to the user for editing so a new command is executed based on previous input
 #
 pythonPath='/usr/bin/python3'
-#
-# GLOBAL FUNCTIONS
-#
-# initialize the environment
+
+# initialize the environment, ensure the navigation and command history menus are sorted/consolidated
 "$pythonPath" "$scriptDir"/.init.py
-# consolidate history (in case the user just modified the number of entries allowed in recent and persistent history)
 "$pythonPath" "$scriptDir"/.consolidate_history.py
-# ensure the command history is sorted
 "$pythonPath" "$scriptDir"/.consolidate_command_history.py
 #
-# This function is used for navigating to a new directory by using a cd command
-# It also memorizes the visited directories in history files
-# The argument can be a relative or an absolute path
-# The function returns value 0 for successful execution and 1 in any other situation
-#
+# This function is used for navigating to a new directory; if cd is successful the visited path is memorized into navigation history
 function goToDir {
     #
     # Step 1: if an argument was entered check that the argument is valid (entered path exists and is a directory);
@@ -73,9 +63,7 @@ function goToDir {
     "$pythonPath" "$scriptDir"/.update_individual_history_files.py "$currentDir"
     "$pythonPath" "$scriptDir"/.consolidate_history.py
 }
-#
-# ******************************************************************************************************************
-#
+
 # This function reads a line either from the favorites or the history file and feeds it as argument to the goto function so the user navigates to that directory
 function goToMenu {
     # handles the case when the directory chosen for visiting does not exist
@@ -147,9 +135,7 @@ function goToMenu {
 	goToDir "$dirPath";
     fi
 }
-#
-# ******************************************************************************************************************
-#
+
 # used for returning to the previously visited directory without needing to access the history or favorites menus
 function goToPrevDir {
     if [[ $prevDir == '' ]]; then
@@ -159,9 +145,7 @@ function goToPrevDir {
     fi
     goToDir "$prevDir";
 }
-#
-# ******************************************************************************************************************
-#
+
 # used for adding a directory (either the current one or another) to favorites
 function addToFavorites {
     #
@@ -185,9 +169,7 @@ function addToFavorites {
     #
     "$pythonPath" "$scriptDir"/.add_dir_to_favorites.py "$dirToAdd";
 }
-#
-# ******************************************************************************************************************
-#
+
 # this function removes the entry from favorites and moves it back to persistent history
 function removeFromFavorites {
     "$pythonPath" "$scriptDir"/.remove_dir_from_favorites.py;
@@ -201,9 +183,7 @@ function removeFromFavorites {
 	return 0;
     fi
 }
-#
-# ******************************************************************************************************************
-#
+
 # This function is used to enter navigation mode
 # In this mode the user can repeatedly visit directories by only entering the name of each folder (absolute path, relative path - including wildcards)
 # It is also possible to access other functions like history/favorites, goto previous directory etc.
