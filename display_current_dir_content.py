@@ -10,13 +10,14 @@ def display():
     printAllItems = True
 
     for dirItem in os.listdir("."):
-        if os.path.isdir(dirItem):
-            dirItem = dirItem + "/"
-            if len(dirItem)-1 > maxNrOfChars:
-                dirItem = dirItem[0:beginCharsToDisplay] + "..." + dirItem[endCharsToDisplay-1:]
-        elif len(dirItem) > maxNrOfChars:
-            dirItem = dirItem[0:beginCharsToDisplay] + "..." + dirItem[endCharsToDisplay:]
-        dirContent.append(dirItem)
+        if dirItem[0] != ".": #exclude hidden files/directories
+            if os.path.isdir(dirItem):
+                dirItem = dirItem + "/"
+                if len(dirItem)-1 > maxNrOfChars:
+                    dirItem = dirItem[0:beginCharsToDisplay] + "..." + dirItem[endCharsToDisplay-1:]
+            elif len(dirItem) > maxNrOfChars:
+                dirItem = dirItem[0:beginCharsToDisplay] + "..." + dirItem[endCharsToDisplay:]
+            dirContent.append(dirItem)
 
     dirContent.sort(key=lambda v: v.upper())
 
