@@ -12,7 +12,6 @@ aux_temp_file=$scriptDir/.aux_temp; #auxiliary temporary file (in case the first
 input_storage_file=$scriptDir/.store_input; # temporary solution for getting the user input from the python scripts connected to .functions_goto
 output_storage_file=$scriptDir/.store_output; # temporary solution for getting the python script output connected to .functions_goto
 #
-minNrOfCmdChars=10; #minimum number of characters (including spaces) that a command should have to be included in command history
 forwardUserInput=false; #variable used in navigation mode to determine if the user input received by a called function should be processed after function exits
 editPrevCommand=false; #variable used for determinining if an entry from command history is fed to the user for editing so a new command is executed based on previous input
 #
