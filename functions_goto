@@ -206,34 +206,14 @@ function navigate {
 	    if [[ $editPrevCommand == false ]]; then
 		# execute the actual command from command history menu
 		commandToExecute="$commandHistoryEntry";
-		executeNewCommand;
+		prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
+		"$pythonPath" "$scriptDir"/.execute_new_command.py "$commandToExecute";
+		commandResult=`head -1 $output_storage_file`;
 	    else
 		# edit the chosen command prior to executing
 		editAndExecCmdFromHistory;
 	    fi
 	fi
-    }
-    # helper function for executing a new shell command (either with new input or based on a previous command)
-    function executeNewCommand {
-	# memorize the command in a separate variable (otherwise the $command variable will be modified by eval in case the command is a script)
-	prevCommand="$commandToExecute";
-	if [[ ${#commandToExecute} -ge $minNrOfCmdChars ]]; then
-	    "$pythonPath" "$scriptDir"/.update_individual_command_history_files.py "$commandToExecute";
-	    #sort the file so user can spot the commands easier
-	    "$pythonPath" "$scriptDir"/.consolidate_command_history.py
-	fi
-	echo "Command is being executed: $commandToExecute";
-	echo '--------------------------';
-	eval "$commandToExecute";
-	commandStatus=$?;
-	echo '--------------------------';
-	echo -n 'Command ';
-	if [[ 0 != $commandStatus ]]; then
-	    commandResult='finished with errors';
-	else
-	    commandResult='finished successfully';
-	fi
-	echo "$commandResult! Scroll up to check output (if any) if it exceeds the screen.";
     }
     # helper function for executing previous shell command again
     function repeatPrevCommand {
@@ -269,7 +249,9 @@ function navigate {
 	    echo 'Command aborted. You returned to navigation menu';
 	else
 	    clear;
-	    executeNewCommand;
+	    prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
+	    "$pythonPath" "$scriptDir"/.execute_new_command.py "$commandToExecute";
+	    commandResult=`head -1 $output_storage_file`;
 	fi
     }
     # helper function for handling general input (new commands or directories to navigate to)
@@ -277,7 +259,9 @@ function navigate {
 	# A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
 	if [[ ${navigationInput:0:1} == ':' ]]; then
 	    commandToExecute=${navigationInput:1};
-	    executeNewCommand;
+	    prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
+	    "$pythonPath" "$scriptDir"/.execute_new_command.py "$commandToExecute";
+	    commandResult=`head -1 $output_storage_file`;
 	else
 	    goToDir `echo "$navigationInput"`;
 	fi
@@ -301,7 +285,9 @@ function navigate {
 	    echo 'Command aborted. You returned to navigation menu';
 	else
 	    clear;
-	    executeNewCommand;
+	    prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
+	    "$pythonPath" "$scriptDir"/.execute_new_command.py "$commandToExecute";
+	    commandResult=`head -1 $output_storage_file`;
 	fi
     }
     # helper function used for displaying the "home screen" of the navigation function
@@ -325,7 +311,7 @@ function navigate {
 	    echo ':';
 	    echo 'none';
 	else
-	    echo " ($commandResult):";
+	    echo " (finished $commandResult):";
 	    echo "$prevCommand";
 	fi
 	echo;
@@ -409,7 +395,6 @@ function navigate {
 	if [[ $navigationInput == '!' ]]; then
 	    echo 'You exited navigation mode.';
 	    unset -f goToCommandMenu;
-	    unset -f executeNewCommand;
 	    unset -f repeatPrevCommand;
 	    unset -f editAndExecCmdFromHistory;
 	    unset -f handleGeneralInput;
@@ -424,7 +409,6 @@ function navigate {
 # Disable all "private" functions so they cannot be accessed by user from CLI
 unset -f handleMissingDirectory;
 unset -f goToCommandMenu;
-unset -f executeNewCommand;
 unset -f repeatPrevCommand;
 unset -f editAndExecCmdFromHistory;
 unset -f execCommandBasedOnPrevInput;
