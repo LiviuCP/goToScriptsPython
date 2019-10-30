@@ -219,18 +219,8 @@ function navigate {
 	if [[ -z $prevCommand ]]; then
 	    echo 'No shell command previously executed';
 	else
-	    echo "Command is being executed: $prevCommand";
-	    echo '--------------------------';
-	    eval "$prevCommand";
-	    commandStatus=$?;
-	    echo '--------------------------';
-	    echo -n 'Command ';
-	    if [[ 0 != $commandStatus ]]; then
-		commandResult='finished with errors';
-	    else
-		commandResult='finished successfully';
-	    fi
-	    echo "$commandResult! Scroll up to check output (if any) if it exceeds the screen.";
+	    "$pythonPath" "$scriptDir"/.execute_new_command.py "$prevCommand";
+	    commandResult=`head -1 $output_storage_file`;
 	fi
     }
     # helper function that feeds a previously executed command (from command history) to user for editing prior to having it executed
