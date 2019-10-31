@@ -1,11 +1,50 @@
-import os
+import sys, os
 
 maxNrOfItems = 50 #maximum number of files/dirs listed from current directory in navigation mode
 maxNrOfChars = 25 #maximum number of characters to be displayed for each item from current directory in navigation mode
 beginCharsToDisplay = maxNrOfChars // 2 #first characters to be displayed for a filename exceeding maxNrOfChars
 endCharsToDisplay = beginCharsToDisplay - maxNrOfChars #last characters to be displayed for a filename exceeding maxNrOfChars
 
-def display():
+def displayNavOutput():
+    commandResult = ""
+    if len(sys.argv) == 1:
+        lastCommand = 'none'
+    elif len(sys.argv) == 2:
+        lastCommand = 'Error in displaying last command and its result!'
+    else:
+        lastCommand = sys.argv[1]
+        commandResult = sys.argv[2]
+
+    print("")
+    print("****************************************************************************************************")
+    print("")
+    print("Current directory")
+    print(os.getcwd())
+    print("")
+    print("----------------------------------------------------------------------------------------------------")
+    print("")
+    print("Directory content (hidden items are excluded):")
+    print("")
+
+    displayCurrentDirContent()
+
+    print("")
+    print("----------------------------------------------------------------------------------------------------")
+    print("")
+    print("Last executed shell command", end='')
+    if commandResult != "":
+        print(" (finished " + commandResult + "):")
+    else:
+        print(":")
+    print(lastCommand)
+    print("")
+    print("****************************************************************************************************")
+    print("")
+    print("Enter the path of the directory you want to visit (press ENTER to return to the home dir).")
+    print("Enter ? for the list of of available commands or ! to quit navigation mode.'")
+    print("")
+
+def displayCurrentDirContent():
     dirContent = []
     printAllItems = True
 
@@ -49,4 +88,4 @@ def printDirContentToColumns(content):
         print('{0:<40s} {1:<40s} {2:<40s} {3:<40s}'.format(content[baseIndex], content[baseIndex + 1], content[baseIndex + 2], content[baseIndex + 3]))
     print("")
 
-display()
+displayNavOutput()

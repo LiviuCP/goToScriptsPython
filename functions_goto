@@ -279,37 +279,6 @@ function navigate {
 	    commandResult=`head -1 $output_storage_file`;
 	fi
     }
-    # helper function used for displaying the "home screen" of the navigation function
-    function displayGeneralNavigationOutput {
-	echo;
-	echo '****************************************************************************************************';
-	echo;
-	echo 'Current directory:';
-	echo `pwd`;
-	echo;
-	echo '----------------------------------------------------------------------------------------------------';
-	echo;
-	echo "Directory content (hidden items are excluded):";
-	echo;
-	"$pythonPath" "$scriptDir"/.display_current_dir_content.py
-	echo;
-	echo '----------------------------------------------------------------------------------------------------';
-	echo;
-	echo -n "Last executed shell command";
-	if [[ -z "$prevCommand" ]]; then
-	    echo ':';
-	    echo 'none';
-	else
-	    echo " (finished $commandResult):";
-	    echo "$prevCommand";
-	fi
-	echo;
-	echo '****************************************************************************************************';
-	echo;
-	echo 'Enter the path of the directory you want to visit (press ENTER to return to the home dir).';
-	echo 'Enter ? for the list of of available commands or ! to quit navigation mode.';
-	echo;
-    }
     # helper function that handles all possible options entered by user in navigation mode
     function handleNavigationOption {
 	case $navigationInput in
@@ -368,7 +337,11 @@ function navigate {
     echo 'Welcome to navigation mode!';
     while [[ '1' == '1' ]]; do
 	if [[ $navigationInput != "?" ]]; then
-	    displayGeneralNavigationOutput;
+	    if [[ -z $prevCommand ]]; then
+		"$pythonPath" "$scriptDir"/.display_general_navigation_output.py;
+	    else
+		"$pythonPath" "$scriptDir"/.display_general_navigation_output.py "$prevCommand" "$commandResult";
+	    fi
 	fi
 	read -e navigationInput;
 	# stay in this loop as long as the function called by choosing a navigation option forwards user input back to the navigate function
@@ -388,7 +361,6 @@ function navigate {
 	    unset -f editAndExecCmdFromHistory;
 	    unset -f handleGeneralInput;
 	    unset -f execCommandBasedOnPrevInput;
-	    unset -f displayGeneralNavigationOutput;
 	    unset -f handleNavigationOption;
 	    return 0;
 	fi
@@ -402,5 +374,4 @@ unset -f repeatPrevCommand;
 unset -f editAndExecCmdFromHistory;
 unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
-unset -f displayGeneralNavigationOutput;
 unset -f handleNavigationOption;
