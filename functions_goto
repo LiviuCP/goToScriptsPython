@@ -5,7 +5,6 @@
 
 scriptDir=~; #get script directory in order to build the paths of the supporting files
 prevDir=''; #this variable is used both by the goto function and the function that jumps to previous directory
-logDir=$scriptDir/.goToLogs; #in this directory the script stores the "log" files which contain the paths of the visited directories for each day
 #
 temp_file=$scriptDir/.temp; #temporary file used for various operations (to be removed each time the operation it is used in finishes)
 aux_temp_file=$scriptDir/.aux_temp; #auxiliary temporary file (in case the first temp file is not enough)
@@ -67,8 +66,6 @@ function goToDir {
 function goToMenu {
     # handles the case when the directory chosen for visiting does not exist
     function handleMissingDirectory {
-	# working log file for the current day also needs update (if existing and if the entry is present)
-	w_log_file="$logDir"/`date +"%Y%m%d"`;
 	clear;
 	echo "Invalid path $dirPath";
 	echo 'The directory might have been moved or deleted.';
