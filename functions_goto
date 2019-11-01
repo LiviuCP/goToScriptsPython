@@ -62,53 +62,6 @@ function goToDir {
 
 # This function reads a line either from the favorites or the history file and feeds it as argument to the goto function so the user navigates to that directory
 function goToMenu {
-    if [[ $1 == '-h' ]]; then menuType="history"; else menuType="favorites"; fi
-    # handles the case when the directory chosen for visiting does not exist
-    function handleMissingDirectory {
-	clear;
-	echo "Invalid path $dirPath";
-	echo 'The directory might have been moved or deleted.';
-	echo;
-	echo 'Please choose the required action: ';
-	echo '!r to remove the directory from the menus';
-	echo '!m to map to an existing directory';
-	echo '! to quit';
-	echo;
-	read -e userChoice;
-	# user chooses to remove the entry from menus (consolidated history and/or favorites)
-	if [[ $userChoice == '!r' ]]; then
-	    "$pythonPath" "$scriptDir"/.remove_missing_dir.py "$dirPath"
-	# user chooses to replace the directory entry with another (existing) path
-	elif [[ $userChoice == '!m' ]]; then
-	    clear;
-	    echo "Missing directory: $dirPath";
-	    echo;
-	    echo 'Enter the name of the replacing directory: ';
-	    read -e replacingDir;
-	    # the mapping directory should exist and be a valid directory
-	    if [[ ! -d "$replacingDir" ]]; then
-		echo;
-		echo "Directory $replacingDir does not exist or has been deleted.";
-		echo;
-		echo "Mapping failed.";
-		return 1;
-	    fi
-	    # ensure the absolute path of the replacing directory is obtained (we need it to grep into the files)
-	    cd "$replacingDir";
-	    replacingDir=`pwd`;
-	    cd - > /dev/null;
-	    # do the actual mapping in the files
-	    "$pythonPath" "$scriptDir"/.map_missing_dir.py "$dirPath" "$replacingDir"
-	elif [[ $userChoice == '!' ]]; then
-	    clear;
-	    echo "You exited the $menuType menu.";
-	else
-	    # handle the input as "normal" navigation input
-	    navigationInput="$userChoice";
-	    forwardUserInput=true;
-	fi
-    }
-
     # Step 1: provide input for choosing a path from history/favorites
     if [[ -z "$2" ]]; then
 	"$pythonPath" "$scriptDir"/.choose_path_from_menu.py "$1";
@@ -123,8 +76,11 @@ function goToMenu {
 	forwardUserInput=true;
     elif [[ "$dirPath" != ":2" ]] && [[ "$dirPath" != ":3" ]] && [[ "$dirPath" != ":4" ]]; then
 	if [[ ! -d "$dirPath" ]]; then
-	    handleMissingDirectory;
-	    unset -f handleMissingDirectory;
+	    "$pythonPath" "$scriptDir"/.handle_missing_dir.py "$dirPath" "$1"
+	    if [[ `head -1 $output_storage_file` == ":1" ]]; then
+		navigationInput=`head -1 $input_storage_file`;
+		forwardUserInput=true;
+	    fi
 	    return 1;
 	fi
 	goToDir "$dirPath";
@@ -364,7 +320,6 @@ function navigate {
 }
 #
 # Disable all "private" functions so they cannot be accessed by user from CLI
-unset -f handleMissingDirectory;
 unset -f goToCommandMenu;
 unset -f repeatPrevCommand;
 unset -f editAndExecCmdFromHistory;

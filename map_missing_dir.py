@@ -9,15 +9,12 @@ e_hist_file = home_dir + ".excluded_history"
 fav_file = home_dir + ".goto_favorites"
 l_hist_file = home_dir + ".goToLogs/" + datetime.datetime.now().strftime("%Y%m%d")
 
-# it is assumed that correct absolute paths are being provided by calling script as first two arguments (to be corrected later)
-path_to_replace = sys.argv[1]
-replacing_path = sys.argv[2]
 # global variables (to be corrected later)
 e_hist_dict = {}
 p_hist_dict = {}
 fav_content = []
 
-def replaceDir():
+def replaceDir(path_to_replace, replacing_path):
     fav_built = False
     is_path_to_replace_in_fav = False
     re_sort_p_hist = False
@@ -26,10 +23,10 @@ def replaceDir():
     # first remove the dir to be replaced from the daily log file if there
     with open(l_hist_file, "a") as l_hist:
         l_hist.write("")
-    removePathFromTempHistoryFile(l_hist_file)
+    removePathFromTempHistoryFile(l_hist_file, path_to_replace)
 
     # remove from recent history if there
-    removed_from_r_hist = removePathFromTempHistoryFile(r_hist_file)
+    removed_from_r_hist = removePathFromTempHistoryFile(r_hist_file, path_to_replace)
 
     # handle persistent and excluded history files update
     buildHistDict(p_hist_dict, p_hist_file)
@@ -133,12 +130,12 @@ def writeBackToFav():
             fav.write(entry + '\n')
 
 # duplicate from remove_missing_dir.py, remove later
-def removePathFromTempHistoryFile(hist_file):
+def removePathFromTempHistoryFile(hist_file, path):
     item_contained_in_hist_file = False
     hist_content = []
     with open(hist_file, "r") as hist:
         for entry in hist.readlines():
-            if entry.strip('\n') == path_to_replace:
+            if entry.strip('\n') == path:
                 item_contained_in_hist_file = True
             else:
                 hist_content.append(entry)
@@ -147,5 +144,3 @@ def removePathFromTempHistoryFile(hist_file):
             for entry in hist_content:
                 hist.write(entry)
     return item_contained_in_hist_file
-
-replaceDir()

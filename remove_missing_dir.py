@@ -9,17 +9,14 @@ e_hist_file = home_dir + ".excluded_history"
 fav_file = home_dir + ".goto_favorites"
 l_hist_file = home_dir + ".goToLogs/" + datetime.datetime.now().strftime("%Y%m%d")
 
-# it is assumed that a correct absolute path is provided by calling script as first argument (to be corrected later)
-path_to_remove = sys.argv[1]
-
-def removeDir():
+def removeDir(path_to_remove):
     removed_from_p_hist = False
     # first remove it from the daily log file if there
     with open(l_hist_file, "a") as l_hist:
         l_hist.write("")
-    removePathFromTempHistoryFile(l_hist_file)
+    removePathFromTempHistoryFile(l_hist_file, path_to_remove)
     # remove from recent history if there
-    removed_from_r_hist = removePathFromTempHistoryFile(r_hist_file)
+    removed_from_r_hist = removePathFromTempHistoryFile(r_hist_file, path_to_remove)
     # check if directory is contained in favorites
     # - if yes: remove it from favorites file and excluded history
     # - if not: remove it from persistent history
@@ -35,16 +32,16 @@ def removeDir():
         with open(fav_file, "w") as fav:
             for entry in fav_content:
                 fav.write(entry)
-        removePathFromPermHistoryFile(e_hist_file)
+        removePathFromPermHistoryFile(e_hist_file, path_to_remove)
     else:
-        removed_from_p_hist = removePathFromPermHistoryFile(p_hist_file)
+        removed_from_p_hist = removePathFromPermHistoryFile(p_hist_file, path_to_remove)
     # consolidate history only if modified
     if removed_from_r_hist == True or removed_from_p_hist == True:
         conshist.consolidate()
     print("")
     print("Entry " + path_to_remove + " has been removed from the menus.")
 
-def removePathFromTempHistoryFile(hist_file):
+def removePathFromTempHistoryFile(hist_file, path_to_remove):
     item_contained_in_hist_file = False
     hist_content = []
     with open(hist_file, "r") as hist:
@@ -59,7 +56,7 @@ def removePathFromTempHistoryFile(hist_file):
                 hist.write(entry)
     return item_contained_in_hist_file
 
-def removePathFromPermHistoryFile(hist_file):
+def removePathFromPermHistoryFile(hist_file, path_to_remove):
     item_contained_in_hist_file = False
     hist_content = []
     with open(hist_file, "r") as hist:
@@ -73,5 +70,3 @@ def removePathFromPermHistoryFile(hist_file):
         with open(hist_file, "w") as hist:
             for entry in hist_content:
                 hist.write(entry)
-
-removeDir()
