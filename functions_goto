@@ -62,6 +62,7 @@ function goToDir {
 
 # This function reads a line either from the favorites or the history file and feeds it as argument to the goto function so the user navigates to that directory
 function goToMenu {
+    if [[ $1 == '-h' ]]; then menuType="history"; else menuType="favorites"; fi
     # handles the case when the directory chosen for visiting does not exist
     function handleMissingDirectory {
 	clear;
