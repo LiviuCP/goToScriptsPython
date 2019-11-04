@@ -60,7 +60,7 @@ def handleMissingDir():
             os.system(command)
 
             with open(output_storage_file, "r") as output_storage:
-                replacingDirPath = output_storage.readline()
+                replacingDirPath = output_storage.readline().strip('\n')
             if replacingDirPath == ":4":
                 print("")
                 print("The chosen replacing directory (" + replacingDir + ") does not exist or has been deleted")
