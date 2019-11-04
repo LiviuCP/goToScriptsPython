@@ -38,7 +38,7 @@ def removeDir(path_to_remove):
     # consolidate history only if modified
     if removed_from_r_hist == True or removed_from_p_hist == True:
         conshist.consolidate()
-    print("")
+    os.system("clear")
     print("Entry " + path_to_remove + " has been removed from the menus.")
 
 def removePathFromTempHistoryFile(hist_file, path_to_remove):

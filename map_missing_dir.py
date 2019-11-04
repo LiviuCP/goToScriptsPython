@@ -90,8 +90,9 @@ def replaceDir(path_to_replace, replacing_path):
         conshist.consolidate()
 
     # confirm mapping
-    print("")
-    print("Missing directory " + path_to_replace + " replaced with: " + replacing_path)
+    os.system("clear")
+    print("Missing directory: " + path_to_replace)
+    print("Replacing directory: "+ replacing_path)
     print("")
     print("Mapping performed successfully.")
 

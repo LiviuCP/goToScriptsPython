@@ -65,9 +65,8 @@ def handleMissingDir():
                 print("")
                 print("The chosen replacing directory (" + replacingDir + ") does not exist or has been deleted")
                 print("")
-                print("Mapping failed.")
+                print("Cannot perform mapping.")
             else:
-                print ("Replacing dir absolute path is: " + replacingDirPath)
                 map_missing_dir.replaceDir(missingDirPath, replacingDirPath)
             outcome = ":0"
         elif userChoice == "!":
