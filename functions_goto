@@ -103,28 +103,24 @@ function navigate {
 		commandResult=`head -1 $output_storage_file`;
 	    else
 		# edit the chosen command prior to executing
-		editAndExecCmdFromHistory;
+		echo 'Please edit the below command and hit ENTER to execute';
+		echo '(press : and hit ENTER to quit):';
+		echo;
+		read -e -i "$commandHistoryEntry" commandToExecute;
+		if [[ $? != 0 ]]; then
+		    clear;
+		    echo 'This command is only available in BASH 4';
+		    echo 'Please install the appropriate BASH version';
+		elif [[ -z "$commandToExecute" ]] || [[ "$commandToExecute" =~ :$ ]]; then
+		    clear;
+		    echo 'Command aborted. You returned to navigation menu';
+		else
+		    clear;
+		    prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
+		    "$pythonPath" "$scriptDir"/execute_new_command.py "$commandToExecute";
+		    commandResult=`head -1 $output_storage_file`;
+		fi
 	    fi
-	fi
-    }
-    # helper function that feeds a previously executed command (from command history) to user for editing prior to having it executed
-    function editAndExecCmdFromHistory {
-	echo 'Please edit the below command and hit ENTER to execute';
-	echo '(press : and hit ENTER to quit):';
-	echo;
-	read -e -i "$commandHistoryEntry" commandToExecute;
-	if [[ $? != 0 ]]; then
-	    clear;
-	    echo 'This command is only available in BASH 4';
-	    echo 'Please install the appropriate BASH version';
-	elif [[ -z "$commandToExecute" ]] || [[ "$commandToExecute" =~ :$ ]]; then
-	    clear;
-	    echo 'Command aborted. You returned to navigation menu';
-	else
-	    clear;
-	    prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
-	    "$pythonPath" "$scriptDir"/execute_new_command.py "$commandToExecute";
-	    commandResult=`head -1 $output_storage_file`;
 	fi
     }
     # helper function for executing a new command based on the string of the previously executed shell command
@@ -252,7 +248,6 @@ function navigate {
 	if [[ $navigationInput == '!' ]]; then
 	    echo 'You exited navigation mode.';
 	    unset -f goToCommandMenu;
-	    unset -f editAndExecCmdFromHistory;
 	    unset -f execCommandBasedOnPrevInput;
 	    unset -f handleNavigationOption;
 	    return 0;
@@ -262,6 +257,5 @@ function navigate {
 
 # Disable all "private" functions so they cannot be accessed by user from CLI
 unset -f goToCommandMenu;
-unset -f editAndExecCmdFromHistory;
 unset -f execCommandBasedOnPrevInput;
 unset -f handleNavigationOption;
