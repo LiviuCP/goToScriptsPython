@@ -114,15 +114,6 @@ function navigate {
 	    fi
 	fi
     }
-    # helper function for executing previous shell command again
-    function repeatPrevCommand {
-	if [[ -z $prevCommand ]]; then
-	    echo 'No shell command previously executed';
-	else
-	    "$pythonPath" "$scriptDir"/execute_new_command.py "$prevCommand";
-	    commandResult=`head -1 $output_storage_file`;
-	fi
-    }
     # helper function that feeds a previously executed command (from command history) to user for editing prior to having it executed
     function editAndExecCmdFromHistory {
 	echo 'Please edit the below command and hit ENTER to execute';
@@ -186,7 +177,12 @@ function navigate {
 	    "$pythonPath" "$scriptDir"/display_help.py;
 	    ;;
 	':-')
-	    repeatPrevCommand;
+	    if [[ -z $prevCommand ]]; then
+		echo 'No shell command previously executed';
+	    else
+		"$pythonPath" "$scriptDir"/execute_new_command.py "$prevCommand";
+		commandResult=`head -1 $output_storage_file`;
+	    fi
 	    ;;
 	':')
 	    execCommandBasedOnPrevInput;
@@ -267,7 +263,6 @@ function navigate {
 	if [[ $navigationInput == '!' ]]; then
 	    echo 'You exited navigation mode.';
 	    unset -f goToCommandMenu;
-	    unset -f repeatPrevCommand;
 	    unset -f editAndExecCmdFromHistory;
 	    unset -f handleGeneralInput;
 	    unset -f execCommandBasedOnPrevInput;
@@ -279,7 +274,6 @@ function navigate {
 
 # Disable all "private" functions so they cannot be accessed by user from CLI
 unset -f goToCommandMenu;
-unset -f repeatPrevCommand;
 unset -f editAndExecCmdFromHistory;
 unset -f execCommandBasedOnPrevInput;
 unset -f handleGeneralInput;
