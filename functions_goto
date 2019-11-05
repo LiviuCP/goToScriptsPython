@@ -21,7 +21,6 @@ pythonPath='/usr/bin/python3'
 #
 # This function is used for navigating to a new directory; if cd is successful the visited path is memorized into navigation history
 function goToDir {
-    #
     # Step 1: if an argument was entered check that the argument is valid (entered path exists and is a directory);
     if [[ ! -z $1 ]] && [[ ! -d $1 ]]; then
 	if [[ -e $1 ]]; then
@@ -32,7 +31,6 @@ function goToDir {
 	echo 'Either is the name invalid (please check spelling) or the directory has been deleted.';
 	return 1;  
     fi
-    #
     # Step 2: memorize current directory and cd to the new directory (if no argument had been entered, cd to the user home directory)
     prevDir=`pwd`; #current directory will become previous current directory (needs to be stored for being added to the history file)
     if [[ -z $1 ]]; then
@@ -40,14 +38,12 @@ function goToDir {
     else
 	cd "$1";
     fi
-    #
     # Step 3: check if the cd operation has been successful
     if [[ $? != 0 ]]; then 
 	echo 'Cannot change directory, the cd command returned an error.';
 	echo 'Please try again.';
 	return 1;  
     fi
-    #
     # Step 4: if cd was done to a different directory than the previous one, update the individual history files and then consolidate recent and persistent history
     currentDir=`pwd`;
     clear;
@@ -280,7 +276,7 @@ function navigate {
 	fi
     done
 }
-#
+
 # Disable all "private" functions so they cannot be accessed by user from CLI
 unset -f goToCommandMenu;
 unset -f repeatPrevCommand;
