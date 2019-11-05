@@ -87,16 +87,6 @@ function goToMenu {
     fi
 }
 
-# used for returning to the previously visited directory without needing to access the history or favorites menus
-function goToPrevDir {
-    if [[ $prevDir == '' ]]; then
-	echo 'Cannot jump to previous directory.';
-	echo 'No directory visited in the current session.';
-	return 1;
-    fi
-    goToDir "$prevDir";
-}
-
 # This function is used to enter navigation mode
 # In this mode the user can repeatedly visit directories by only entering the name of each folder (absolute path, relative path - including wildcards)
 # It is also possible to access other functions like history/favorites, goto previous directory etc.
@@ -225,7 +215,12 @@ function navigate {
 	    goToMenu -f "$secondArg";
 	    ;;
 	',')
-	    goToPrevDir;
+	    if [[ $prevDir == '' ]]; then
+		echo 'Cannot jump to previous directory.';
+		echo 'No directory visited in the current session.';
+	    else
+		goToDir "$prevDir";
+	    fi
 	    ;;
 	'+>')
 	    "$pythonPath" "$scriptDir"/.add_dir_to_favorites.py
