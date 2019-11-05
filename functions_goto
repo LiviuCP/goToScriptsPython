@@ -15,9 +15,9 @@ editPrevCommand=false; #variable used for determinining if an entry from command
 pythonPath='/usr/bin/python3'
 
 # initialize the environment, ensure the navigation and command history menus are sorted/consolidated
-"$pythonPath" "$scriptDir"/.init.py
-"$pythonPath" "$scriptDir"/.consolidate_history.py
-"$pythonPath" "$scriptDir"/.consolidate_command_history.py
+"$pythonPath" "$scriptDir"/init.py
+"$pythonPath" "$scriptDir"/consolidate_history.py
+"$pythonPath" "$scriptDir"/consolidate_command_history.py
 #
 # This function is used for navigating to a new directory; if cd is successful the visited path is memorized into navigation history
 function goToDir {
@@ -56,17 +56,17 @@ function goToDir {
     if [[ $currentDir == $prevDir ]]; then
 	return 0;
     fi
-    "$pythonPath" "$scriptDir"/.update_individual_history_files.py "$currentDir"
-    "$pythonPath" "$scriptDir"/.consolidate_history.py
+    "$pythonPath" "$scriptDir"/update_individual_history_files.py "$currentDir"
+    "$pythonPath" "$scriptDir"/consolidate_history.py
 }
 
 # This function reads a line either from the favorites or the history file and feeds it as argument to the goto function so the user navigates to that directory
 function goToMenu {
     # Step 1: provide input for choosing a path from history/favorites
     if [[ -z "$2" ]]; then
-	"$pythonPath" "$scriptDir"/.choose_path_from_menu.py "$1";
+	"$pythonPath" "$scriptDir"/choose_path_from_menu.py "$1";
     else
-	"$pythonPath" "$scriptDir"/.choose_path_from_menu.py "$1" "$2";
+	"$pythonPath" "$scriptDir"/choose_path_from_menu.py "$1" "$2";
     fi
 
     # Step 2: handle python script output (navigate only if a valid and existing path has been chosen)
@@ -76,7 +76,7 @@ function goToMenu {
 	forwardUserInput=true;
     elif [[ "$dirPath" != ":2" ]] && [[ "$dirPath" != ":3" ]] && [[ "$dirPath" != ":4" ]]; then
 	if [[ ! -d "$dirPath" ]]; then
-	    "$pythonPath" "$scriptDir"/.handle_missing_dir.py "$dirPath" "$1"
+	    "$pythonPath" "$scriptDir"/handle_missing_dir.py "$dirPath" "$1"
 	    if [[ `head -1 $output_storage_file` == ":1" ]]; then
 		navigationInput=`head -1 $input_storage_file`;
 		forwardUserInput=true;
@@ -95,9 +95,9 @@ function navigate {
     function goToCommandMenu {
 	# Step 1: handle user input
 	if [[ $editPrevCommand == false ]]; then
-	    "$pythonPath" "$scriptDir"/.choose_command_from_menu.py --execute
+	    "$pythonPath" "$scriptDir"/choose_command_from_menu.py --execute
 	else
-	    "$pythonPath" "$scriptDir"/.choose_command_from_menu.py --edit
+	    "$pythonPath" "$scriptDir"/choose_command_from_menu.py --edit
 	fi
 
 	# Step 2: handle python script output (handle command edit/execution only if a valid command has been chosen from menu file)
@@ -110,7 +110,7 @@ function navigate {
 		# execute the actual command from command history menu
 		commandToExecute="$commandHistoryEntry";
 		prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
-		"$pythonPath" "$scriptDir"/.execute_new_command.py "$commandToExecute";
+		"$pythonPath" "$scriptDir"/execute_new_command.py "$commandToExecute";
 		commandResult=`head -1 $output_storage_file`;
 	    else
 		# edit the chosen command prior to executing
@@ -123,7 +123,7 @@ function navigate {
 	if [[ -z $prevCommand ]]; then
 	    echo 'No shell command previously executed';
 	else
-	    "$pythonPath" "$scriptDir"/.execute_new_command.py "$prevCommand";
+	    "$pythonPath" "$scriptDir"/execute_new_command.py "$prevCommand";
 	    commandResult=`head -1 $output_storage_file`;
 	fi
     }
@@ -143,7 +143,7 @@ function navigate {
 	else
 	    clear;
 	    prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
-	    "$pythonPath" "$scriptDir"/.execute_new_command.py "$commandToExecute";
+	    "$pythonPath" "$scriptDir"/execute_new_command.py "$commandToExecute";
 	    commandResult=`head -1 $output_storage_file`;
 	fi
     }
@@ -153,7 +153,7 @@ function navigate {
 	if [[ ${navigationInput:0:1} == ':' ]]; then
 	    commandToExecute=${navigationInput:1};
 	    prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
-	    "$pythonPath" "$scriptDir"/.execute_new_command.py "$commandToExecute";
+	    "$pythonPath" "$scriptDir"/execute_new_command.py "$commandToExecute";
 	    commandResult=`head -1 $output_storage_file`;
 	else
 	    goToDir `echo "$navigationInput"`;
@@ -179,7 +179,7 @@ function navigate {
 	else
 	    clear;
 	    prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
-	    "$pythonPath" "$scriptDir"/.execute_new_command.py "$commandToExecute";
+	    "$pythonPath" "$scriptDir"/execute_new_command.py "$commandToExecute";
 	    commandResult=`head -1 $output_storage_file`;
 	fi
     }
@@ -187,7 +187,7 @@ function navigate {
     function handleNavigationOption {
 	case $navigationInput in
 	'?')
-	    "$pythonPath" "$scriptDir"/.display_help.py;
+	    "$pythonPath" "$scriptDir"/display_help.py;
 	    ;;
 	':-')
 	    repeatPrevCommand;
@@ -204,7 +204,7 @@ function navigate {
 	    goToCommandMenu;
 	    ;;
 	':<>')
-	    "$pythonPath" "$scriptDir"/.clear_command_history.py;
+	    "$pythonPath" "$scriptDir"/clear_command_history.py;
 	    ;;
 	'<'*)
 	    secondArg=${navigationInput:1};
@@ -223,10 +223,10 @@ function navigate {
 	    fi
 	    ;;
 	'+>')
-	    "$pythonPath" "$scriptDir"/.add_dir_to_favorites.py
+	    "$pythonPath" "$scriptDir"/add_dir_to_favorites.py
 	    ;;
 	'->')
-	    "$pythonPath" "$scriptDir"/.remove_dir_from_favorites.py;
+	    "$pythonPath" "$scriptDir"/remove_dir_from_favorites.py;
 	    if [[ $? == 2 ]]; then
 		# handle the input as "normal" navigation input
 		navigationInput=`head -1 $input_storage_file`;
@@ -234,7 +234,7 @@ function navigate {
 	    fi
 	    ;;
 	'!<>')
-	    "$pythonPath" "$scriptDir"/.clear_history.py;
+	    "$pythonPath" "$scriptDir"/clear_history.py;
 	    ;;
 	'!')
 	    return 0;
@@ -252,9 +252,9 @@ function navigate {
     while [[ '1' == '1' ]]; do
 	if [[ $navigationInput != "?" ]]; then
 	    if [[ -z $prevCommand ]]; then
-		"$pythonPath" "$scriptDir"/.display_general_navigation_output.py;
+		"$pythonPath" "$scriptDir"/display_general_navigation_output.py;
 	    else
-		"$pythonPath" "$scriptDir"/.display_general_navigation_output.py "$prevCommand" "$commandResult";
+		"$pythonPath" "$scriptDir"/display_general_navigation_output.py "$prevCommand" "$commandResult";
 	    fi
 	fi
 	read -e navigationInput;
