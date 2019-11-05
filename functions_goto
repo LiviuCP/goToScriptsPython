@@ -101,14 +101,13 @@ function goToPrevDir {
 function removeFromFavorites {
     "$pythonPath" "$scriptDir"/.remove_dir_from_favorites.py;
     exit_code=$?;
-    if [[ $exit_code == 1 || $exit_code == 0 ]]; then
-	return $exit_code;
-    elif [[ $exit_code == 2 ]]; then
+    if [[ $exit_code == 2 ]]; then
 	# handle the input as "normal" navigation input
 	navigationInput=`head -1 $input_storage_file`;
 	forwardUserInput=true;
 	return 0;
     fi
+    return $exit_code;
 }
 
 # This function is used to enter navigation mode
