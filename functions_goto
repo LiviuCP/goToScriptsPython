@@ -1,8 +1,4 @@
-# This file contains functions used for:
-# - navigating between folders
-# - tracking history of navigated folders and enabling the user to jump directly to one of these directories by choosing the entry number
-# - adding directories to favorites menu and enabling jumping to one of these by just choosing the entry number
-
+# This file contains functions used for: navigating between folders, tracking history of navigated folders, adding dirs to favorites menu, etc.
 scriptDir=~; #get script directory in order to build the paths of the supporting files
 prevDir=''; #this variable is used both by the goto function and the function that jumps to previous directory
 #
@@ -18,7 +14,7 @@ pythonPath='/usr/bin/python3'
 "$pythonPath" "$scriptDir"/init.py
 "$pythonPath" "$scriptDir"/consolidate_history.py
 "$pythonPath" "$scriptDir"/consolidate_command_history.py
-#
+
 # This function is used for navigating to a new directory; if cd is successful the visited path is memorized into navigation history
 function goToDir {
     # Step 1: if an argument was entered check that the argument is valid (entered path exists and is a directory);
@@ -83,9 +79,7 @@ function goToMenu {
     fi
 }
 
-# This function is used to enter navigation mode
-# In this mode the user can repeatedly visit directories by only entering the name of each folder (absolute path, relative path - including wildcards)
-# It is also possible to access other functions like history/favorites, goto previous directory etc.
+# This function is used to enter the directory navigation console (no cd required but only the dir name including wildcards; for commands use ':')
 function navigate {
     # accesses the menu with the most recent executed commands, user can choose one entry to execute that command again
     function goToCommandMenu {
@@ -95,7 +89,6 @@ function navigate {
 	else
 	    "$pythonPath" "$scriptDir"/choose_command_from_menu.py --edit
 	fi
-
 	# Step 2: handle python script output (handle command edit/execution only if a valid command has been chosen from menu file)
 	commandHistoryEntry=`head -1 $output_storage_file`;
 	if [[ "$commandHistoryEntry" == ":1" ]]; then
