@@ -127,18 +127,6 @@ function navigate {
 	    commandResult=`head -1 $output_storage_file`;
 	fi
     }
-    # helper function for handling general input (new commands or directories to navigate to)
-    function handleGeneralInput {
-	# A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
-	if [[ ${navigationInput:0:1} == ':' ]]; then
-	    commandToExecute=${navigationInput:1};
-	    prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
-	    "$pythonPath" "$scriptDir"/execute_new_command.py "$commandToExecute";
-	    commandResult=`head -1 $output_storage_file`;
-	else
-	    goToDir `echo "$navigationInput"`;
-	fi
-    }
     # helper function for executing a new command based on the string of the previously executed shell command
     function execCommandBasedOnPrevInput {
 	if [[ -z "$prevCommand" ]]; then
@@ -225,7 +213,15 @@ function navigate {
 	    return 0;
 	    ;;
 	*)
-	    handleGeneralInput;
+	    # handle general input (the above cases are "special input")
+	    if [[ ${navigationInput:0:1} == ':' ]]; then # A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
+		commandToExecute=${navigationInput:1};
+		prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
+		"$pythonPath" "$scriptDir"/execute_new_command.py "$commandToExecute";
+		commandResult=`head -1 $output_storage_file`;
+	    else
+		goToDir `echo "$navigationInput"`;
+	    fi
 	    ;;
 	esac
     }
@@ -257,7 +253,6 @@ function navigate {
 	    echo 'You exited navigation mode.';
 	    unset -f goToCommandMenu;
 	    unset -f editAndExecCmdFromHistory;
-	    unset -f handleGeneralInput;
 	    unset -f execCommandBasedOnPrevInput;
 	    unset -f handleNavigationOption;
 	    return 0;
@@ -269,5 +264,4 @@ function navigate {
 unset -f goToCommandMenu;
 unset -f editAndExecCmdFromHistory;
 unset -f execCommandBasedOnPrevInput;
-unset -f handleGeneralInput;
 unset -f handleNavigationOption;
