@@ -97,19 +97,6 @@ function goToPrevDir {
     goToDir "$prevDir";
 }
 
-# this function removes the entry from favorites and moves it back to persistent history
-function removeFromFavorites {
-    "$pythonPath" "$scriptDir"/.remove_dir_from_favorites.py;
-    exit_code=$?;
-    if [[ $exit_code == 2 ]]; then
-	# handle the input as "normal" navigation input
-	navigationInput=`head -1 $input_storage_file`;
-	forwardUserInput=true;
-	return 0;
-    fi
-    return $exit_code;
-}
-
 # This function is used to enter navigation mode
 # In this mode the user can repeatedly visit directories by only entering the name of each folder (absolute path, relative path - including wildcards)
 # It is also possible to access other functions like history/favorites, goto previous directory etc.
@@ -244,7 +231,12 @@ function navigate {
 	    "$pythonPath" "$scriptDir"/.add_dir_to_favorites.py
 	    ;;
 	'->')
-	    removeFromFavorites;
+	    "$pythonPath" "$scriptDir"/.remove_dir_from_favorites.py;
+	    if [[ $? == 2 ]]; then
+		# handle the input as "normal" navigation input
+		navigationInput=`head -1 $input_storage_file`;
+		forwardUserInput=true;
+	    fi
 	    ;;
 	'!<>')
 	    "$pythonPath" "$scriptDir"/.clear_history.py;
