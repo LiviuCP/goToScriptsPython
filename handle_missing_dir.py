@@ -62,9 +62,9 @@ def handleMissingDir():
             with open(output_storage_file, "r") as output_storage:
                 replacingDirPath = output_storage.readline().strip('\n')
             if replacingDirPath == ":4":
-                print("")
-                print("The chosen replacing directory (" + replacingDir + ") does not exist or has been deleted")
-                print("")
+                os.system("clear")
+                print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted or you might not have the required access level.")
+
                 print("Cannot perform mapping.")
             else:
                 map_missing_dir.replaceDir(missingDirPath, replacingDirPath)
