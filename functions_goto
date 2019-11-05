@@ -97,30 +97,6 @@ function goToPrevDir {
     goToDir "$prevDir";
 }
 
-# used for adding a directory (either the current one or another) to favorites
-function addToFavorites {
-    #
-    # Step 1: check if the user entered an argument or not
-    # - the argument is a relative/absolute path of a directory that should be added to the favorite dirs (if it exists)
-    # - if no argument was entered, the current directory will be added to favorites
-    if [[ ! -z "$1" ]]; then
-	if [[ ! -d "$1" ]]; then
-	    echo "Directory $1 does not exist or has been deleted.";
-	    echo 'Cannot add to favorites.';
-	    return 1;
-	fi
-	cd "$1";
-	dirToAdd=`pwd`;
-	cd - > /dev/null;
-    else
-	dirToAdd=`pwd`;
-    fi
-    #
-    # Step 2: append the path to the favorites file (create it if it does not exist)
-    #
-    "$pythonPath" "$scriptDir"/.add_dir_to_favorites.py "$dirToAdd";
-}
-
 # this function removes the entry from favorites and moves it back to persistent history
 function removeFromFavorites {
     "$pythonPath" "$scriptDir"/.remove_dir_from_favorites.py;
@@ -266,7 +242,7 @@ function navigate {
 	    goToPrevDir;
 	    ;;
 	'+>')
-	    addToFavorites;
+	    "$pythonPath" "$scriptDir"/.add_dir_to_favorites.py
 	    ;;
 	'->')
 	    removeFromFavorites;
