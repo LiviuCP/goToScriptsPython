@@ -123,30 +123,6 @@ function navigate {
 	    fi
 	fi
     }
-    # helper function for executing a new command based on the string of the previously executed shell command
-    function execCommandBasedOnPrevInput {
-	if [[ -z "$prevCommand" ]]; then
-	    echo 'No shell command previously executed. Enter a new command';
-	else
-	    echo 'Please edit the below command and hit ENTER to execute';
-	fi
-	echo '(press : and hit ENTER to quit):';
-	echo;
-	read -e -i "$prevCommand" commandToExecute;
-	if [[ $? != 0 ]]; then
-	    clear;
-	    echo 'This command is only available in BASH 4';
-	    echo 'Please install the appropriate BASH version';
-	elif [[ -z "$commandToExecute" ]] || [[ "$commandToExecute" =~ :$ ]]; then
-	    clear;
-	    echo 'Command aborted. You returned to navigation menu';
-	else
-	    clear;
-	    prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
-	    "$pythonPath" "$scriptDir"/execute_new_command.py "$commandToExecute";
-	    commandResult=`head -1 $output_storage_file`;
-	fi
-    }
     # helper function that handles all possible options entered by user in navigation mode
     function handleNavigationOption {
 	case $navigationInput in
@@ -162,7 +138,11 @@ function navigate {
 	    fi
 	    ;;
 	':')
-	    execCommandBasedOnPrevInput;
+	    "$pythonPath" "$scriptDir"/edit_and_exec_prev_command.py "$prevCommand";
+	    if [[ $? == 0 ]]; then
+		prevCommand=`head -1 $input_storage_file`;
+		commandResult=`head -1 $output_storage_file`;
+	    fi
 	    ;;
 	':<')
 	    editPrevCommand=false;
@@ -248,7 +228,6 @@ function navigate {
 	if [[ $navigationInput == '!' ]]; then
 	    echo 'You exited navigation mode.';
 	    unset -f goToCommandMenu;
-	    unset -f execCommandBasedOnPrevInput;
 	    unset -f handleNavigationOption;
 	    return 0;
 	fi
@@ -257,5 +236,4 @@ function navigate {
 
 # Disable all "private" functions so they cannot be accessed by user from CLI
 unset -f goToCommandMenu;
-unset -f execCommandBasedOnPrevInput;
 unset -f handleNavigationOption;
