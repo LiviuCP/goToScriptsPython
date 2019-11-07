@@ -1,5 +1,6 @@
 import os, datetime
 import consolidate_history as conshist
+import consolidate_command_history as cons_comm_hist
 from os.path import expanduser
 
 def init():
@@ -40,6 +41,7 @@ def init():
 
     # consolidate history
     conshist.consolidate()
+    cons_comm_hist.consolidate()
 
 def limit_entries_nr(file_path, max_entries):
     with open(file_path, "r") as f:

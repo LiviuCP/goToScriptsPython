@@ -1,6 +1,6 @@
 import sys, os, datetime
 from os.path import expanduser
-from consolidate_command_history1 import consolidate
+import consolidate_command_history as cons_comm_hist
 
 home_dir = expanduser("~") + "/"
 c_r_hist_file = home_dir + ".recent_command_history"
@@ -10,7 +10,7 @@ minNrOfCmdChars = 10
 def execute(commandToExecute):
     if len(commandToExecute) >= minNrOfCmdChars:
         updateIndividualCommandHistoryFiles(commandToExecute)
-        consolidate()
+        cons_comm_hist.consolidate()
 
     print("Command is being executed: " + commandToExecute)
     print("--------------------------")
