@@ -110,14 +110,9 @@ function navigate {
 	    goToMenu -f "$secondArg";
 	    ;;
 	',')
-	    if [[ $prevDir == '' ]]; then
-		echo 'Cannot jump to previous directory.';
-		echo 'No directory visited in the current session.';
-	    else
-		"$pythonPath" "$scriptDir"/go_to_dir.py "$prevDir";
-		prevDir=`head -1 $output_storage_file`;
-		cd "`head -1 $input_storage_file`";
-	    fi
+	    "$pythonPath" "$scriptDir"/go_to_dir.py "$prevDir";
+	    prevDir=`head -1 $output_storage_file`;
+	    cd "`head -1 $input_storage_file`";
 	    ;;
 	'+>')
 	    "$pythonPath" "$scriptDir"/add_dir_to_favorites.py
