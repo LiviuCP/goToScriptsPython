@@ -34,5 +34,3 @@ def consolidate():
             c_hist.write(entry[0] + '\n')
         for entry in sorted(p_hist_dict.items(), key = lambda k:(k[1].lower(), k[0])):
             c_hist.write(entry[0] + '\n')
-
-consolidate()

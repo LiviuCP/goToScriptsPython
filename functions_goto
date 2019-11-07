@@ -11,7 +11,6 @@ pythonPath='/usr/bin/python3'
 
 # initialize the environment, ensure the navigation and command history menus are sorted/consolidated
 "$pythonPath" "$scriptDir"/init.py
-"$pythonPath" "$scriptDir"/consolidate_history.py
 "$pythonPath" "$scriptDir"/consolidate_command_history.py
 
 # This function reads a line either from the favorites or the history file and feeds it as argument to the goto function so the user navigates to that directory
