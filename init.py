@@ -1,4 +1,5 @@
 import os, datetime
+import consolidate_history as conshist
 from os.path import expanduser
 
 def init():
@@ -36,6 +37,9 @@ def init():
     # create the log file for the current day if it does not exist
     with open(l_hist_file, "a") as l_hist:
         l_hist.write("")
+
+    # consolidate history
+    conshist.consolidate()
 
 def limit_entries_nr(file_path, max_entries):
     with open(file_path, "r") as f:
