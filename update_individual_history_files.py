@@ -1,8 +1,7 @@
 import sys, os, datetime
 from os.path import expanduser
 
-def update():
-    visited_dir_path = sys.argv[1]
+def update(visited_dir_path):
     r_hist_max_entries = 10
     home_dir = expanduser("~") + "/"
     r_hist_file = home_dir + ".recent_history"
@@ -80,5 +79,3 @@ def can_update_visits_in_history_file(hist_file, update_dict, visited_path):
             else:
                 update_dict[split_entry[0]] = int(split_entry[1])
     return entry_contained_in_file
-
-update()

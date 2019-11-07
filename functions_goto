@@ -1,6 +1,6 @@
 # This file contains functions used for: navigating between folders, tracking history of navigated folders, adding dirs to favorites menu, etc.
 scriptDir=~; #get script directory in order to build the paths of the supporting files
-prevDir=''; #this variable is used both by the goto function and the function that jumps to previous directory
+prevDir=`pwd`; #this variable is used by the function that jumps to previous directory (default is the current directory from which the script launches)
 #
 input_storage_file=$scriptDir/.store_input; # temporary solution for getting the user input from the python scripts connected to .functions_goto
 output_storage_file=$scriptDir/.store_output; # temporary solution for getting the python script output connected to .functions_goto
@@ -13,43 +13,6 @@ pythonPath='/usr/bin/python3'
 "$pythonPath" "$scriptDir"/init.py
 "$pythonPath" "$scriptDir"/consolidate_history.py
 "$pythonPath" "$scriptDir"/consolidate_command_history.py
-
-# This function is used for navigating to a new directory; if cd is successful the visited path is memorized into navigation history
-function goToDir {
-    # Step 1: if an argument was entered check that the argument is valid (entered path exists and is a directory);
-    if [[ ! -z $1 ]] && [[ ! -d $1 ]]; then
-	if [[ -e $1 ]]; then
-	    echo "$1 is not a directory.";
-	    return 1;
-	fi
-	echo "Invalid directory $1";
-	echo 'Either is the name invalid (please check spelling) or the directory has been deleted.';
-	return 1;  
-    fi
-    # Step 2: memorize current directory and cd to the new directory (if no argument had been entered, cd to the user home directory)
-    prevDir=`pwd`; #current directory will become previous current directory (needs to be stored for being added to the history file)
-    if [[ -z $1 ]]; then
-	cd ~ ;
-    else
-	cd "$1";
-    fi
-    # Step 3: check if the cd operation has been successful
-    if [[ $? != 0 ]]; then 
-	echo 'Cannot change directory, the cd command returned an error.';
-	echo 'Please try again.';
-	return 1;  
-    fi
-    # Step 4: if cd was done to a different directory than the previous one, update the individual history files and then consolidate recent and persistent history
-    currentDir=`pwd`;
-    clear;
-    echo "Previous directory: $prevDir";
-    echo "Opened directory: $currentDir";
-    if [[ $currentDir == $prevDir ]]; then
-	return 0;
-    fi
-    "$pythonPath" "$scriptDir"/update_individual_history_files.py "$currentDir"
-    "$pythonPath" "$scriptDir"/consolidate_history.py
-}
 
 # This function reads a line either from the favorites or the history file and feeds it as argument to the goto function so the user navigates to that directory
 function goToMenu {
@@ -74,7 +37,9 @@ function goToMenu {
 	    fi
 	    return 1;
 	fi
-	goToDir "$dirPath";
+	"$pythonPath" "$scriptDir"/go_to_dir.py "$dirPath" "$prevDir";
+	prevDir=`head -1 $output_storage_file`;
+	cd "`head -1 $input_storage_file`";
     fi
 }
 
@@ -149,7 +114,9 @@ function navigate {
 		echo 'Cannot jump to previous directory.';
 		echo 'No directory visited in the current session.';
 	    else
-		goToDir "$prevDir";
+		"$pythonPath" "$scriptDir"/go_to_dir.py "$prevDir";
+		prevDir=`head -1 $output_storage_file`;
+		cd "`head -1 $input_storage_file`";
 	    fi
 	    ;;
 	'+>')
@@ -177,7 +144,13 @@ function navigate {
 		"$pythonPath" "$scriptDir"/execute_new_command.py "$commandToExecute";
 		commandResult=`head -1 $output_storage_file`;
 	    else
-		goToDir `echo "$navigationInput"`;
+	        if [[ -z $navigationInput ]]; then
+		    "$pythonPath" "$scriptDir"/go_to_dir.py;
+		else
+		    "$pythonPath" "$scriptDir"/go_to_dir.py "$navigationInput" "$prevDir";
+		fi
+		prevDir=`head -1 $output_storage_file`;
+		cd "`head -1 $input_storage_file`";
 	    fi
 	    ;;
 	esac
