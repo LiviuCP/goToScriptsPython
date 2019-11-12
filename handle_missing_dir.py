@@ -13,17 +13,17 @@ output_storage_file = home_dir + ".store_output"
 # :2 - user exited the choose path dialog, no further actions
 # :3 - invalid or missing arguments
 # :4 - only used by current method (replacing directory does not exist)
-def handleMissingDir():
+def handleMissingDir(path, menu):
     # we need two arguments, one for missing directory path and second for menu type (history/favorites)
-    if len(sys.argv) < 3:
+    if path == "" or menu == "":
         print("handle_missing_dir.py: missing arguments")
         outcome = ":3"
-    elif sys.argv[2] != '-h' and sys.argv[2] != '-f':
+    elif menu != '-h' and menu != '-f':
         print("handle_missing_dir.py: invalid second argument")
         outcome = ":3"
     else:
-        missingDirPath = sys.argv[1]
-        menuType = "history" if sys.argv[2] == '-h' else "favorites"
+        missingDirPath = path
+        menuType = "history" if menu == '-h' else "favorites"
 
         os.system("clear")
         print("Invalid path " + missingDirPath)
@@ -79,7 +79,4 @@ def handleMissingDir():
                 input_storage.write(userChoice)
             outcome = ":1"
 
-        with open(output_storage_file, "w") as output_storage:
-            output_storage.write(outcome)
-
-handleMissingDir()
+    return outcome

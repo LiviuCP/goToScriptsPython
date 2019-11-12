@@ -12,28 +12,26 @@ output_storage_file = home_dir + ".store_output"
 # It can have following values: an absolute path or a specific code that indicates a certain behavior:
 # :1 - user input stored in .store_input, to be picked and forwarded by BASH
 # :2 - user exited the choose path dialog, no further actions
-# :3 - invalid or missing first argument sys.argv[1]
+# :3 - invalid or missing first argument sys.argv[1] (not used anymore)
 # :4 - empty history or favorites file
-def choosePath():
+def choosePath(file_choice, user_input = ""):
     path = ""
     outcome = "none"
     if len(sys.argv) == 1:
         print("no option provided")
         outcome = ":3"
     else:
-        file_choice = sys.argv[1]
-        already_provided_input = True if len(sys.argv) > 2 else False
+        already_provided_input = True if user_input != "" else False
         if file_choice == "-f": #favorites
-            outcome = chooseEntryFromFavoritesMenu(already_provided_input)
+            outcome = chooseEntryFromFavoritesMenu(already_provided_input, user_input).strip('\n')
         elif file_choice == "-h": #consolidated history
-            outcome = chooseEntryFromHistoryMenu(already_provided_input)
+            outcome = chooseEntryFromHistoryMenu(already_provided_input, user_input).strip('\n')
         else:
-            print("invalid option provided")
+            print("invalid argument provided")
             outcome = ":3"
-    with open(output_storage_file, "w") as output_storage:
-        output_storage.write(outcome)
+    return outcome
 
-def chooseEntryFromHistoryMenu(already_provided_input):
+def chooseEntryFromHistoryMenu(already_provided_input, provided_input):
     with open(hist_file, "r") as hist:
         hist_content = hist.readlines()
     if already_provided_input == False:
@@ -71,11 +69,11 @@ def chooseEntryFromHistoryMenu(already_provided_input):
             user_input = input()
             os.system("clear")
     else:
-        user_input = sys.argv[2]
+        user_input = provided_input
 
     return getOutput(user_input, hist_content)
 
-def chooseEntryFromFavoritesMenu(already_provided_input):
+def chooseEntryFromFavoritesMenu(already_provided_input, provided_input):
     with open(fav_file, "r") as fav:
         fav_content = fav.readlines()
     if already_provided_input == False:
@@ -102,7 +100,7 @@ def chooseEntryFromFavoritesMenu(already_provided_input):
             user_input = input()
             os.system("clear")
     else:
-        user_input = sys.argv[2]
+        user_input = provided_input
 
     return getOutput(user_input, fav_content)
 
@@ -131,5 +129,3 @@ def isValidInput(user_input, content):
     else:
         is_valid = False
     return is_valid
-
-choosePath()

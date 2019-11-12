@@ -1,19 +1,19 @@
 import sys, os
 from os.path import expanduser
-import consolidate_history1 as consolidate_hist
+import consolidate_history as consolidate_hist
 import update_individual_history_files as update_hist
 
 home_dir = expanduser("~") + "/"
 input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 
-def goTo():
+def goTo(gt_directory = "", prev_directory = ""):
     prevDir = os.getcwd()
 
-    if len(sys.argv) == 1:
+    if gt_directory == "":
         directory = home_dir
     else:
-        directory = sys.argv[1]
+        directory = gt_directory
 
     # build and execute command
     getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
@@ -41,10 +41,9 @@ def goTo():
         with open(input_storage_file, "w") as input_storage:
             input_storage.write(prevDir)
         # use the prev dir provided by BASH in case of error (so the previously visited dir remains the same)
-        #if len(sys.argv) >= 3:
-        prevDir = sys.argv[2]
+        prevDir = prev_directory
         print("Error when attempting to change directory! Possible causes: ")
-        print(" - chosen directory path does not exist")
+        print(" - chosen directory path does not exist or has been deleted")
         print(" - chosen path is not a directory")
         print(" - insufficient access rights")
         print("Please try again!")
@@ -52,5 +51,3 @@ def goTo():
     # used by BASH to determine the previous directory
     with open(output_storage_file, "w") as output_storage:
         output_storage.write(prevDir)
-
-goTo()
