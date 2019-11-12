@@ -9,7 +9,7 @@ input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 
 def visit_nav_menu():
-    if len(sys.argv) <= 3:
+    if len(sys.argv) < 3:
         print("Insufficient number of arguments")
         sys.exit(3)
     elif len(sys.argv) == 3:
