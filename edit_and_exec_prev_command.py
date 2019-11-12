@@ -6,7 +6,7 @@ home_dir = expanduser("~") + "/"
 input_storage_file = home_dir + ".store_input"
 
 def edit_and_exec():
-    if len(sys.argv) == 1:
+    if len(sys.argv) == 1 or sys.argv[1] == "":
         print("No shell command previously executed. Enter a new command")
     else:
         print("Please edit the below command and hit ENTER to execute")
