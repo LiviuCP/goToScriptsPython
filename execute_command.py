@@ -4,6 +4,7 @@ import consolidate_command_history as cons_comm_hist
 
 home_dir = expanduser("~") + "/"
 c_r_hist_file = home_dir + ".recent_command_history"
+input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 minNrOfCmdChars = 10
 
@@ -29,6 +30,9 @@ def execute(commandToExecute):
     # status message to be written instead of code so it's used by BASH to indicate how the last executed command finished (to be updated)
     with open(output_storage_file, "w") as output:
         output.write(printedStatus)
+    # forward input command to BASH for further usage
+    with open(input_storage_file, "w") as input_storage:
+        input_storage.write(commandToExecute)
 
     print("--------------------------")
     print("Command finished " + printedStatus + "! Scroll up to check output (if any) if it exceeds the screen.")

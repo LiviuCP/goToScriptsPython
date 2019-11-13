@@ -10,24 +10,19 @@ output_storage_file = home_dir + ".store_output"
 # It can have following values: a BASH command or a specific code that indicates a certain behavior:
 # :1 - user input stored in .store_input, to be picked and forwarded by BASH
 # :2 - user exited the choose path dialog, no further actions
-# :3 - invalid or missing first argument sys.argv[1]
+# :3 - invalid or missing first argument sys.argv[1] (no more used)
 # :4 - empty history or favorites file
-def chooseCommand():
-    command = ""
-    outcome = "none" #check if really needed
+def chooseCommand(mode = ""):
     editCommand = False
-
-    if len(sys.argv) == 1:
-        print("no option provided")
+    if mode == "":
+        print("no argument provided")
         outcome = ":3"
-    elif sys.argv[1] != "--edit" and sys.argv[1] != "--execute":
-        print("invalid option provided")
+    elif mode != "--edit" and mode != "--execute":
+        print("invalid argument provided")
         outcome = ":3"
     else:
-        outcome = chooseCommandFromHistoryMenu(sys.argv[1])
-
-    with open(output_storage_file, "w") as output_storage:
-        output_storage.write(outcome)
+        outcome = chooseCommandFromHistoryMenu(mode).strip('\n')
+    return outcome
 
 def chooseCommandFromHistoryMenu(mode):
     with open(c_hist_file, "r") as c_hist:
@@ -88,5 +83,3 @@ def isValidInput(user_input, content):
     else:
         is_valid = False
     return is_valid
-
-chooseCommand()
