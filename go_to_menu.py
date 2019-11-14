@@ -22,7 +22,9 @@ def visit_nav_menu():
         sys.exit(1) #forward user input
     elif dirPath == ":2":
         sys.exit(2)
-    elif dirPath != ":3" and dirPath != ":4":
+    elif dirPath == ":4":
+        sys.exit(4)
+    elif dirPath != ":3":
         if not os.path.isdir(dirPath):
             result = hmdir.handleMissingDir(dirPath, sys.argv[1])
             if result == ":1":

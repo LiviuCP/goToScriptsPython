@@ -39,6 +39,7 @@ def chooseEntryFromHistoryMenu(already_provided_input, provided_input):
         if len(hist_content) == 0:
             print("There are no entries in the history menu.")
             user_input = ""
+            return ":4" # to be fixed later, there should not be multiple return points within one function
         else:
             with open(r_hist_file, "r") as r_hist:
                 r_hist_entries = len(r_hist.readlines())
@@ -81,6 +82,7 @@ def chooseEntryFromFavoritesMenu(already_provided_input, provided_input):
         if (len(fav_content) == 0):
             print("There are no entries in the favorites menu.")
             user_input = ""
+            return ":4" # to be fixed later, there should not be multiple return points within one function
         else:
             print("FAVORITE DIRECTORIES")
             print("")

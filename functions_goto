@@ -59,22 +59,24 @@ function navigate {
 	    ;;
 	'<'*)
 	    navInput=${navigationInput:1};
-	    "$pythonPath" "$scriptDir"/go_to_menu.py "-h" "$prevDir" "$navInput"
-	    if [[ $? == 0 ]]; then
+	    "$pythonPath" "$scriptDir"/go_to_menu.py "-h" "$prevDir" "$navInput";
+	    result=$?;
+	    if [[ $result == 0 ]]; then
 		prevDir=`head -1 $output_storage_file`;
 		cd "`head -1 $input_storage_file`";
-	    elif [[ $? == 1 ]]; then
+	    elif [[ $result == 1 ]]; then
 		navigationInput=`head -1 $input_storage_file`;
 		forwardUserInput=true;
 	    fi
 	    ;;
 	'>'*)
 	    navInput=${navigationInput:1};
-	    "$pythonPath" "$scriptDir"/go_to_menu.py "-f" "$prevDir" "$navInput"
-	    if [[ $? == 0 ]]; then
+	    "$pythonPath" "$scriptDir"/go_to_menu.py "-f" "$prevDir" "$navInput";
+	    result=$?;
+	    if [[ $result == 0 ]]; then
 		prevDir=`head -1 $output_storage_file`;
 		cd "`head -1 $input_storage_file`";
-	    elif [[ $? == 1 ]]; then
+	    elif [[ $result == 1 ]]; then
 		navigationInput=`head -1 $input_storage_file`;
 		forwardUserInput=true;
 	    fi
