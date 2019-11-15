@@ -11,117 +11,6 @@ pythonPath='/usr/bin/python3'
 
 # This function is used to enter the directory navigation console (no cd required but only the dir name including wildcards; for commands use ':')
 function navigate {
-    # helper function that handles all possible options entered by user in navigation mode
-    function handleNavigationOption {
-	case $navigationInput in
-	'?')
-	    "$pythonPath" "$scriptDir"/display_help.py;
-	    ;;
-	':-')
-	    if [[ -z $prevCommand ]]; then
-		echo 'No shell command previously executed';
-	    else
-		"$pythonPath" "$scriptDir"/execute_new_command.py "$prevCommand";
-		commandResult=`head -1 $output_storage_file`;
-	    fi
-	    ;;
-	':')
-	    "$pythonPath" "$scriptDir"/wrapper_edit_and_exec_prev_command.py "$prevCommand";
-	    if [[ $? == 0 ]]; then
-		prevCommand=`head -1 $input_storage_file`;
-		commandResult=`head -1 $output_storage_file`;
-	    fi
-	    ;;
-	':<')
-	    "$pythonPath" "$scriptDir"/go_to_command_menu.py "--execute";
-	    result=$?;
-	    if [[ $result == 0 ]]; then
-		prevCommand=`head -1 $input_storage_file`;
-		commandResult=`head -1 $output_storage_file`;
-	    elif [[ $result == 1 ]]; then
-		navigationInput=`head -1 $input_storage_file`;
-		forwardUserInput=true;
-	    fi
-	    ;;
-	'::')
-	    "$pythonPath" "$scriptDir"/go_to_command_menu.py "--edit";
-	    result=$?;
-	    if [[ $result == 0 ]]; then
-		prevCommand=`head -1 $input_storage_file`;
-		commandResult=`head -1 $output_storage_file`;
-	    elif [[ $result == 1 ]]; then
-		navigationInput=`head -1 $input_storage_file`;
-		forwardUserInput=true;
-	    fi
-	    ;;
-	':<>')
-	    "$pythonPath" "$scriptDir"/clear_command_history.py;
-	    ;;
-	'<'*)
-	    navInput=${navigationInput:1};
-	    "$pythonPath" "$scriptDir"/go_to_menu.py "-h" "$prevDir" "$navInput";
-	    result=$?;
-	    if [[ $result == 0 ]]; then
-		prevDir=`head -1 $output_storage_file`;
-		cd "`head -1 $input_storage_file`";
-	    elif [[ $result == 1 ]]; then
-		navigationInput=`head -1 $input_storage_file`;
-		forwardUserInput=true;
-	    fi
-	    ;;
-	'>'*)
-	    navInput=${navigationInput:1};
-	    "$pythonPath" "$scriptDir"/go_to_menu.py "-f" "$prevDir" "$navInput";
-	    result=$?;
-	    if [[ $result == 0 ]]; then
-		prevDir=`head -1 $output_storage_file`;
-		cd "`head -1 $input_storage_file`";
-	    elif [[ $result == 1 ]]; then
-		navigationInput=`head -1 $input_storage_file`;
-		forwardUserInput=true;
-	    fi
-	    ;;
-	',')
-	    "$pythonPath" "$scriptDir"/wrapper_go_to_dir.py "$prevDir" "`pwd`";
-	    prevDir=`head -1 $output_storage_file`;
-	    cd "`head -1 $input_storage_file`";
-	    ;;
-	'+>')
-	    "$pythonPath" "$scriptDir"/add_dir_to_favorites.py
-	    ;;
-	'->')
-	    "$pythonPath" "$scriptDir"/remove_dir_from_favorites.py;
-	    if [[ $? == 2 ]]; then
-		# handle the input as "normal" navigation input
-		navigationInput=`head -1 $input_storage_file`;
-		forwardUserInput=true;
-	    fi
-	    ;;
-	'!<>')
-	    "$pythonPath" "$scriptDir"/clear_history.py;
-	    ;;
-	'!')
-	    return 0;
-	    ;;
-	*)
-	    # handle general input (the above cases are "special input")
-	    if [[ ${navigationInput:0:1} == ':' ]]; then # A string starting with ':' will be treated as a command (alternative way of entering new commands from navigation mode)
-		commandToExecute=${navigationInput:1};
-		prevCommand="$commandToExecute"; # memorize the command in a separate variable for later usage
-		"$pythonPath" "$scriptDir"/execute_new_command.py "$commandToExecute";
-		commandResult=`head -1 $output_storage_file`;
-	    else
-	        if [[ -z $navigationInput ]]; then
-		    "$pythonPath" "$scriptDir"/wrapper_go_to_dir.py;
-		else
-		    "$pythonPath" "$scriptDir"/wrapper_go_to_dir.py "$navigationInput" "$prevDir";
-		fi
-		prevDir=`head -1 $output_storage_file`;
-		cd "`head -1 $input_storage_file`";
-	    fi
-	    ;;
-	esac
-    }
     # stores last executed shell command (if any) and its result
     prevCommand='';
     commandResult='';
@@ -139,7 +28,21 @@ function navigate {
 	# stay in this loop as long as the function called by choosing a navigation option forwards user input back to the navigate function
 	while [[ '1' == '1' ]]; do
 	    clear;
-	    handleNavigationOption;
+	    "$pythonPath" "$scriptDir"/handle_navigation_option.py "$navigationInput" "$prevDir" "$prevCommand";
+	    result=$?;
+	    if [[ $result == 1 ]]; then
+		navigationInput=`head -1 $input_storage_file`;
+		forwardUserInput=true;
+	    elif [[ $result == 2 ]]; then
+		if [[ $? == 0 ]]; then
+		    prevCommand=`head -1 $input_storage_file`;
+		    commandResult=`head -1 $output_storage_file`;
+		fi
+	    elif [[ $result == 4 ]]; then
+		prevDir=`head -1 $output_storage_file`;
+		cd "`head -1 $input_storage_file`";
+	    fi
+
 	    if [[ $forwardUserInput == true ]]; then
 		forwardUserInput=false;
 	    else
@@ -147,12 +50,7 @@ function navigate {
 	    fi
 	done
 	if [[ $navigationInput == '!' ]]; then
-	    echo 'You exited navigation mode.';
-	    unset -f handleNavigationOption;
 	    return 0;
 	fi
     done
 }
-
-# Disable all "private" functions so they cannot be accessed by user from CLI
-unset -f handleNavigationOption;

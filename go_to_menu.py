@@ -8,29 +8,28 @@ home_dir = expanduser("~") + "/"
 input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 
-def visit_nav_menu():
-    if len(sys.argv) < 3:
+# to be solved: multiple return points!!!
+def visit_nav_menu(menuChoice = "", previousDir = "", userInput = ""):
+    if menuChoice == "" or previousDir == "":
         print("Insufficient number of arguments")
-        sys.exit(3)
-    elif len(sys.argv) == 3:
-        prevDir = sys.argv[2]
-        dirPath = menupath.choosePath(sys.argv[1])
+        return 3
+    elif userInput == "":
+        prevDir = previousDir
+        dirPath = menupath.choosePath(menuChoice)
     else:
-        prevDir = sys.argv[2]
-        dirPath = menupath.choosePath(sys.argv[1], sys.argv[3])
+        prevDir = previousDir
+        dirPath = menupath.choosePath(menuChoice, userInput)
     if dirPath == ":1":
-        sys.exit(1) #forward user input
+        return 1 #forward user input
     elif dirPath == ":2":
-        sys.exit(2)
+        return 2
     elif dirPath == ":4":
-        sys.exit(4)
+        return 4
     elif dirPath != ":3":
         if not os.path.isdir(dirPath):
-            result = hmdir.handleMissingDir(dirPath, sys.argv[1])
+            result = hmdir.handleMissingDir(dirPath, menuChoice)
             if result == ":1":
-                sys.exit(1) #forward user input
+                return 1 #forward user input
         else:
             gtdir.goTo(dirPath, prevDir)
-            sys.exit(0)
-
-visit_nav_menu()
+            return 0

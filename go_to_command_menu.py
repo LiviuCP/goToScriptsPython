@@ -8,29 +8,28 @@ home_dir = expanduser("~") + "/"
 input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 
-def visit_command_menu():
-    if len(sys.argv) < 2:
+# solve the multiple return points !!!
+def visit_command_menu(commandMode = ""):
+    if commandMode == "":
         print("Insufficient number of arguments")
-        sys.exit(3)
+        return 3
     else:
-        mode = sys.argv[1]
+        mode = commandMode
         commandHistoryEntry = menucommand.chooseCommand(mode)
 
     if commandHistoryEntry == ":1":
-        sys.exit(1) #forward user input
+        return 1 #forward user input
     elif commandHistoryEntry == ":2": #aborted by user
-        sys.exit(2)
+        return 2
     elif commandHistoryEntry != ":3" and commandHistoryEntry != ":4":
         if mode == "--execute":
             commandToExecute = commandHistoryEntry
             prevCommand = commandToExecute
             cmd.execute(commandToExecute)
-            sys.exit(0)
+            return 0
         else:
             status = editprev.edit_and_exec(commandHistoryEntry)
             if status == 0:
-                sys.exit(0) #command got executed
+                return 0 #command got executed
             else:
-                sys.exit(2) #aborted by user
-
-visit_command_menu()
+                return 2 #aborted by user

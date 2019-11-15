@@ -30,5 +30,3 @@ def clear_hist():
             e_hist.write(entry + ';0\n')
 
     print("Content of navigation history menu has been erased.")
-
-clear_hist()

@@ -13,12 +13,13 @@ input_storage_file = home_dir + ".store_input"
 # in this case: 1 - fav file issues, 2 - input is not convenient for the python script (either non-numeric or not within range of entries), BASH will handle it as "normal" input (path to go to)
 
 def removeFromFavorites():
+    # to be fixed: the return instructions (multiple returns not recommended within a function)
     if not os.path.isfile(fav_file):
         print("The favorites file " + fav_file + " does not exist or has been deleted.")
-        sys.exit(1)
+        return 1
     elif os.path.getsize(fav_file) == 0:
         print("The favorites file " + fav_file + " is empty!")
-        sys.exit(1)
+        return 1
     else:
         displayFavoritesEntryRemovalDialog()
         user_input = input()
@@ -27,12 +28,12 @@ def removeFromFavorites():
             user_input = int(user_input)
         elif user_input == '!':
             print("No entry removed from favorites menu.")
-            exit(0)
+            return 0
         else:
             # input to be forwarded for further handling to BASH
             with open(input_storage_file, "w") as input_storage:
                 input_storage.write(user_input)
-            exit(2)
+            return 2
         # remove entry from favorites and re-sort
         with open(fav_file, "r") as fav:
             fav_file_content = fav.readlines()
@@ -117,5 +118,3 @@ def getNumberOfLines():
         for entry in fav_file_content:
             nr_lines = nr_lines + 1
     return nr_lines
-
-removeFromFavorites()

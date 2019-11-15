@@ -2,12 +2,10 @@ import sys, os
 from os.path import expanduser
 import go_to_dir as gtdir
 
-def wrapperGoTo():
-    if len(sys.argv) == 1:
+def wrapperGoTo(dir1 = "", dir2 = ""):
+    if dir1 == "" and dir2 == "":
         gtdir.goTo()
-    elif len(sys.argv) == 2:
-        gtdir.goTo(sys.argv[1])
+    elif dir2 == "":
+        gtdir.goTo(dir1)
     else:
-        gtdir.goTo(sys.argv[1], sys.argv[2])
-
-wrapperGoTo()
+        gtdir.goTo(dir1, dir2)

@@ -13,5 +13,3 @@ def clearHistory():
         c_hist.write("")
 
     print("Content of command history menu has been erased.")
-
-clearHistory()

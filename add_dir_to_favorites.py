@@ -10,8 +10,8 @@ fav_file = home_dir + ".goto_favorites"
 input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 
-def addToFavorites():
-    path_to_add = getDirPath()
+def addToFavorites(dirPath = ""):
+    path_to_add = getDirPath(dirPath)
 
     if path_to_add != "":
         added_to_favorites = False
@@ -41,12 +41,12 @@ def addToFavorites():
         else:
             print("Directory " + path_to_add + " already added to favorites.")
 
-# converts the argv[1] into a usable absolute path (if possible); code :4 is being used for an invalid (or inaccessible) path (similar to other .py files where this code is used)
-def getDirPath():
-    if len(sys.argv) == 1:
+# converts the dirPath into a usable absolute path (if possible); code :4 is being used for an invalid (or inaccessible) path (similar to other .py files where this code is used)
+def getDirPath(dirPath):
+    if dirPath == "":
         path_to_add = os.getcwd()
     else:
-        path_to_add = sys.argv[1]
+        path_to_add = dirPath
         with open(input_storage_file, "w") as input_storage:
             input_storage.write(path_to_add)
 
@@ -92,5 +92,3 @@ def excludeFromPersistentHistory(path_to_add):
         # add file with no visits to excluded history, it still needs to be there; history remains unchanged
         with open(e_hist_file, "a") as e_hist:
             e_hist.write(path_to_add + ";0\n")
-
-addToFavorites()
