@@ -5,15 +5,15 @@ maxNrOfChars = 25 #maximum number of characters to be displayed for each item fr
 beginCharsToDisplay = maxNrOfChars // 2 #first characters to be displayed for a filename exceeding maxNrOfChars
 endCharsToDisplay = beginCharsToDisplay - maxNrOfChars #last characters to be displayed for a filename exceeding maxNrOfChars
 
-def displayNavOutput():
+def displayNavOutput(command = "", result = ""):
     commandResult = ""
-    if len(sys.argv) == 1:
+    if command == "" and result == "":
         lastCommand = 'none'
-    elif len(sys.argv) == 2:
+    elif result == "" or command == "":
         lastCommand = 'Error in displaying last command and its result!'
     else:
-        lastCommand = sys.argv[1]
-        commandResult = sys.argv[2]
+        lastCommand = command
+        commandResult = result
 
     print("")
     print("****************************************************************************************************")
@@ -87,5 +87,3 @@ def printDirContentToColumns(content):
         baseIndex = rowNr * nrColumns
         print('{0:<40s} {1:<40s} {2:<40s} {3:<40s}'.format(content[baseIndex], content[baseIndex + 1], content[baseIndex + 2], content[baseIndex + 3]))
     print("")
-
-displayNavOutput()

@@ -53,5 +53,3 @@ def limit_entries_nr(file_path, max_entries):
         with open(file_path, "w") as f:
             for entry_nr in range(0, max_entries):
                 f.write(file_content[entry_nr])
-
-init()

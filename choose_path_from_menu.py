@@ -17,8 +17,8 @@ output_storage_file = home_dir + ".store_output"
 def choosePath(file_choice, user_input = ""):
     path = ""
     outcome = "none"
-    if len(sys.argv) == 1:
-        print("no option provided")
+    if file_choice == "":
+        print("no menu selected")
         outcome = ":3"
     else:
         already_provided_input = True if user_input != "" else False
