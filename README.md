@@ -22,63 +22,42 @@ It also performs history reporting and creating a list of favorite dirs. Both hi
 
 2. Supported systems
 
-a. Mac OS (OS X)
-
-On Mac OS the "full GUI" mode is supported. This means the script is synchronized with the Finder window. When changing the current directory from terminal, the Finder window is closed and then re-opened in the new directory. The inverse operation (changing the current directory in terminal when modifying it in Finder) is not supported.
-
-b. Linux
+Currently it is only supported on Linux. It is planned to add Mac OS support in the future.
 
 On the Linux version the "CLI-only" mode is supported. This means the script does not synchronize the current directory of the terminal with the one from the explorer window. The reason for this implementation is that there are several distributions of Linux and the explorer tool might be differ from one to another.
 
-However a GUI mode might be available depending on distribution. For example on OpenSUSE it is possible to run the CLI-only script in a terminal embedded in the explorer window in KDE. Unlike the Mac OS script version the synchronization is made by the system and not by script.
-
-c. Windows
-
-The Linux script version could also be run in Windows using a Unix-CLI emulator like Git Bash. However there might be some limitations in functionality. So far I have run a few tests on Windows and the only thing that I noticed is that the script sometimes runs pretty slow. I cannot explain why this happens especially as I only ran it in CLI mode using Git Bash. The reason might be that it is not being run on a native Bash but on an emulator.
+However a GUI mode might be available depending on distribution. For example on OpenSUSE it is possible to run the CLI-only script in a terminal embedded in the explorer window in KDE.
 
 3. INSTALLATION
 
-I. On Mac OS:
+Clone from the repo, then follow these steps from either branch:
 
-Clone from the repo. Then ensure you are in the master branch and follow these steps:
-
-a. Copy the script to a chosen location. If the location differs from the user home directory (~) please change the variable $scriptDir to the chosen path (use an absolute path). This variable is used for creating the script files (e.g. persistent history) in the given directory. Although not mandatory I strongly recommend to use same folder with the one where the script resides.
-b. Configure .bashrc or .bash_profile to load the functions automatically (when opening a new terminal window) by using the source command.
-c. Restart the terminal once ready and start using the functionality.
-
-II. On Linux/Windows
-
-Same steps, however instead of the master branch use linuxMaster.
+a. Ensure you have Python 3 installed. Check if /usr/bin/python3 exists.
+b. Copy all Python files to the home directory. This looks pretty messy at the
+moment but I will correct it. The python script is still under construction.
+c. Create an alias for /usr/bin/python3 navigate.py in .bashrc
+d. Temporary fix: create an empty file .store_output in the home
+directory. This bug is planned to be fixed soon.
+e. Restart the terminal once ready and start using the functionality by
+executing the instruction mentioned at point c.
 
 4. KNOWN ISSUES/BUGS
 
-1) When in navigation mode directories that contain spaces in their name cannot be accessed when entering the full directory name. For example if you have a directory called 'Test Test' you cannot access it by entering this name in the navigation mode.
+1) In some Linux implementations the there are empty lines between menu
+entries. This is planned to be fixed soon.
 
-A workaround would be entering a wildcard, like for example Te* (and without ' or " as these are interpreted literally by function).
+2) When having directories like ./abcd and ./abcdefgh there are issues when
+using wildcards. For example if using *ab to switch to either of these two an
+error will occur and the cd will not be executed. A workaround is to type a*d
+for switching to abcd or a*h for switching to abcdefgh. Also a good practice
+that I recommend is not to create a folder that has its name string included
+as first part of the string of another dir.
 
-However even with this workaround if you have directories that begin with the same letters there might still be issues. For example if you also have a 'Test' directory, if you enter Te* this directory will be the one accessed and not 'Test Test'. And as mentioned before, even if you enter 'Test T'* the directory 'Test Test' will still not be accessed as the expression will be split into 2 arguments ($1 is 'Test and $2 is T'*) and only the first one will be passed to the goToDir function.
+If any other bugs are discovered please feel free to comment on my Github page
+(https://github.com/LiviuCP) or write me an e-mail (liviucst@gmail.com).
 
-The "healthy" workaround for the moment would be exiting the navigate mode and running the goToDir function directly with the directory name (either putting 'Test Test' as argument or using a wildcard). This will work and you will be able to access the target folder.
-
-You can also prevent this issue by avoiding putting spaces in the directory names. I warmly recommend this approach. I also recommend that (unless specifically required) no special characters are used in a file or directory name. By this I mean characters other than: literals, numbers and underscore.
-
-As soon as a fix is found to this bug I will update the repository accordingly so you can retrieve the corrected code. Sorry for any inconvenience!
-
-2) When running the goto function there are cases when either the Finder window is not re-opened (in the new directory) or when the window is re-opened but inactive (it cannot be accessed when pressing CMD-TAB or when typing Finder in the Spotlight).
-
-Workarounds available are:
-- for the case when the window does not appear: run the goTo function again with argument '.' (current directory)
-- for the case when the window is inactive: click with the mouse on the window
-
-Currently I don't have any clue about how this bug can be fixed. If you have any ideas please feel free to share! Thank you.
-
-3) It is currently not possible to use ~ in navigation mode for visiting the home directory.
-
-However there is a much better alternative: just hit ENTER and you will
-immediately be brought to the home directory.
-
-
-If any other bugs are discovered please feel free to comment on my Github page (https://github.com/LiviuCP) or write me an e-mail (liviucst@gmail.com).
+Please note that these scripts are currently in the initial phase, there are
+still many changes to be done until they become "mature".
 
 5. FUNCTIONALITY
 
@@ -88,7 +67,7 @@ Following features are contained in the script:
 - storing directories in a favorites menu
 - command executing functionality
 
-To access these functions you need to enter the navigation mode by typing navigate. These features will be detailed in the following sections.
+To access these functions you need to execute the navigate.py script. These features will be detailed in the following sections.
 
 5.1. The goto functionality
 
@@ -116,8 +95,6 @@ When choosing an entry (enter the number and press ENTER) from one of the two me
 The menus are sorted alphabetically for easy identification of the required entry. 
 
 It is possible to navigate to a specific entry without accessing the menus by entering operator < (for history) or > (for favorites) followed by the entry number in navigation mode. This is a great way of speeding up the access if the user knows "by heart" the entry number of the path to be visited. For example if directory /home/myUserName/Documents has entry number 2 in Favorites the user can enter >2 in navigation mode to visit it. No spaces should be entered between operator and the number. If the string after the operator is not a valid entry number the substring starting with the character after the operator will be considered a directory path and the script will attempt to visit it. If the path is invalid an error will be triggered.
-
-The number of entries of the history menu can be setup for each of the sub-menus by modifying the $rHistMaxRows and $pHistMaxRows variables. However for an efficient use it is recommended not to exceed a total number of 25 entries.
 
 If you cannot find a entry simply enter the required path(s) to navigate to the directory you wish to visit. It is not required to exit the history and favorites menus in order to do this. Any input other than the given range of numbers or the quit (!) is considered regular navigation input. I call this the "input forwarding feature". This feature is present in other menus too.
 
@@ -151,7 +128,7 @@ It is also possible to enter the command history menu by typing :< and pressing 
 
 The command history can also be accessed in edit mode by entering :: and pressing ENTER. In edit mode when the number of a command is entered the string of the command is displayed for editing. After editing and pressing ENTER the new command will be executed. The command execution can be aborted by entering : at the end of the string and pressing ENTER. This feature is only available in BASH4. In BASH3 the menu can be accessed in edit mode however when entering the number of the command to be edited an error will be triggered.
 
-To erase the command history enter :<> and press ENTER. You will not be able to enter the command history menu if no entry is available.
+To erase the command history enter ::<> and press ENTER. You will not be able to enter the command history menu if no entry is available.
 
 Important note: in navigation mode make sure you launch time consuming commands in the background by using the ampersand (&) unless you need to visualize the output of the executed command on the screen.
 
@@ -233,4 +210,4 @@ If the user chooses to remap the path to an existing one, two options are availa
 
 It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0.
 
-Type !<> in either history or favorites menus and hit ENTER in order to clear all history.
+Type :<> in either history or favorites menus and hit ENTER in order to clear all history.
