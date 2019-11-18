@@ -72,7 +72,7 @@ def chooseEntryFromHistoryMenu(already_provided_input, provided_input):
     else:
         user_input = provided_input
 
-    return getOutput(user_input, hist_content)
+    return getOutput(user_input, hist_content, "history")
 
 def chooseEntryFromFavoritesMenu(already_provided_input, provided_input):
     with open(fav_file, "r") as fav:
@@ -104,16 +104,16 @@ def chooseEntryFromFavoritesMenu(already_provided_input, provided_input):
     else:
         user_input = provided_input
 
-    return getOutput(user_input, fav_content)
+    return getOutput(user_input, fav_content, "favorites")
 
-def getOutput(user_input, content):
+def getOutput(user_input, content, menu_type):
     if len(content) == 0:
         output = ":4"
     elif isValidInput(user_input, content):
         user_input = int(user_input) - 1
         output = content[user_input]
     elif user_input == '!':
-        print("You exited history menu")
+        print("You exited " + menu_type + " menu")
         output = ":2"
     else:
         # input to be forwarded for further handling to BASH
