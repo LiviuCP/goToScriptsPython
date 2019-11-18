@@ -1,5 +1,5 @@
 import sys, os
-import choose_path_from_menu as menupath
+import nav_menus_update as nav
 import handle_missing_dir as hmdir
 import go_to_dir as gtdir
 from os.path import expanduser, isdir
@@ -15,10 +15,10 @@ def visit_nav_menu(menuChoice = "", previousDir = "", userInput = ""):
         return 3
     elif userInput == "":
         prevDir = previousDir
-        dirPath = menupath.choosePath(menuChoice)
+        dirPath = nav.choosePath(menuChoice)
     else:
         prevDir = previousDir
-        dirPath = menupath.choosePath(menuChoice, userInput)
+        dirPath = nav.choosePath(menuChoice, userInput)
     if dirPath == ":1":
         return 1 #forward user input
     elif dirPath == ":2":

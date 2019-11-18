@@ -1,9 +1,7 @@
 import sys, os
 import display_help as dhelp
-import clear_history as clnhist
+import nav_menus_update as nav
 import clear_command_history as clchist
-import add_dir_to_favorites as af
-import remove_dir_from_favorites as rf
 import go_to_command_menu as gtcm
 import execute_new_command as exnew
 import wrapper_edit_and_exec_prev_command as weditexec
@@ -72,13 +70,13 @@ def handle_nav_option(navigationInput, prevDir, prevCommand):
         wgtdir.wrapperGoTo(prevDir, os.getcwd())
         return 4
     elif navigationInput == "+>":
-        af.addToFavorites()
+        nav.addToFavorites()
     elif navigationInput == "->":
-        returnCode = rf.removeFromFavorites()
+        returnCode = nav.removeFromFavorites()
         if returnCode == 2:
             return 1
     elif navigationInput == ":<>":
-        clnhist.clear_hist()
+        nav.clearHist()
     elif navigationInput == "!":
         print("You exited navigation mode.")
     else:

@@ -1,6 +1,6 @@
 import sys, os
 from os.path import expanduser
-import remove_missing_dir, map_missing_dir
+import nav_menus_update as nav
 
 home_dir = expanduser("~") + "/"
 input_storage_file = home_dir + ".store_input"
@@ -39,7 +39,7 @@ def handleMissingDir(path, menu):
 
         # remove directory from history, don't map to anything
         if userChoice == "!r":
-            remove_missing_dir.removeDir(missingDirPath)
+            nav.removeMissingDir(missingDirPath)
             outcome = ":0"
         # map missing directory to a valid replacing dir
         elif userChoice == "!m":
@@ -67,7 +67,7 @@ def handleMissingDir(path, menu):
 
                 print("Cannot perform mapping.")
             else:
-                map_missing_dir.replaceDir(missingDirPath, replacingDirPath)
+                nav.mapMissingDir(missingDirPath, replacingDirPath)
             outcome = ":0"
         elif userChoice == "!":
             os.system("clear")

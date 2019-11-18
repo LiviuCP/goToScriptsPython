@@ -1,7 +1,6 @@
 import sys, os
 from os.path import expanduser
-import consolidate_history as consolidate_hist
-import update_individual_history_files as update_hist
+import nav_menus_update as nav
 
 home_dir = expanduser("~") + "/"
 input_storage_file = home_dir + ".store_input"
@@ -34,8 +33,8 @@ def goTo(gt_directory = "", prev_directory = ""):
         print("Previous directory: " + prevDir)
         print("Current directory: " + currentDir)
         if (prevDir != currentDir):
-            update_hist.update(currentDir)
-            consolidate_hist.consolidate()
+            nav.updateHistory(currentDir)
+            nav.consolidateHistory()
     else:
         # in this phase the calling BASH script will take over the current directory name from input file no matter if cd has been successful or not
         with open(input_storage_file, "w") as input_storage:
