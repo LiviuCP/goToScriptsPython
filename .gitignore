@@ -5,3 +5,4 @@
 .persistent_history
 .excluded_history
 .DS_Store
+__pycache__
