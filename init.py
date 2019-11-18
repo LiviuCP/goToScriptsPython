@@ -14,6 +14,8 @@ def init():
     fav_file = home_dir + ".goto_favorites"
     log_dir = home_dir + ".goToLogs/"
     l_hist_file = log_dir + datetime.datetime.now().strftime("%Y%m%d")
+    input_storage_file = home_dir + ".store_input"
+    output_storage_file = home_dir + ".store_output"
 
     # ensure all required files exist
     with open(r_hist_file, "a") as r_hist:
@@ -26,6 +28,10 @@ def init():
         c_r_hist.write("")
     with open (fav_file, "a") as fav:
         fav.write("")
+    with open(input_storage_file, "a") as input_storage:
+        input_storage.write("")
+    with open(output_storage_file, "a") as output_storage:
+        output_storage.write("")
 
     # limit the number of entries from recent command and navigation history files to the maximum allowed
     limit_entries_nr(r_hist_file, r_hist_max_entries)
