@@ -1,5 +1,5 @@
 import sys, os
-import display_help as dhelp
+import display as out
 import nav_menus_update as nav
 import go_to_command_menu as gtcm
 import cmd_menus_update as cmd
@@ -14,7 +14,7 @@ input_storage_file = home_dir + ".store_input"
 # exit codes: 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd
 def handle_nav_option(navigationInput, prevDir, prevCommand):
     if navigationInput == "?":
-        dhelp.display()
+        out.displayHelp()
     elif navigationInput == ":-":
         if prevCommand == "":
             print("No shell command previously executed")

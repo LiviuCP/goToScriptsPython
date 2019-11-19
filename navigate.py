@@ -1,7 +1,7 @@
 import sys, os
 import nav_menus_update as nav
 import handle_navigation_option as handle_nav
-import display_general_navigation_output as display_out
+import display as out
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
@@ -31,9 +31,9 @@ def navigate():
     while True == True:
         if navigationInput != "?":
             if prevCommand == "":
-                display_out.displayNavOutput()
+                out.displayGeneralNavOutput()
             else:
-                display_out.displayNavOutput(prevCommand, commandResult)
+                out.displayGeneralNavOutput(prevCommand, commandResult)
 
         navigationInput = input()
 
