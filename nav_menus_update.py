@@ -1,5 +1,5 @@
 import sys, os, datetime
-import consolidate_command_history as cons_comm_hist
+import cmd_menus_update as cmd
 from os.path import expanduser
 
 r_hist_max_entries = 10
@@ -48,7 +48,7 @@ def init():
 
     # consolidate history
     consolidateHistory()
-    cons_comm_hist.consolidate()
+    cmd.consolidateCommandHistory()
 
 def limit_entries_nr(file_path, max_entries):
     with open(file_path, "r") as f:

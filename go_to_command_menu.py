@@ -1,6 +1,5 @@
 import sys, os
-import choose_command_from_menu as menucommand
-import execute_command as cmd
+import cmd_menus_update as cmd
 import edit_and_exec_prev_command as editprev
 from os.path import expanduser
 
@@ -15,7 +14,7 @@ def visit_command_menu(commandMode = ""):
         return 3
     else:
         mode = commandMode
-        commandHistoryEntry = menucommand.chooseCommand(mode)
+        commandHistoryEntry = cmd.chooseCommand(mode)
 
     if commandHistoryEntry == ":1":
         return 1 #forward user input
@@ -25,7 +24,7 @@ def visit_command_menu(commandMode = ""):
         if mode == "--execute":
             commandToExecute = commandHistoryEntry
             prevCommand = commandToExecute
-            cmd.execute(commandToExecute)
+            cmd.executeCommand(commandToExecute)
             return 0
         else:
             status = editprev.edit_and_exec(commandHistoryEntry)

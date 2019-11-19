@@ -1,5 +1,5 @@
 import sys, os, readline
-import execute_command as cmd
+import cmd_menus_update as cmd
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
@@ -24,6 +24,6 @@ def edit_and_exec(previousCommand = ""):
         print("Command aborted. You returned to navigation menu.")
         status = 1
     else:
-        cmd.execute(commandToExecute)
+        cmd.executeCommand(commandToExecute)
         status = 0
     return status
