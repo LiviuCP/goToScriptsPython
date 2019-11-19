@@ -12,7 +12,8 @@ output_storage_file = home_dir + ".store_output"
 
 def navigate():
     # initialize the environment, ensure the navigation and command history menus are sorted/consolidated
-    nav.init()
+    nav.initNavMenus()
+    cmd.initCmdMenus()
 
     # ensure the input/output files exist (they will be removed later)
     with open(input_storage_file, "a") as input_storage:

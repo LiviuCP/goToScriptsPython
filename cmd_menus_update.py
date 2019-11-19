@@ -1,5 +1,5 @@
-# 1) Choose command from menu
 import sys, os, datetime
+import common
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
@@ -9,6 +9,19 @@ input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 c_r_hist_max_entries = 25
 minNrOfCmdChars = 10
+
+# 1) Initialize command environment
+def initCmdMenus():
+    with open(c_r_hist_file, "a") as c_r_hist:
+        c_r_hist.write("")
+
+    # limit the number of entries from recent command history to the maximum allowed
+    common.limitEntriesNr(c_r_hist_file, c_r_hist_max_entries)
+
+    # consolidate command history
+    consolidateCommandHistory()
+
+# 2) Choose command from menu
 
 # The result returned by this method is stored into the .store_output file to be picked by the BASH script
 # It can have following values: a BASH command or a specific code that indicates a certain behavior:
@@ -88,14 +101,14 @@ def isValidInput(user_input, content):
         is_valid = False
     return is_valid
 
-# 2) Execute new command
+# 3) Execute new command
 def executeNewCommand(command = ""):
     if command == "":
         print("No argument provided")
     else:
         executeCommand(command)
 
-# 3) Execute command
+# 4) Execute command
 def executeCommand(commandToExecute):
     if len(commandToExecute) >= minNrOfCmdChars:
         updateIndividualCommandHistoryFiles(commandToExecute)
@@ -143,7 +156,7 @@ def updateIndividualCommandHistoryFiles(command):
         for entry in c_r_hist_content:
             c_r_hist.write(entry+'\n')
 
-# 4) Consolidate command history
+# 5) Consolidate command history
 def consolidateCommandHistory():
     with open(c_r_hist_file, 'r') as c_r_hist:
         c_r_hist_entries = c_r_hist.readlines()
@@ -153,7 +166,7 @@ def consolidateCommandHistory():
         for entry in c_r_hist_entries:
             c_hist.write(entry)
 
-# 5) Clear command history
+# 6) Clear command history
 def clearCommandHistory():
     #erase all files related to command history
     with open(c_r_hist_file, "w") as c_r_hist:
