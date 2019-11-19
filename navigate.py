@@ -15,12 +15,6 @@ def navigate():
     nav.initNavMenus()
     cmd.initCmdMenus()
 
-    # ensure the input/output files exist (they will be removed later)
-    with open(input_storage_file, "a") as input_storage:
-        input_storage.write("")
-    with open(input_storage_file, "a") as output_storage:
-        output_storage.write("")
-
     #initialize required variables
     prevDir = os.getcwd()
     prevCommand = ""
