@@ -4,7 +4,7 @@ from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
 
-def edit_and_exec(previousCommand = ""):
+def editAndExecPrevCmd(previousCommand = ""):
     def hook():
         readline.insert_text(previousCommand)
         readline.redisplay()

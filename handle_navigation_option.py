@@ -3,7 +3,7 @@ import display_help as dhelp
 import nav_menus_update as nav
 import go_to_command_menu as gtcm
 import cmd_menus_update as cmd
-import wrapper_edit_and_exec_prev_command as weditexec
+import edit_and_exec_prev_command as epc
 import go_to_dir as gt
 import go_to_menu as gtm
 from os.path import expanduser
@@ -21,7 +21,7 @@ def handle_nav_option(navigationInput, prevDir, prevCommand):
         else:
             cmd.executeNewCommand(prevCommand)
     elif navigationInput == ":":
-        result = weditexec.wrapperEditExecPrevCmd(prevCommand)
+        result = epc.editAndExecPrevCmd(prevCommand) if prevCommand != "" else epc.editAndExecPrevCmd()
         if result == 0:
             return 2
     elif navigationInput == ":<":
