@@ -1,10 +1,9 @@
 import sys, os
-import nav_menus_update as nav
 import display as out
-import go_to_command_menu as gtcm
-import cmd_menus_update as cmd
-import edit_and_exec_prev_command as epc
 import navigation_goto as navgt
+import nav_menus_update as nav
+import command_goto as cgt
+import cmd_menus_update as cmd
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
@@ -76,18 +75,18 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
         else:
             cmd.executeNewCommand(prevCommand)
     elif navigationInput == ":":
-        result = epc.editAndExecPrevCmd(prevCommand) if prevCommand != "" else epc.editAndExecPrevCmd()
+        result = cgt.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cgt.editAndExecPrevCmd()
         if result == 0:
             return 2
     elif navigationInput == ":<":
-        result = gtcm.visit_command_menu("--execute")
+        result = cgt.visitCommandMenu("--execute")
         # update in BASH ...
         if result == 0:
             return 2
         elif result == 1:
             return 1
     elif navigationInput == "::":
-        result = gtcm.visit_command_menu("--edit")
+        result = cgt.visitCommandMenu("--edit")
         if result == 0:
             return 2
         elif result == 1:
