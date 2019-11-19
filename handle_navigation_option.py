@@ -4,7 +4,7 @@ import nav_menus_update as nav
 import go_to_command_menu as gtcm
 import cmd_menus_update as cmd
 import wrapper_edit_and_exec_prev_command as weditexec
-import wrapper_go_to_dir as wgtdir
+import go_to_dir as gt
 import go_to_menu as gtm
 from os.path import expanduser
 
@@ -66,7 +66,7 @@ def handle_nav_option(navigationInput, prevDir, prevCommand):
         elif result == 1:
             return 1
     elif navigationInput == ",":
-        wgtdir.wrapperGoTo(prevDir, os.getcwd())
+        gt.goTo(prevDir, os.getcwd())
         return 4
     elif navigationInput == "+>":
         nav.addToFavorites()
@@ -87,7 +87,7 @@ def handle_nav_option(navigationInput, prevDir, prevCommand):
             return 2
         else:
             if navigationInput == "":
-                wgtdir.wrapperGoTo()
+                gt.goTo()
             else:
-                wgtdir.wrapperGoTo(navigationInput, prevDir)
+                gt.goTo(navigationInput, prevDir)
             return 4
