@@ -4,8 +4,7 @@ import display as out
 import go_to_command_menu as gtcm
 import cmd_menus_update as cmd
 import edit_and_exec_prev_command as epc
-import go_to_dir as gt
-import go_to_menu as gtm
+import navigation_goto as navgt
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
@@ -96,33 +95,33 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
     elif navigationInput == "::<>":
         cmd.clearCommandHistory()
     elif navigationInput == "<":
-        result = gtm.visit_nav_menu("-h", prevDir)
+        result = navgt.visitNavigationMenu("-h", prevDir)
         if result == 0:
             return 4
         elif result == 1:
             return 1
     elif navigationInput == ">":
-        result = gtm.visit_nav_menu("-f", prevDir)
+        result = navgt.visitNavigationMenu("-f", prevDir)
         if result == 0:
             return 4
         elif result == 1:
             return 1
     elif len(navigationInput) > 1 and navigationInput[0] == "<":
         navInput = navigationInput[1:]
-        result = gtm.visit_nav_menu("-h", prevDir, navInput)
+        result = navgt.visitNavigationMenu("-h", prevDir, navInput)
         if result == 0:
             return 4
         elif result == 1:
             return 1
     elif len(navigationInput) > 1 and navigationInput[0] == ">":
         navInput = navigationInput[1:]
-        result = gtm.visit_nav_menu("-f", prevDir, navInput)
+        result = navgt.visitNavigationMenu("-f", prevDir, navInput)
         if result == 0:
             return 4
         elif result == 1:
             return 1
     elif navigationInput == ",":
-        gt.goTo(prevDir, os.getcwd())
+        navgt.goTo(prevDir, os.getcwd())
         return 4
     elif navigationInput == "+>":
         nav.addToFavorites()
@@ -143,9 +142,9 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
             return 2
         else:
             if navigationInput == "":
-                gt.goTo()
+                navgt.goTo()
             else:
-                gt.goTo(navigationInput, prevDir)
+                navgt.goTo(navigationInput, prevDir)
             return 4
 
 navigate()
