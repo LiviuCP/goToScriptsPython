@@ -53,8 +53,6 @@ def initNavMenus():
 # :3 - invalid or missing first argument sys.argv[1] (not used anymore)
 # :4 - empty history or favorites file
 def choosePath(file_choice, user_input = ""):
-    path = ""
-    outcome = "none"
     if file_choice == "":
         print("no menu selected")
         outcome = ":3"
