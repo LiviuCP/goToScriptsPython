@@ -108,7 +108,7 @@ def chooseEntryFromHistoryMenu(already_provided_input, provided_input):
     else:
         user_input = provided_input
 
-    return getOutput(user_input, hist_content, "history")
+    return common.getOutput(user_input, hist_content, "history")
 
 def chooseEntryFromFavoritesMenu(already_provided_input, provided_input):
     with open(fav_file, "r") as fav:
@@ -140,34 +140,7 @@ def chooseEntryFromFavoritesMenu(already_provided_input, provided_input):
     else:
         user_input = provided_input
 
-    return getOutput(user_input, fav_content, "favorites")
-
-def getOutput(user_input, content, menu_type):
-    if len(content) == 0:
-        output = ":4"
-    elif isInputValid(user_input, content):
-        user_input = int(user_input) - 1
-        output = content[user_input]
-    elif user_input == '!':
-        print("You exited " + menu_type + " menu")
-        output = ":2"
-    else:
-        # input to be forwarded for further handling to BASH
-        with open(input_storage_file, "w") as input_storage:
-            input_storage.write(user_input)
-        output = ":1"
-    return output
-
-def isInputValid(user_input, content):
-    is_valid = True
-    if user_input.isdigit():
-        int_input = int(user_input)
-        if int_input > len(content) or int_input == 0:
-            is_valid = False
-    else:
-        is_valid = False
-    return is_valid
-
+    return common.getOutput(user_input, fav_content, "favorites")
 
 # 3) Update individual navigation history files
 def updateHistory(visited_dir_path):

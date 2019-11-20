@@ -71,35 +71,7 @@ def chooseCommandFromHistoryMenu(mode):
         user_input = input()
         os.system("clear")
 
-    return getOutput(user_input, c_hist_content)
-
-# duplicate to the function from choose_path_from_menu.py, handle later
-def getOutput(user_input, content):
-    if len(content) == 0:
-        output = ":4"
-    elif isValidInput(user_input, content):
-        user_input = int(user_input) - 1
-        output = content[user_input]
-    elif user_input == '!':
-        print("No command chosen!")
-        output = ":2"
-    else:
-        # input to be forwarded for further handling to BASH
-        with open(input_storage_file, "w") as input_storage:
-            input_storage.write(user_input)
-        output = ":1"
-    return output
-
-# duplicate to the function from choose_path_from_menu.py, handle later
-def isValidInput(user_input, content):
-    is_valid = True
-    if user_input.isdigit():
-        int_input = int(user_input)
-        if int_input > len(content) or int_input == 0:
-            is_valid = False
-    else:
-        is_valid = False
-    return is_valid
+    return common.getOutput(user_input, c_hist_content, "command")
 
 # 3) Execute new command
 def executeNewCommand(command = ""):
