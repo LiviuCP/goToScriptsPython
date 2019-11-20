@@ -8,31 +8,29 @@ output_storage_file = home_dir + ".store_output"
 
 # 1) Visit navigation menu
 
-# to be solved: multiple return points!!!
 def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
+    status = 0 # default status, normal execution or missing dir successful removal/mapping
     if menuChoice == "" or previousDir == "":
         print("Insufficient number of arguments")
-        return 3
+        status = 3
     elif userInput == "":
         prevDir = previousDir
         dirPath = nav.choosePath(menuChoice)
     else:
         prevDir = previousDir
         dirPath = nav.choosePath(menuChoice, userInput)
-    if dirPath == ":1":
-        return 1 #forward user input
-    elif dirPath == ":2":
-        return 2
-    elif dirPath == ":4":
-        return 4
+    if dirPath == ":1" or dirPath == ":2" or dirPath == ":4":
+        status = int(dirPath[1])
     elif dirPath != ":3":
         if not os.path.isdir(dirPath):
             result = handleMissingDir(dirPath, menuChoice)
             if result == ":1":
-                return 1 #forward user input
+                status = 1 #forward user input
         else:
             goTo(dirPath, prevDir)
-            return 0
+    else:
+        status = 3
+    return status
 
 # 2) Go to directory
 def goTo(gt_directory = "", prev_directory = ""):
