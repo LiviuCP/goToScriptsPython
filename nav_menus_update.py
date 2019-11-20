@@ -273,10 +273,6 @@ def addToFavorites(dirPath = ""):
     if path_to_add != "":
         added_to_favorites = False
 
-        #ensure the favorites file exists
-        with open(fav_file, "a") as fav:
-            fav.write("")
-
         #add file to favorites if not already there
         already_added_to_favorites = False
         with open(fav_file, "r") as fav:
@@ -479,9 +475,6 @@ def sortFavorites():
     with open(fav_file, "w") as fav:
         for entry in sorted(fav_dict.items(), key = lambda k:(k[1].lower(), k[0])):
             fav.write(entry[0] + '\n')
-
-#       sort_favorites()
-
 
 # 8) Remove missing directory from history/favorites
 def removeMissingDir(path_to_remove):
