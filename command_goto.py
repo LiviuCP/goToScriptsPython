@@ -8,31 +8,27 @@ output_storage_file = home_dir + ".store_output"
 
 # 1) Go to command menu
 
-# solve the multiple return points !!!
 def visitCommandMenu(commandMode = ""):
+    status = 0 # default status (normal execution)
     if commandMode == "":
         print("Insufficient number of arguments")
-        return 3
+        status = 3
     else:
         mode = commandMode
         commandHistoryEntry = cmd.chooseCommand(mode)
 
-    if commandHistoryEntry == ":1":
-        return 1 #forward user input
-    elif commandHistoryEntry == ":2": #aborted by user
-        return 2
+    if commandHistoryEntry == ":1" or commandHistoryEntry == ":2":
+        status = int(commandHistoryEntry[1])
     elif commandHistoryEntry != ":3" and commandHistoryEntry != ":4":
         if mode == "--execute":
             commandToExecute = commandHistoryEntry
             prevCommand = commandToExecute
             cmd.executeCommand(commandToExecute)
-            return 0
         else:
-            status = editAndExecPrevCmd(commandHistoryEntry)
-            if status == 0:
-                return 0 #command got executed
-            else:
-                return 2 #aborted by user
+            result = editAndExecPrevCmd(commandHistoryEntry)
+            if result != 0:
+                status = 2 #aborted by user
+    return status
 
 # 2) Edit and execute previous command
 def editAndExecPrevCmd(previousCommand = ""):
