@@ -321,40 +321,40 @@ def excludeFromPersistentHistory(path_to_add):
 # in this case: 1 - fav file issues, 2 - input is not convenient for the python script (either non-numeric or not within range of entries), BASH will handle it as "normal" input (path to go to)
 
 def removeFromFavorites():
-    # to be fixed: the return instructions (multiple returns not recommended within a function)
+    status = 0 # default status, successful removal or aborted by user
     if not os.path.isfile(fav_file):
         print("The favorites file " + fav_file + " does not exist or has been deleted.")
-        return 1
+        status = 1
     elif os.path.getsize(fav_file) == 0:
         print("The favorites file " + fav_file + " is empty!")
-        return 1
+        status = 1
     else:
         displayFavoritesEntryRemovalDialog()
         user_input = input()
         os.system("clear")
         if isValidInput(user_input):
             user_input = int(user_input)
+            # remove entry from favorites and re-sort
+            with open(fav_file, "r") as fav:
+                fav_file_content = fav.readlines()
+                path_to_remove = fav_file_content[user_input-1]
+                fav_file_content.remove(path_to_remove)
+            with open(fav_file, "w") as fav:
+                for entry in fav_file_content:
+                    fav.write(entry)
+            sortFavorites()
+            # remove entry from excluded history and move it to persistent history if visited at least once
+            path_to_remove = path_to_remove.strip('\n')
+            removeFromExcludedHistory(path_to_remove)
+            print("Entry " + path_to_remove + " removed from favorites menu.")
         elif user_input == '!':
             print("No entry removed from favorites menu.")
-            return 0
         else:
             # input to be forwarded for further handling to BASH
             with open(input_storage_file, "w") as input_storage:
                 input_storage.write(user_input)
-            return 2
-        # remove entry from favorites and re-sort
-        with open(fav_file, "r") as fav:
-            fav_file_content = fav.readlines()
-            path_to_remove = fav_file_content[user_input-1]
-            fav_file_content.remove(path_to_remove)
-        with open(fav_file, "w") as fav:
-            for entry in fav_file_content:
-                fav.write(entry)
-        sortFavorites()
-        # remove entry from excluded history and move it to persistent history if visited at least once
-        path_to_remove = path_to_remove.strip('\n')
-        removeFromExcludedHistory(path_to_remove)
-        print("Entry " + path_to_remove + " removed from favorites menu.")
+            status = 2
+    return status
 
 def removeFromExcludedHistory(path_to_remove):
     e_hist_update_dict = {}
