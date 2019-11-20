@@ -58,10 +58,9 @@ def navigate():
         if navigationInput == "!":
             break
 
-    return 0
-
-# exit codes: 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd
+# return codes: 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd
 def handleNavigationOption(navigationInput, prevDir, prevCommand):
+    navigationOutput = 0
     if navigationInput == "?":
         out.displayHelp()
     elif navigationInput == ":-":
@@ -72,57 +71,56 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
     elif navigationInput == ":":
         result = cgt.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cgt.editAndExecPrevCmd()
         if result == 0:
-            return 2
+            navigationOutput = 2
     elif navigationInput == ":<":
         result = cgt.visitCommandMenu("--execute")
-        # update in BASH ...
         if result == 0:
-            return 2
+            navigationOutput = 2
         elif result == 1:
-            return 1
+            navigationOutput = 1
     elif navigationInput == "::":
         result = cgt.visitCommandMenu("--edit")
         if result == 0:
-            return 2
+            navigationOutput = 2
         elif result == 1:
-            return 1
+            navigationOutput = 1
     elif navigationInput == "::<>":
         cmd.clearCommandHistory()
     elif navigationInput == "<":
         result = navgt.visitNavigationMenu("-h", prevDir)
         if result == 0:
-            return 4
+            navigationOutput = 4
         elif result == 1:
-            return 1
+            navigationOutput = 1
     elif navigationInput == ">":
         result = navgt.visitNavigationMenu("-f", prevDir)
         if result == 0:
-            return 4
+            navigationOutput = 4
         elif result == 1:
-            return 1
+            navigationOutput = 1
     elif len(navigationInput) > 1 and navigationInput[0] == "<":
         navInput = navigationInput[1:]
         result = navgt.visitNavigationMenu("-h", prevDir, navInput)
         if result == 0:
-            return 4
+            navigationOutput = 4
         elif result == 1:
-            return 1
+            navigationOutput = 1
     elif len(navigationInput) > 1 and navigationInput[0] == ">":
         navInput = navigationInput[1:]
         result = navgt.visitNavigationMenu("-f", prevDir, navInput)
         if result == 0:
-            return 4
+            navigationOutput = 4
         elif result == 1:
-            return 1
+            navigationOutput = 1
     elif navigationInput == ",":
         navgt.goTo(prevDir, os.getcwd())
-        return 4
+        navigationOutput = 4
     elif navigationInput == "+>":
         nav.addToFavorites()
     elif navigationInput == "->":
         returnCode = nav.removeFromFavorites()
         if returnCode == 2:
-            return 1
+            navigationOutput = 1
     elif navigationInput == ":<>":
         nav.clearHist()
     elif navigationInput == "!":
@@ -133,12 +131,13 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
             with open(input_storage_file, "w") as input_storage:
                 input_storage.write(commandToExecute) # will be taken over by BASH as prev command
             cmd.executeNewCommand(commandToExecute)
-            return 2
+            navigationOutput = 2
         else:
             if navigationInput == "":
                 navgt.goTo()
             else:
                 navgt.goTo(navigationInput, prevDir)
-            return 4
+            navigationOutput = 4
+    return navigationOutput
 
 navigate()
