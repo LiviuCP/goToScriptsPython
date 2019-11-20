@@ -1,3 +1,11 @@
+import sys, os
+import nav_menus_update as nav
+from os.path import expanduser, isdir
+
+home_dir = expanduser("~") + "/"
+input_storage_file = home_dir + ".store_input"
+output_storage_file = home_dir + ".store_output"
+
 # 1) Visit navigation menu
 
 # to be solved: multiple return points!!!
@@ -27,14 +35,6 @@ def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
             return 0
 
 # 2) Go to directory
-import sys, os
-import nav_menus_update as nav
-from os.path import expanduser, isdir
-
-home_dir = expanduser("~") + "/"
-input_storage_file = home_dir + ".store_input"
-output_storage_file = home_dir + ".store_output"
-
 def goTo(gt_directory = "", prev_directory = ""):
     prevDir = os.getcwd()
 
