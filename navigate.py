@@ -103,14 +103,14 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
         result = navgt.visitNavigationMenu("-h", prevDir, navInput)
         if result == 0:
             navigationOutput = 4
-        elif result == 1:
+        elif result == 1 or result == 4: #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
             navigationOutput = 1
     elif len(navigationInput) > 1 and navigationInput[0] == ">":
         navInput = navigationInput[1:]
         result = navgt.visitNavigationMenu("-f", prevDir, navInput)
         if result == 0:
             navigationOutput = 4
-        elif result == 1:
+        elif result == 1 or result == 4: #forward user input if favorites menu is empty and the user enters <[entry_nr] (result == 4)
             navigationOutput = 1
     elif navigationInput == ",":
         navgt.goTo(prevDir, os.getcwd())
