@@ -7,8 +7,6 @@ import cmd_menus_update as cmd
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
-input_storage_file = home_dir + ".store_input"
-output_storage_file = home_dir + ".store_output"
 
 def navigate():
     # initialize the environment, ensure the navigation and command history menus are sorted/consolidated
@@ -31,113 +29,114 @@ def navigate():
                 out.displayGeneralNavOutput()
             else:
                 out.displayGeneralNavOutput(prevCommand, commandResult)
-
         navigationInput = input()
 
         while True == True:
             os.system("clear")
             result = handleNavigationOption(navigationInput, prevDir, prevCommand)
-            with open(input_storage_file, "r") as input_storage:
-                receivedInput = input_storage.readline().strip("\n")
-            with open(output_storage_file, "r") as output_storage:
-                receivedOutput = output_storage.readline().strip("\n")
-            if result == 1:
-                navigationInput = receivedInput
+            if result[0] == 1:
+                navigationInput = result[1]
                 forwardUserInput = True
-            elif result == 2:
-                prevCommand = receivedInput
-                commandResult = receivedOutput
-            elif result == 4:
-                prevDir = receivedOutput
-
+            elif result[0] == 2:
+                prevCommand = result[1]
+                commandResult = result[2]
+            elif result[0] == 4:
+                prevDir = result[2]
             if forwardUserInput == True:
                 forwardUserInput = False
             else:
                 break
-
         if navigationInput == "!":
             break
 
 # return codes: 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd
 def handleNavigationOption(navigationInput, prevDir, prevCommand):
     navigationOutput = 0
+    passedInput = ""
+    passedOutput = ""
+    shouldForwardData = True
+
     if navigationInput == "?":
         out.displayHelp()
+        shouldForwardData = False
     elif navigationInput == ":-":
         if prevCommand == "":
             print("No shell command previously executed")
+            shouldForwardData = False
         else:
-            cmd.executeNewCommand(prevCommand)
+            result = cmd.executeNewCommand(prevCommand)
     elif navigationInput == ":":
         result = cgt.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cgt.editAndExecPrevCmd()
-        if result == 0:
+        if result[0] == 0:
             navigationOutput = 2
     elif navigationInput == ":<":
         result = cgt.visitCommandMenu("--execute")
-        if result == 0:
+        if result[0] == 0:
             navigationOutput = 2
-        elif result == 1:
+        elif result[0] == 1:
             navigationOutput = 1
     elif navigationInput == "::":
         result = cgt.visitCommandMenu("--edit")
-        if result == 0:
+        if result[0] == 0:
             navigationOutput = 2
-        elif result == 1:
+        elif result[0] == 1:
             navigationOutput = 1
     elif navigationInput == "::<>":
         cmd.clearCommandHistory()
+        shouldForwardData = False
     elif navigationInput == "<":
         result = navgt.visitNavigationMenu("-h", prevDir)
-        if result == 0:
+        if result[0] == 0:
             navigationOutput = 4
-        elif result == 1:
+        elif result[0] == 1:
             navigationOutput = 1
     elif navigationInput == ">":
         result = navgt.visitNavigationMenu("-f", prevDir)
-        if result == 0:
+        if result[0] == 0:
             navigationOutput = 4
-        elif result == 1:
+        elif result[0] == 1:
             navigationOutput = 1
     elif len(navigationInput) > 1 and navigationInput[0] == "<":
-        navInput = navigationInput[1:]
-        result = navgt.visitNavigationMenu("-h", prevDir, navInput)
-        if result == 0:
+        result = navgt.visitNavigationMenu("-h", prevDir, navigationInput[1:])
+        if result[0] == 0:
             navigationOutput = 4
-        elif result == 1 or result == 4: #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
+        elif result[0] == 1 or result[0] == 4: #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
             navigationOutput = 1
     elif len(navigationInput) > 1 and navigationInput[0] == ">":
         navInput = navigationInput[1:]
-        result = navgt.visitNavigationMenu("-f", prevDir, navInput)
-        if result == 0:
+        result = navgt.visitNavigationMenu("-f", prevDir, navigationInput[1:])
+        if result[0] == 0:
             navigationOutput = 4
-        elif result == 1 or result == 4: #forward user input if favorites menu is empty and the user enters <[entry_nr] (result == 4)
+        elif result[0] == 1 or result[0] == 4: #forward user input if favorites menu is empty and the user enters <[entry_nr] (result == 4)
             navigationOutput = 1
     elif navigationInput == ",":
-        navgt.goTo(prevDir, os.getcwd())
+        result = navgt.goTo(prevDir, os.getcwd()) # have it updated, return available
         navigationOutput = 4
     elif navigationInput == "+>":
         nav.addToFavorites()
+        shouldForwardData = False
     elif navigationInput == "->":
-        returnCode = nav.removeFromFavorites()
-        if returnCode == 2:
+        result = nav.removeFromFavorites()
+        if result[0] == 2:
             navigationOutput = 1
     elif navigationInput == ":<>":
         nav.clearHist()
+        shouldForwardData = False
     elif navigationInput == "!":
+        shouldForwardData = False
         print("You exited navigation mode.")
     else:
         if navigationInput != "" and navigationInput[0] == ":":
-            commandToExecute = navigationInput[1:]
-            with open(input_storage_file, "w") as input_storage:
-                input_storage.write(commandToExecute) # will be taken over by BASH as prev command
-            cmd.executeNewCommand(commandToExecute)
+            result = cmd.executeNewCommand(navigationInput[1:])
             navigationOutput = 2
         else:
-            if navigationInput == "":
-                navgt.goTo()
-            else:
-                navgt.goTo(navigationInput, prevDir)
+            result = navgt.goTo() if navigationInput == "" else navgt.goTo(navigationInput, prevDir)
             navigationOutput = 4
-    return navigationOutput
+
+    if shouldForwardData == True:
+        passedInput = result[1]
+        passedOutput = result[2]
+
+    return (navigationOutput, passedInput, passedOutput)
 
 navigate()

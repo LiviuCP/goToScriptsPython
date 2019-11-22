@@ -55,16 +55,16 @@ def initNavMenus():
 def choosePath(file_choice, user_input = ""):
     if file_choice == "":
         print("no menu selected")
-        outcome = ":3"
+        outcome = (":3", "", "")
     else:
         already_provided_input = True if user_input != "" else False
         if file_choice == "-f": #favorites
-            outcome = chooseEntryFromFavoritesMenu(already_provided_input, user_input).strip('\n')
+            outcome = chooseEntryFromFavoritesMenu(already_provided_input, user_input)
         elif file_choice == "-h": #consolidated history
-            outcome = chooseEntryFromHistoryMenu(already_provided_input, user_input).strip('\n')
+            outcome = chooseEntryFromHistoryMenu(already_provided_input, user_input)
         else:
             print("invalid argument provided")
-            outcome = ":3"
+            outcome = (":3", "", "")
     return outcome
 
 def chooseEntryFromHistoryMenu(already_provided_input, provided_input):
@@ -322,6 +322,7 @@ def excludeFromPersistentHistory(path_to_add):
 
 def removeFromFavorites():
     status = 0 # default status, successful removal or aborted by user
+    user_input = ""
     if not os.path.isfile(fav_file):
         print("The favorites file " + fav_file + " does not exist or has been deleted.")
         status = 1
@@ -350,11 +351,8 @@ def removeFromFavorites():
         elif user_input == '!':
             print("No entry removed from favorites menu.")
         else:
-            # input to be forwarded for further handling to BASH
-            with open(input_storage_file, "w") as input_storage:
-                input_storage.write(user_input)
-            status = 2
-    return status
+            status = 2 #have this updated, forwarding user input has a different code!!!
+    return (status, user_input, "")
 
 def removeFromExcludedHistory(path_to_remove):
     e_hist_update_dict = {}

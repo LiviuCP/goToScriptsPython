@@ -1,7 +1,6 @@
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
-input_storage_file = home_dir + ".store_input"
 
 # common code to be used by cmd_menus.update.py and nav_menus_update.py
 
@@ -27,9 +26,6 @@ def getOutput(user_input, content, menu_type):
             is_valid = False
         return is_valid
     if len(content) == 0:
-        # input (if any, like when user enters >1 or <2) to be forwarded for further handling to BASH
-        with open(input_storage_file, "w") as input_storage:
-            input_storage.write(user_input)
         output = ":4"
     elif isInputValid(user_input, content):
         user_input = int(user_input) - 1
@@ -38,8 +34,5 @@ def getOutput(user_input, content, menu_type):
         print("You exited " + menu_type + " menu!")
         output = ":2"
     else:
-        # input to be forwarded for further handling to BASH
-        with open(input_storage_file, "w") as input_storage:
-            input_storage.write(user_input)
         output = ":1"
-    return output
+    return (output.strip("\n"), user_input, "")

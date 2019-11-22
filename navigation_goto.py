@@ -10,30 +10,44 @@ output_storage_file = home_dir + ".store_output"
 
 def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
     status = 0 # default status, normal execution or missing dir successful removal/mapping
+    passedInput = ""
+    passedOutput = previousDir
     if menuChoice == "" or previousDir == "":
         print("Insufficient number of arguments")
         status = 3
     elif userInput == "":
         prevDir = previousDir
-        dirPath = nav.choosePath(menuChoice)
+        choiceResult = nav.choosePath(menuChoice)
     else:
         prevDir = previousDir
-        dirPath = nav.choosePath(menuChoice, userInput)
-    if dirPath == ":1" or dirPath == ":2" or dirPath == ":4":
-        status = int(dirPath[1])
-    elif dirPath != ":3":
-        if not os.path.isdir(dirPath):
-            result = handleMissingDir(dirPath, menuChoice)
-            if result == ":1":
-                status = 1 #forward user input
+        choiceResult = nav.choosePath(menuChoice, userInput)
+    if status == 0:
+        dirPath = choiceResult[0]
+        if dirPath == ":1":
+            status = int(dirPath[1])
+            passedInput = choiceResult[1]
+        elif dirPath == ":2" or dirPath == ":4":
+            status = int(dirPath[1])
+        elif dirPath != ":3":
+            if not os.path.isdir(dirPath):
+                handleResult = handleMissingDir(dirPath, menuChoice)
+                if handleResult[0] == ":1":
+                    status = 1 #forward user input
+                    passedInput = handleResult[1]
+                    passedOutput = handleResult[2]
+            else:
+                goToResult = goTo(dirPath, prevDir) # to investigate: provide different return codes for goTo and update status to match the goTo return code ? (in any case avoid return code 1!)
+                passedInput = goToResult[1]
+                passedOutput = goToResult[2]
         else:
-            goTo(dirPath, prevDir)
-    else:
-        status = 3
-    return status
+            status = 3
+            passedInput = ""
+            passedOutput = ""
+    return (status, passedInput, passedOutput)
 
 # 2) Go to directory
 def goTo(gt_directory = "", prev_directory = ""):
+    forwardInput = ""
     prevDir = os.getcwd()
 
     if gt_directory == "":
@@ -63,10 +77,7 @@ def goTo(gt_directory = "", prev_directory = ""):
             nav.updateHistory(currentDir)
             nav.consolidateHistory()
     else:
-        # in this phase the calling BASH script will take over the current directory name from input file no matter if cd has been successful or not
-        with open(input_storage_file, "w") as input_storage:
-            input_storage.write(prevDir)
-        # use the prev dir provided by BASH in case of error (so the previously visited dir remains the same)
+        # ensure the previously visited dir stays the same in case the requested dir cannot be accessed
         prevDir = prev_directory
         print("Error when attempting to change directory! Possible causes: ")
         print(" - chosen directory path does not exist or has been deleted")
@@ -74,9 +85,7 @@ def goTo(gt_directory = "", prev_directory = ""):
         print(" - insufficient access rights")
         print("Please try again!")
 
-    # used by BASH to determine the previous directory
-    with open(output_storage_file, "w") as output_storage:
-        output_storage.write(prevDir)
+    return(0, "", prevDir) # to investigate : update the return code?
 
 # 3) Handle missing directory in navigation menu
 
@@ -148,9 +157,6 @@ def handleMissingDir(path, menu):
             print("You exited the " + menuType +  " menu")
             outcome = ":2"
         else:
-            # input to be forwarded for further handling to BASH
-            with open(input_storage_file, "w") as input_storage:
-                input_storage.write(userChoice)
             outcome = ":1"
 
-    return outcome
+    return (outcome, userChoice, "")

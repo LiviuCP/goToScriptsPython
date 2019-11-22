@@ -5,7 +5,6 @@ from os.path import expanduser
 home_dir = expanduser("~") + "/"
 c_hist_file = home_dir + ".command_history"
 c_r_hist_file = home_dir + ".recent_command_history"
-input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 c_r_hist_max_entries = 25
 minNrOfCmdChars = 10
@@ -33,12 +32,12 @@ def chooseCommand(mode = ""):
     editCommand = False
     if mode == "":
         print("no argument provided")
-        outcome = ":3"
+        outcome = (":3", "", "")
     elif mode != "--edit" and mode != "--execute":
         print("invalid argument provided")
-        outcome = ":3"
+        outcome = (":3", "", "")
     else:
-        outcome = chooseCommandFromHistoryMenu(mode).strip('\n')
+        outcome = chooseCommandFromHistoryMenu(mode)
     return outcome
 
 def chooseCommandFromHistoryMenu(mode):
@@ -77,8 +76,10 @@ def chooseCommandFromHistoryMenu(mode):
 def executeNewCommand(command = ""):
     if command == "":
         print("No argument provided")
+        result = (3, "", "")
     else:
-        executeCommand(command)
+        result = executeCommand(command) # have this updated, a return will be available
+    return result
 
 # 4) Execute command
 def executeCommand(commandToExecute):
@@ -100,15 +101,10 @@ def executeCommand(commandToExecute):
         status = output.readline().strip('\n')
         printedStatus = "with errors" if status != "0" else "successfully"
 
-    # status message to be written instead of code so it's used by BASH to indicate how the last executed command finished (to be updated)
-    with open(output_storage_file, "w") as output:
-        output.write(printedStatus)
-    # forward input command to BASH for further usage
-    with open(input_storage_file, "w") as input_storage:
-        input_storage.write(commandToExecute)
-
     print("--------------------------")
     print("Command finished " + printedStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
+
+    return (0, commandToExecute, printedStatus)
 
 def updateIndividualCommandHistoryFiles(command):
     with open(c_r_hist_file, "r") as c_r_hist:
