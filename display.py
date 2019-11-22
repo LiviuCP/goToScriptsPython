@@ -76,13 +76,11 @@ def displayCurrentDirContent():
 # to be updated: number of columns should be dynamically determined depending on screen size and number of files/dirs contained in current dir
 def printDirContentToColumns(content):
     nrColumns = 4
-
     # add padding items so elements are equally distributed among rows
     extraItems = len(content) % nrColumns
     if extraItems != 0:
         for paddingItem in range(nrColumns - extraItems):
             content.append(" ")
-
     # print to colums, Z-sorted, ascending
     for rowNr in range(len(content) // nrColumns):
         baseIndex = rowNr * nrColumns

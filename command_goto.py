@@ -57,7 +57,7 @@ def editAndExecPrevCmd(previousCommand = ""):
         print("Command aborted. You returned to navigation menu.")
         status = 1
     else:
-        result = cmd.executeCommand(commandToExecute) # have this updated (return available)
+        result = cmd.executeCommand(commandToExecute)
         passedInput = result[1]
         passedOutput = result[2]
     return (status, passedInput, passedOutput)

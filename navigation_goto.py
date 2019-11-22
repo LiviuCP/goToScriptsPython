@@ -89,13 +89,12 @@ def goTo(gt_directory = "", prev_directory = ""):
 
 # 3) Handle missing directory in navigation menu
 
-# The status returned by this method is stored into the .store_output file to be picked by the BASH script
-# It can have following values:
+# The outcome returned by this method can have following values:
 # :0 - mapping or removal attempted by user
-# :1 - user input stored in .store_input, to be picked and forwarded by BASH
-# :2 - user exited the choose path dialog, no further actions
+# :1 - user input to be forwarded as regular input (dir path or command string)
+# :2 - user exited the choose path dialog, returned to navigation mode
 # :3 - invalid or missing arguments
-# :4 - only used by current method (replacing directory does not exist)
+# :4 - replacing directory to which mapping is requested does not exist
 def handleMissingDir(path, menu):
     # we need two arguments, one for missing directory path and second for menu type (history/favorites)
     if path == "" or menu == "":

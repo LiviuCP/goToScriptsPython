@@ -13,21 +13,18 @@ minNrOfCmdChars = 10
 def initCmdMenus():
     with open(c_r_hist_file, "a") as c_r_hist:
         c_r_hist.write("")
-
     # limit the number of entries from recent command history to the maximum allowed
     common.limitEntriesNr(c_r_hist_file, c_r_hist_max_entries)
-
-    # consolidate command history
+    # will have a more important role once persistent command history will be implemented
     consolidateCommandHistory()
 
 # 2) Choose command from menu
 
-# The result returned by this method is stored into the .store_output file to be picked by the BASH script
-# It can have following values: a BASH command or a specific code that indicates a certain behavior:
-# :1 - user input stored in .store_input, to be picked and forwarded by BASH
-# :2 - user exited the choose path dialog, no further actions
-# :3 - invalid or missing first argument sys.argv[1] (no more used)
-# :4 - empty history or favorites file
+# The returned outcome could have following special values in the first field:
+# :1 - user input to be forwarded as regular input (path name/command)
+# :2 - user exited the command menu, returned to navigation mode
+# :3 - invalid first argument
+# :4 - no entries in command menu
 def chooseCommand(mode = ""):
     editCommand = False
     if mode == "":
@@ -65,7 +62,6 @@ def chooseCommandFromHistoryMenu(mode):
         print("Enter command number.")
         print("Enter ! to quit.")
         print("")
-
         # to update: enable path autocomplete
         user_input = input()
         os.system("clear")
@@ -129,17 +125,15 @@ def consolidateCommandHistory():
     with open(c_r_hist_file, 'r') as c_r_hist:
         c_r_hist_entries = c_r_hist.readlines()
         c_r_hist_entries.sort()
-
-    with open(c_hist_file, 'w') as c_hist:             # always ensure the file is cleared before (re-)consolidating history
+    # always ensure the file is cleared before (re-)consolidating history
+    with open(c_hist_file, 'w') as c_hist:
         for entry in c_r_hist_entries:
             c_hist.write(entry)
 
 # 6) Clear command history
 def clearCommandHistory():
-    #erase all files related to command history
     with open(c_r_hist_file, "w") as c_r_hist:
         c_r_hist.write("")
     with open(c_hist_file, "w") as c_hist:
         c_hist.write("")
-
     print("Content of command history menu has been erased.")
