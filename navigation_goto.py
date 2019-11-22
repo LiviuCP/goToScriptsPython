@@ -31,7 +31,7 @@ def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
         elif dirPath != ":3":
             if not os.path.isdir(dirPath):
                 handleResult = handleMissingDir(dirPath, menuChoice)
-                if handleResult[0] == ":1":
+                if handleResult[0] == 1:
                     status = 1 #forward user input
                     passedInput = handleResult[1]
                     passedOutput = handleResult[2]
@@ -89,20 +89,20 @@ def goTo(gt_directory = "", prev_directory = ""):
 
 # 3) Handle missing directory in navigation menu
 
-# The outcome returned by this method can have following values:
-# :0 - mapping or removal attempted by user
-# :1 - user input to be forwarded as regular input (dir path or command string)
-# :2 - user exited the choose path dialog, returned to navigation mode
-# :3 - invalid or missing arguments
-# :4 - replacing directory to which mapping is requested does not exist
+# The status returned by this method can have following values:
+# 0 - mapping or removal attempted by user
+# 1 - user input to be forwarded as regular input (dir path or command string)
+# 2 - user exited the choose path dialog, returned to navigation mode
+# 3 - invalid or missing arguments
+# 4 - replacing directory to which mapping is requested does not exist
 def handleMissingDir(path, menu):
     # we need two arguments, one for missing directory path and second for menu type (history/favorites)
     if path == "" or menu == "":
         print("handleMissingDir: missing arguments")
-        outcome = ":3"
+        status = 3
     elif menu != '-h' and menu != '-f':
         print("handleMissingDir: invalid second argument")
-        outcome = ":3"
+        status = 3
     else:
         missingDirPath = path
         menuType = "history" if menu == '-h' else "favorites"
@@ -122,7 +122,7 @@ def handleMissingDir(path, menu):
         # remove directory from history, don't map to anything
         if userChoice == "!r":
             nav.removeMissingDir(missingDirPath)
-            outcome = ":0"
+            status = 0
         # map missing directory to a valid replacing dir
         elif userChoice == "!m":
             os.system("clear")
@@ -150,12 +150,12 @@ def handleMissingDir(path, menu):
                 print("Cannot perform mapping.")
             else:
                 nav.mapMissingDir(missingDirPath, replacingDirPath)
-            outcome = ":0"
+            status = 0
         elif userChoice == "!":
             os.system("clear")
             print("You exited the " + menuType +  " menu")
-            outcome = ":2"
+            status = 2
         else:
-            outcome = ":1"
+            status = 1
 
-    return (outcome, userChoice, "")
+    return (status, userChoice, "")
