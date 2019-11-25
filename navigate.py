@@ -1,7 +1,6 @@
 import sys, os
 import display as out
 import navigation_goto as navgt
-import nav_menus_update as nav
 import command_goto as cgt
 import cmd_menus_update as cmd
 from os.path import expanduser
@@ -10,7 +9,7 @@ home_dir = expanduser("~") + "/"
 
 def navigate():
     # initialize the environment, ensure the navigation and command history menus are sorted/consolidated
-    nav.initNavMenus()
+    navgt.initNavMenus()
     cmd.initCmdMenus()
 
     #initialize required variables
@@ -113,14 +112,14 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
         result = navgt.goTo(prevDir, os.getcwd()) # have it updated, return available
         navigationOutput = 4
     elif navigationInput == "+>":
-        nav.addToFavorites()
+        navgt.addDirToFavorites()
         shouldForwardData = False
     elif navigationInput == "->":
-        result = nav.removeFromFavorites()
+        result = navgt.removeDirFromFavorites()
         if result[0] == 2:
             navigationOutput = 1
     elif navigationInput == ":<>":
-        nav.clearHist()
+        navgt.clearVisitedDirsMenu()
         shouldForwardData = False
     elif navigationInput == "!":
         shouldForwardData = False

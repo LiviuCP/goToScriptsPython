@@ -159,3 +159,19 @@ def handleMissingDir(path, menu):
             status = 1
 
     return (status, userChoice, "")
+
+# 5) Clear visited directories menu (wrapper for clear history)
+def clearVisitedDirsMenu():
+    nav.clearHist()
+
+# 6) Init navigation menus (visited and favorite directories - wrapper for history and favorites init)
+def initNavMenus():
+    nav.initNavMenus()
+
+# 7) Add directory to favorites (wrapper for the same method contained in nav menus update)
+def addDirToFavorites():
+    nav.addToFavorites()
+
+# 8) Removed directory from favorites (wrapper for the same method contained in nav menus update)
+def removeDirFromFavorites():
+    return nav.removeFromFavorites()
