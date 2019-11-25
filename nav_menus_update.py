@@ -575,16 +575,12 @@ def consolidateHistory():
         for entry in sorted(p_hist_dict.items(), key = lambda k:(k[1].lower(), k[0])):
             c_hist.write(entry[0] + '\n')
 def sortFavorites():
-    # ensure the favorites file exists and create sorting dictionary
-    with open(fav_file, "a") as fav:
-        fav_dict = {}
-    # read data
+    fav_dict = {}
     with open(fav_file, "r") as fav:
         fav_file_content = fav.readlines()
         for entry in fav_file_content:
             entry = entry.strip('\n')
             fav_dict[entry] = os.path.basename(entry)
-    # sort
     with open(fav_file, "w") as fav:
         for entry in sorted(fav_dict.items(), key = lambda k:(k[1].lower(), k[0])):
             fav.write(entry[0] + '\n')
