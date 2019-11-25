@@ -23,10 +23,10 @@ def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
         choiceResult = nav.choosePath(menuChoice, userInput)
     if status == 0:
         dirPath = choiceResult[0]
-        if dirPath == ":1":
+        if dirPath == ":1" or dirPath == ":4":
             status = int(dirPath[1])
             passedInput = choiceResult[1]
-        elif dirPath == ":2" or dirPath == ":4":
+        elif dirPath == ":2":
             status = int(dirPath[1])
         elif dirPath != ":3":
             if not os.path.isdir(dirPath):
