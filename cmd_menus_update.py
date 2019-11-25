@@ -26,6 +26,37 @@ def initCmdMenus():
 # :3 - invalid first argument
 # :4 - no entries in command menu
 def chooseCommand(mode = ""):
+    # *** helper functions ***
+    def chooseCommandFromHistoryMenu(mode):
+        with open(c_hist_file, "r") as c_hist:
+            c_hist_content = c_hist.readlines()
+        os.system("clear")
+        c_hist_entries = len(c_hist_content)
+        line_nr = 1
+        if c_hist_entries == 0:
+            print("There are no entries in the command history menu.")
+            user_input = ""
+        else:
+            if mode == "--execute":
+                print("-- EXECUTE COMMAND --")
+            else:
+                print("-- EDIT COMMAND --")
+            print("")
+            while line_nr <= c_hist_entries:
+                entry = c_hist_content[line_nr-1].strip('\n')
+                print('{0:<10s} {1:<140s}'.format(str(line_nr), entry))
+                line_nr = line_nr + 1
+            print("")
+            print("Current directory: " + os.getcwd())
+            print("")
+            print("Enter command number.")
+            print("Enter ! to quit.")
+            print("")
+            # to update: enable path autocomplete
+            user_input = input()
+            os.system("clear")
+        return common.getOutput(user_input, c_hist_content, "command")
+    # *** actual function ***
     editCommand = False
     if mode == "":
         print("no argument provided")
@@ -37,81 +68,52 @@ def chooseCommand(mode = ""):
         outcome = chooseCommandFromHistoryMenu(mode)
     return outcome
 
-def chooseCommandFromHistoryMenu(mode):
-    with open(c_hist_file, "r") as c_hist:
-        c_hist_content = c_hist.readlines()
-    os.system("clear")
-    c_hist_entries = len(c_hist_content)
-    line_nr = 1
-    if c_hist_entries == 0:
-        print("There are no entries in the command history menu.")
-        user_input = ""
-    else:
-        if mode == "--execute":
-            print("-- EXECUTE COMMAND --")
-        else:
-            print("-- EDIT COMMAND --")
-        print("")
-        while line_nr <= c_hist_entries:
-            entry = c_hist_content[line_nr-1].strip('\n')
-            print('{0:<10s} {1:<140s}'.format(str(line_nr), entry))
-            line_nr = line_nr + 1
-        print("")
-        print("Current directory: " + os.getcwd())
-        print("")
-        print("Enter command number.")
-        print("Enter ! to quit.")
-        print("")
-        # to update: enable path autocomplete
-        user_input = input()
-        os.system("clear")
-
-    return common.getOutput(user_input, c_hist_content, "command")
-
 # 3) Execute command
 def executeCommand(commandToExecute):
+    # *** helper functions ***
+    def updateIndividualCommandHistoryFiles(command):
+        with open(c_r_hist_file, "r") as c_r_hist:
+            c_r_hist_content = []
+            c_r_hist_entries = 0
+            for entry in c_r_hist.readlines():
+                c_r_hist_content.append(entry.strip('\n'))
+                c_r_hist_entries = c_r_hist_entries + 1
+        if command in c_r_hist_content:
+            c_r_hist_content.remove(command)
+        elif c_r_hist_entries == c_r_hist_max_entries:
+            c_r_hist_content.remove(c_r_hist_content[c_r_hist_entries-1])
+        c_r_hist_content = [command] + c_r_hist_content
+        with open(c_r_hist_file, "w") as c_r_hist:
+            for entry in c_r_hist_content:
+                c_r_hist.write(entry+'\n')
+    # *** actual function ***
     if len(commandToExecute) >= minNrOfCmdChars:
         updateIndividualCommandHistoryFiles(commandToExecute)
         consolidateCommandHistory()
-
     print("Command is being executed: " + commandToExecute)
     print("--------------------------")
-
     # build and execute command
     sourceCommand = "source ~/.bashrc;" #include .bashrc to ensure the aliases and scripts work
     executionStatus = "echo $? > " + output_storage_file
     executeCommandWithStatus = sourceCommand + "\n" + commandToExecute + "\n" + executionStatus
     os.system(executeCommandWithStatus)
-
     # read command status code and create the status message
     with open(output_storage_file, "r") as output:
         status = output.readline().strip('\n')
         printedStatus = "with errors" if status != "0" else "successfully"
-
     print("--------------------------")
     print("Command finished " + printedStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
-
     return (0, commandToExecute, printedStatus)
 
-def updateIndividualCommandHistoryFiles(command):
-    with open(c_r_hist_file, "r") as c_r_hist:
-        c_r_hist_content = []
-        c_r_hist_entries = 0
-        for entry in c_r_hist.readlines():
-            c_r_hist_content.append(entry.strip('\n'))
-            c_r_hist_entries = c_r_hist_entries + 1
-
-    if command in c_r_hist_content:
-        c_r_hist_content.remove(command)
-    elif c_r_hist_entries == c_r_hist_max_entries:
-        c_r_hist_content.remove(c_r_hist_content[c_r_hist_entries-1])
-    c_r_hist_content = [command] + c_r_hist_content
-
+# 4) Clear command history
+def clearCommandHistory():
     with open(c_r_hist_file, "w") as c_r_hist:
-        for entry in c_r_hist_content:
-            c_r_hist.write(entry+'\n')
+        c_r_hist.write("")
+    with open(c_hist_file, "w") as c_hist:
+        c_hist.write("")
+    print("Content of command history menu has been erased.")
 
-# 4) Consolidate command history
+# 5) Shared functions
 def consolidateCommandHistory():
     with open(c_r_hist_file, 'r') as c_r_hist:
         c_r_hist_entries = c_r_hist.readlines()
@@ -120,11 +122,3 @@ def consolidateCommandHistory():
     with open(c_hist_file, 'w') as c_hist:
         for entry in c_r_hist_entries:
             c_hist.write(entry)
-
-# 5) Clear command history
-def clearCommandHistory():
-    with open(c_r_hist_file, "w") as c_r_hist:
-        c_r_hist.write("")
-    with open(c_hist_file, "w") as c_hist:
-        c_hist.write("")
-    print("Content of command history menu has been erased.")
