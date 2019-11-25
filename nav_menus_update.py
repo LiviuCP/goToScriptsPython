@@ -60,16 +60,16 @@ def choosePath(file_choice, user_input = ""):
                 with open(r_hist_file, "r") as r_hist:
                     r_hist_entries = len(r_hist.readlines())
                 line_nr = 1
-                print("NAVIGATION HISTORY")
+                print("VISITED DIRECTORIES")
                 print("")
-                print("-- RECENTLY VISITED DIRECTORIES --")
+                print("-- RECENTLY VISITED --")
                 print("")
                 while line_nr <= r_hist_entries:
                     entry = hist_content[line_nr-1].strip('\n')
                     print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
                     line_nr = line_nr + 1
                 print("")
-                print("--  MOST VISITED DIRECTORIES --")
+                print("--  MOST VISITED --")
                 print("")
                 while line_nr <= len(hist_content):
                     entry = hist_content[line_nr-1].strip('\n')
@@ -544,7 +544,7 @@ def mapMissingDir(path_to_replace, replacing_path):
     print("")
     print("Mapping performed successfully.")
 
-# 9) Shared functions
+# 9) Consolidate navigation menu (persistent and recent history)
 def consolidateHistory():
     p_hist_max_entries = 15                            # maximum number of persistent history entries to be displayed in the navigation history menu
     c_hist_file = home_dir + ".goto_history"           # consolidated history file (content displayed in navigation history menu)
@@ -556,10 +556,8 @@ def consolidateHistory():
     with open(c_hist_file, 'w') as c_hist:             # always ensure the file is cleared before (re-)consolidating history
         r_hist_dict = {}
         p_hist_dict = {}
-
     for entry in r_hist_entries:
         r_hist_dict[entry.strip('\n')] = os.path.basename(entry.strip('\n'))
-
     limit = 0
     for entry in p_hist_entries:
         split_entry = entry.split(";")
@@ -567,7 +565,6 @@ def consolidateHistory():
         limit = limit + 1
         if (limit == p_hist_max_entries):
             break
-
     # sort entries by directory name so the user can easily find the dirs in the navigation history
     with open(c_hist_file, 'a') as c_hist:
         for entry in sorted(r_hist_dict.items(), key = lambda k:(k[1].lower(), k[0])):

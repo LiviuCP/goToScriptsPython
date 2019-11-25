@@ -37,10 +37,12 @@ def chooseCommand(mode = ""):
             print("There are no entries in the command history menu.")
             user_input = ""
         else:
+            print("COMMANDS LIST")
+            print("")
             if mode == "--execute":
-                print("-- EXECUTE COMMAND --")
+                print("-- EXECUTE MODE --")
             else:
-                print("-- EDIT COMMAND --")
+                print("-- EDIT MODE--")
             print("")
             while line_nr <= c_hist_entries:
                 entry = c_hist_content[line_nr-1].strip('\n')
