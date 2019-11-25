@@ -47,6 +47,75 @@ def initNavMenus():
 # :3 - invalid first argument
 # :4 - no entries in history/favorites menu
 def choosePath(file_choice, user_input = ""):
+    # *** helper functions ***
+    def chooseEntryFromHistoryMenu(already_provided_input, provided_input):
+        with open(hist_file, "r") as hist:
+            hist_content = hist.readlines()
+        if already_provided_input == False:
+            os.system("clear")
+            if len(hist_content) == 0:
+                print("There are no entries in the history menu.")
+                user_input = ""
+            else:
+                with open(r_hist_file, "r") as r_hist:
+                    r_hist_entries = len(r_hist.readlines())
+                line_nr = 1
+                print("NAVIGATION HISTORY")
+                print("")
+                print("-- RECENTLY VISITED DIRECTORIES --")
+                print("")
+                while line_nr <= r_hist_entries:
+                    entry = hist_content[line_nr-1].strip('\n')
+                    print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
+                    line_nr = line_nr + 1
+                print("")
+                print("--  MOST VISITED DIRECTORIES --")
+                print("")
+                while line_nr <= len(hist_content):
+                    entry = hist_content[line_nr-1].strip('\n')
+                    print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
+                    line_nr = line_nr + 1
+                print("")
+                print("Current directory: " + os.getcwd())
+                print("")
+                print("Enter the number of the directory you want to navigate to.")
+                print("Enter ! to quit.")
+                print("")
+                # to update: enable path autocomplete
+                user_input = input()
+                os.system("clear")
+        else:
+            user_input = provided_input
+        return common.getOutput(user_input, hist_content, "history")
+    def chooseEntryFromFavoritesMenu(already_provided_input, provided_input):
+        with open(fav_file, "r") as fav:
+            fav_content = fav.readlines()
+        if already_provided_input == False:
+            os.system("clear")
+            if (len(fav_content) == 0):
+                print("There are no entries in the favorites menu.")
+                user_input = ""
+            else:
+                print("FAVORITE DIRECTORIES")
+                print("")
+                line_nr = 1
+                for entry in fav_content:
+                    entry = entry.strip('\n')
+                    print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
+                    line_nr = line_nr + 1
+                print("")
+                print("Current directory: " + os.getcwd())
+                print("")
+                print("Enter the number of the directory you want to navigate to.")
+                print("Enter ! to quit.")
+                print("")
+                # to update: enable path autocomplete
+                user_input = input()
+                os.system("clear")
+        else:
+            user_input = provided_input
+        return common.getOutput(user_input, fav_content, "favorites")
+    # *** actual function ***
     if file_choice == "":
         print("no menu selected")
         outcome = (":3", "", "")
@@ -61,105 +130,43 @@ def choosePath(file_choice, user_input = ""):
             outcome = (":3", "", "")
     return outcome
 
-def chooseEntryFromHistoryMenu(already_provided_input, provided_input):
-    with open(hist_file, "r") as hist:
-        hist_content = hist.readlines()
-    if already_provided_input == False:
-        os.system("clear")
-        if len(hist_content) == 0:
-            print("There are no entries in the history menu.")
-            user_input = ""
-        else:
-            with open(r_hist_file, "r") as r_hist:
-                r_hist_entries = len(r_hist.readlines())
-            line_nr = 1
-            print("NAVIGATION HISTORY")
-            print("")
-            print("-- RECENTLY VISITED DIRECTORIES --")
-            print("")
-            while line_nr <= r_hist_entries:
-                entry = hist_content[line_nr-1].strip('\n')
-                print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
-                line_nr = line_nr + 1
-            print("")
-            print("--  MOST VISITED DIRECTORIES --")
-            print("")
-            while line_nr <= len(hist_content):
-                entry = hist_content[line_nr-1].strip('\n')
-                print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
-                line_nr = line_nr + 1
-            print("")
-            print("Current directory: " + os.getcwd())
-            print("")
-            print("Enter the number of the directory you want to navigate to.")
-            print("Enter ! to quit.")
-            print("")
-
-            # to update: enable path autocomplete
-            user_input = input()
-            os.system("clear")
-    else:
-        user_input = provided_input
-
-    return common.getOutput(user_input, hist_content, "history")
-
-def chooseEntryFromFavoritesMenu(already_provided_input, provided_input):
-    with open(fav_file, "r") as fav:
-        fav_content = fav.readlines()
-    if already_provided_input == False:
-        os.system("clear")
-        if (len(fav_content) == 0):
-            print("There are no entries in the favorites menu.")
-            user_input = ""
-        else:
-            print("FAVORITE DIRECTORIES")
-            print("")
-            line_nr = 1
-            for entry in fav_content:
-                entry = entry.strip('\n')
-                print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
-                line_nr = line_nr + 1
-            print("")
-            print("Current directory: " + os.getcwd())
-            print("")
-            print("Enter the number of the directory you want to navigate to.")
-            print("Enter ! to quit.")
-            print("")
-            # to update: enable path autocomplete
-            user_input = input()
-            os.system("clear")
-    else:
-        user_input = provided_input
-
-    return common.getOutput(user_input, fav_content, "favorites")
 
 # 3) Update individual navigation history files
 def updateHistory(visited_dir_path):
+    # *** helper functions ***
+    def can_update_visits_in_history_file(hist_file, update_dict, visited_path):
+        entry_contained_in_file = False
+        with open(hist_file, "r") as hist:
+            for entry in hist.readlines():
+                split_entry = entry.strip('\n').split(';')
+                path = split_entry[0]
+                if path == visited_path:
+                    update_dict[split_entry[0]] = int(split_entry[1]) + 1
+                    entry_contained_in_file = True
+                else:
+                    update_dict[split_entry[0]] = int(split_entry[1])
+        return entry_contained_in_file
+    # *** actual function ***
     with open(l_hist_file, "a") as l_hist:
         l_hist.write("")
-
     with open(r_hist_file, "r") as r_hist:
         r_hist_content = []
         r_hist_entries = 0
         for entry in r_hist.readlines():
             r_hist_content.append(entry.strip('\n'))
             r_hist_entries = r_hist_entries + 1
-
     if visited_dir_path in r_hist_content:
         r_hist_content.remove(visited_dir_path)
     elif r_hist_entries == r_hist_max_entries:
         r_hist_content.remove(r_hist_content[r_hist_entries-1])
     r_hist_content = [visited_dir_path] + r_hist_content
-
     with open(r_hist_file, "w") as r_hist:
         for entry in r_hist_content:
             r_hist.write(entry+'\n')
-
     with open(l_hist_file, "r") as l_hist:
         l_hist_content = []
         for entry in l_hist.readlines():
             l_hist_content.append(entry.strip('\n'))
-
     # only update persistent or excluded history file if the visited path is not being contained in the visit log for the current day
     if visited_dir_path not in l_hist_content:
         p_hist_update_dict = {}
@@ -183,19 +190,6 @@ def updateHistory(visited_dir_path):
         with open(l_hist_file, "a") as l_hist:
             l_hist.write(visited_dir_path + "\n")
 
-def can_update_visits_in_history_file(hist_file, update_dict, visited_path):
-    entry_contained_in_file = False
-    with open(hist_file, "r") as hist:
-        for entry in hist.readlines():
-            split_entry = entry.strip('\n').split(';')
-            path = split_entry[0]
-            if path == visited_path:
-                update_dict[split_entry[0]] = int(split_entry[1]) + 1
-                entry_contained_in_file = True
-            else:
-                update_dict[split_entry[0]] = int(split_entry[1])
-    return entry_contained_in_file
-
 # 4) Clear navigation history
 def clearHist():
     with open(r_hist_file, "w") as r_hist:
@@ -217,8 +211,56 @@ def clearHist():
 
 # 5) Add directory to favorites
 def addToFavorites(dirPath = ""):
+    # converts the dirPath into a usable absolute path (if possible); code :4 is being used for an invalid (or inaccessible) path (similar to other .py files where this code is used)
+    def getDirPath(dirPath):
+        if dirPath == "":
+            path_to_add = os.getcwd()
+        else:
+            path_to_add = dirPath
+            with open(input_storage_file, "w") as input_storage:
+                input_storage.write(path_to_add)
+            # build BASH command for retrieving the absolute path of the replacing dir (if exists)
+            command = "input=`head -1 " + input_storage_file + "`; "
+            command = command + "output=" + output_storage_file + "; "
+            command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
+            os.system(command)
+            with open(output_storage_file, "r") as output_storage:
+                path  = output_storage.readline().strip('\n')
+            if path == ":4":
+                os.system("clear")
+                print("Directory " + path_to_add + " does not exist, has been deleted or you might not have the required access level.")
+                print("Cannot add to favorites.")
+                path_to_add = ""
+            else:
+                path_to_add = path
+        return path_to_add
+    # item should be moved to excluded history
+    def excludeFromPersistentHistory(path_to_add):
+        p_hist_update_dict = {}
+        moved_to_excluded_hist = False
+        # move entry from persistent (if there) to excluded history
+        with open(p_hist_file, "r") as p_hist:
+            for entry in p_hist.readlines():
+                split_entry = entry.strip('\n').split(';')
+                path = split_entry[0]
+                if path == path_to_add:
+                    with open(e_hist_file, "a") as e_hist:
+                        e_hist.write(path + ";" + str(split_entry[1]) + "\n")
+                    moved_to_excluded_hist = True
+                else:
+                    p_hist_update_dict[path] = int(split_entry[1])
+        if moved_to_excluded_hist == True:
+            # re-create persistent history file and re-consolidate history
+            with open(p_hist_file, "w") as p_hist:
+                for entry in sorted(p_hist_update_dict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                    p_hist.write(entry[0] + ";" + str(entry[1]) + '\n')
+            consolidateHistory()
+        else:
+            # add file with no visits to excluded history, it still needs to be there; history remains unchanged
+            with open(e_hist_file, "a") as e_hist:
+                e_hist.write(path_to_add + ";0\n")
+    # actual function
     path_to_add = getDirPath(dirPath)
-
     if path_to_add != "":
         added_to_favorites = False
 
@@ -230,7 +272,6 @@ def addToFavorites(dirPath = ""):
                 if entry.strip('\n') == path_to_add:
                     already_added_to_favorites = True
                     break
-
         if already_added_to_favorites == False:
             #move entry from persistent history (if there) to excluded history
             excludeFromPersistentHistory(path_to_add)
@@ -243,62 +284,78 @@ def addToFavorites(dirPath = ""):
         else:
             print("Directory " + path_to_add + " already added to favorites.")
 
-# converts the dirPath into a usable absolute path (if possible); code :4 is being used for an invalid (or inaccessible) path (similar to other .py files where this code is used)
-def getDirPath(dirPath):
-    if dirPath == "":
-        path_to_add = os.getcwd()
-    else:
-        path_to_add = dirPath
-        with open(input_storage_file, "w") as input_storage:
-            input_storage.write(path_to_add)
-
-        # build BASH command for retrieving the absolute path of the replacing dir (if exists)
-        command = "input=`head -1 " + input_storage_file + "`; "
-        command = command + "output=" + output_storage_file + "; "
-        command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
-        os.system(command)
-
-        with open(output_storage_file, "r") as output_storage:
-            path  = output_storage.readline().strip('\n')
-        if path == ":4":
-            os.system("clear")
-            print("Directory " + path_to_add + " does not exist, has been deleted or you might not have the required access level.")
-            print("Cannot add to favorites.")
-            path_to_add = ""
-        else:
-            path_to_add = path
-
-    return path_to_add
-
-def excludeFromPersistentHistory(path_to_add):
-    p_hist_update_dict = {}
-    moved_to_excluded_hist = False
-    # move entry from persistent (if there) to excluded history
-    with open(p_hist_file, "r") as p_hist:
-        for entry in p_hist.readlines():
-            split_entry = entry.strip('\n').split(';')
-            path = split_entry[0]
-            if path == path_to_add:
-                with open(e_hist_file, "a") as e_hist:
-                    e_hist.write(path + ";" + str(split_entry[1]) + "\n")
-                moved_to_excluded_hist = True
-            else:
-                p_hist_update_dict[path] = int(split_entry[1])
-    if moved_to_excluded_hist == True:
-        # re-create persistent history file and re-consolidate history
-        with open(p_hist_file, "w") as p_hist:
-            for entry in sorted(p_hist_update_dict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                p_hist.write(entry[0] + ";" + str(entry[1]) + '\n')
-        consolidateHistory()
-    else:
-        # add file with no visits to excluded history, it still needs to be there; history remains unchanged
-        with open(e_hist_file, "a") as e_hist:
-            e_hist.write(path_to_add + ";0\n")
 
 # 6) Remove directory from favorites
 
 # exit codes have following meaning: 1 - fav file issues, 2 - input to be forwarded as regular input (path or command string)
 def removeFromFavorites():
+    # *** helper functions ***
+    def removeFromExcludedHistory(path_to_remove):
+        e_hist_update_dict = {}
+        p_hist_update_dict = {}
+        path_to_remove_visits = 0
+        move_to_persistent_hist = False
+        # remove entry from excluded history
+        with open(e_hist_file, "r") as e_hist:
+            for entry in e_hist.readlines():
+                split_entry = entry.strip('\n').split(';')
+                path = split_entry[0]
+                visits = split_entry[1]
+                if path == path_to_remove:
+                    if visits != "0":
+                        path_to_remove_visits = visits
+                        move_to_persistent_hist = True
+                else:
+                    e_hist_update_dict[path] = visits
+        with open(e_hist_file, "w") as e_hist:
+            for entry in e_hist_update_dict.items():
+                e_hist.write(entry[0] + ";" + entry[1] + "\n")
+        # move item to persistent history file, re-sort it and re-consolidate history
+        if move_to_persistent_hist == True:
+            with open(p_hist_file, "r") as p_hist:
+                for entry in p_hist.readlines():
+                    split_entry = entry.strip('\n').split(';')
+                    p_hist_update_dict[split_entry[0]] = split_entry[1]
+                p_hist_update_dict[path_to_remove] = path_to_remove_visits
+            with open(p_hist_file, "w") as p_hist:
+                for entry in sorted(p_hist_update_dict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                    p_hist.write(entry[0] + ";" + str(entry[1]) + '\n')
+            consolidateHistory()
+    def displayFavoritesContent():
+        with open(fav_file, "r") as fav:
+            fav_file_content = fav.readlines()
+            line_nr = 1
+            for entry in fav_file_content:
+                entry = entry.strip('\n')
+                print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
+                line_nr = line_nr + 1
+    def isValidInput(user_input):
+        is_valid = True
+        if user_input.isdigit():
+            int_input = int(user_input)
+            if int_input > getNumberOfLines() or int_input == 0:
+                is_valid = False
+        else:
+            is_valid = False
+        return is_valid
+    def displayFavoritesEntryRemovalDialog():
+        print("REMOVE DIRECTORY FROM FAVORITES")
+        print('')
+        displayFavoritesContent()
+        print('')
+        print("Current directory: " + os.getcwd())
+        print('')
+        print("Enter the number of the directory to be removed from favorites.")
+        print("Enter ! to quit this dialog.")
+        print('')
+    def getNumberOfLines():
+        nr_lines = 0
+        with open(fav_file, "r") as fav:
+            fav_file_content = fav.readlines()
+            for entry in fav_file_content:
+                nr_lines = nr_lines + 1
+        return nr_lines
+    # *** actual function ***
     status = 0 # default status, successful removal or aborted by user
     user_input = ""
     if not os.path.isfile(fav_file):
@@ -332,97 +389,24 @@ def removeFromFavorites():
             status = 2 #have this updated, forwarding user input has a different code!!!
     return (status, user_input, "")
 
-def removeFromExcludedHistory(path_to_remove):
-    e_hist_update_dict = {}
-    p_hist_update_dict = {}
-    path_to_remove_visits = 0
-
-    move_to_persistent_hist = False
-    # remove entry from excluded history
-    with open(e_hist_file, "r") as e_hist:
-        for entry in e_hist.readlines():
-            split_entry = entry.strip('\n').split(';')
-            path = split_entry[0]
-            visits = split_entry[1]
-            if path == path_to_remove:
-                if visits != "0":
-                    path_to_remove_visits = visits
-                    move_to_persistent_hist = True
-            else:
-                e_hist_update_dict[path] = visits
-    with open(e_hist_file, "w") as e_hist:
-        for entry in e_hist_update_dict.items():
-            e_hist.write(entry[0] + ";" + entry[1] + "\n")
-    # move item to persistent history file, re-sort it and re-consolidate history
-    if move_to_persistent_hist == True:
-        with open(p_hist_file, "r") as p_hist:
-            for entry in p_hist.readlines():
-                split_entry = entry.strip('\n').split(';')
-                p_hist_update_dict[split_entry[0]] = split_entry[1]
-            p_hist_update_dict[path_to_remove] = path_to_remove_visits
-        with open(p_hist_file, "w") as p_hist:
-            for entry in sorted(p_hist_update_dict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                p_hist.write(entry[0] + ";" + str(entry[1]) + '\n')
-        consolidateHistory()
-
-def displayFavoritesContent():
-    with open(fav_file, "r") as fav:
-        fav_file_content = fav.readlines()
-        line_nr = 1
-        for entry in fav_file_content:
-            entry = entry.strip('\n')
-            print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
-            line_nr = line_nr + 1
-
-def isValidInput(user_input):
-    is_valid = True
-    if user_input.isdigit():
-        int_input = int(user_input)
-        if int_input > getNumberOfLines() or int_input == 0:
-            is_valid = False
-    else:
-        is_valid = False
-    return is_valid
-
-def displayFavoritesEntryRemovalDialog():
-    print("REMOVE DIRECTORY FROM FAVORITES")
-    print('')
-    displayFavoritesContent()
-    print('')
-    print("Current directory: " + os.getcwd())
-    print('')
-    print("Enter the number of the directory to be removed from favorites.")
-    print("Enter ! to quit this dialog.")
-    print('')
-
-def getNumberOfLines():
-    nr_lines = 0
-    with open(fav_file, "r") as fav:
-        fav_file_content = fav.readlines()
-        for entry in fav_file_content:
-            nr_lines = nr_lines + 1
-    return nr_lines
-
-# 7) Sort favorites by basename
-def sortFavorites():
-    # ensure the favorites file exists and create sorting dictionary
-    with open(fav_file, "a") as fav:
-        fav_dict = {}
-
-    # read data
-    with open(fav_file, "r") as fav:
-        fav_file_content = fav.readlines()
-        for entry in fav_file_content:
-            entry = entry.strip('\n')
-            fav_dict[entry] = os.path.basename(entry)
-
-    # sort
-    with open(fav_file, "w") as fav:
-        for entry in sorted(fav_dict.items(), key = lambda k:(k[1].lower(), k[0])):
-            fav.write(entry[0] + '\n')
-
-# 8) Remove missing directory from history/favorites
+# 7) Remove missing directory from history/favorites
 def removeMissingDir(path_to_remove):
+    # *** helper functions ***
+    def removePathFromPermHistoryFile(hist_file, path_to_remove):
+        item_contained_in_hist_file = False
+        hist_content = []
+        with open(hist_file, "r") as hist:
+            for entry in hist.readlines():
+                split_entry = entry.split(';')
+                if split_entry[0] == path_to_remove:
+                    item_contained_in_hist_file = True
+                else:
+                    hist_content.append(entry)
+        if item_contained_in_hist_file == True:
+            with open(hist_file, "w") as hist:
+                for entry in hist_content:
+                    hist.write(entry)
+    # *** actual function ***
     removed_from_p_hist = False
     # first remove it from the daily log file if there
     with open(l_hist_file, "a") as l_hist:
@@ -452,23 +436,38 @@ def removeMissingDir(path_to_remove):
     os.system("clear")
     print("Entry " + path_to_remove + " has been removed from the menus.")
 
-def removePathFromPermHistoryFile(hist_file, path_to_remove):
-    item_contained_in_hist_file = False
-    hist_content = []
-    with open(hist_file, "r") as hist:
-        for entry in hist.readlines():
-            split_entry = entry.split(';')
-            if split_entry[0] == path_to_remove:
-                item_contained_in_hist_file = True
-            else:
-                hist_content.append(entry)
-    if item_contained_in_hist_file == True:
-        with open(hist_file, "w") as hist:
-            for entry in hist_content:
-                hist.write(entry)
-
-# 9) Map missing directory in history/favorites
+# 8) Map missing directory in history/favorites
 def mapMissingDir(path_to_replace, replacing_path):
+    # *** helper functions ***
+    def buildHistDict(hist_dict, hist_file):
+        with open(hist_file, "r") as hist:
+            for entry in hist.readlines():
+                split_entry = entry.strip('\n').split(';')
+                hist_dict[split_entry[0]] = int(split_entry[1])
+    def buildFavContent(fav_content):
+        with open(fav_file, "r") as fav:
+            for entry in fav.readlines():
+                fav_content.append(entry.strip('\n'))
+    def resortAndWriteBackToPersistentHist(p_hist_dict):
+        with open(p_hist_file, "w") as p_hist:
+            for entry in sorted(p_hist_dict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                p_hist.write(entry[0] + ";" + str(entry[1]) + '\n')
+    def writeBackToExcludedHist(e_hist_dict):
+        with open(e_hist_file, "w") as e_hist:
+            for entry in e_hist_dict.items():
+                e_hist.write(entry[0] + ";" + str(entry[1]) + '\n')
+    def resortAndWriteBackToFav(fav_content):
+        fav_dict = {}
+        for entry in fav_content:
+            fav_dict[entry] = os.path.basename(entry)
+        with open(fav_file, "w") as fav:
+            for entry in sorted(fav_dict.items(), key = lambda k:(k[1].lower(), k[0])):
+                fav.write(entry[0] + '\n')
+    def writeBackToFav(fav_content):
+        with open(fav_file, "w") as fav:
+            for entry in fav_content:
+                fav.write(entry + '\n')
+    # *** actual function ***
     fav_content = []
     p_hist_dict = {}
     e_hist_dict = {}
@@ -476,19 +475,15 @@ def mapMissingDir(path_to_replace, replacing_path):
     is_path_to_replace_in_fav = False
     re_sort_p_hist = False
     re_sort_fav = False
-
     # first remove the dir to be replaced from the daily log file if there
     with open(l_hist_file, "a") as l_hist:
         l_hist.write("")
     removePathFromTempHistoryFile(l_hist_file, path_to_replace)
-
     # remove from recent history if there
     removed_from_r_hist = removePathFromTempHistoryFile(r_hist_file, path_to_replace)
-
     # handle persistent and excluded history files update
     buildHistDict(p_hist_dict, p_hist_file)
     buildHistDict(e_hist_dict, e_hist_file)
-
     if path_to_replace in p_hist_dict:
         path_to_replace_visits = p_hist_dict[path_to_replace]
         p_hist_dict.pop(path_to_replace)
@@ -499,7 +494,6 @@ def mapMissingDir(path_to_replace, replacing_path):
         path_to_replace_visits = e_hist_dict[path_to_replace]
         e_hist_dict.pop(path_to_replace)
         is_path_to_replace_in_fav = True
-
     if replacing_path in p_hist_dict:
         replacing_path_visits = p_hist_dict[replacing_path]
         if path_to_replace_visits > replacing_path_visits:
@@ -525,7 +519,6 @@ def mapMissingDir(path_to_replace, replacing_path):
         else:
             p_hist_dict[replacing_path] = path_to_replace_visits
             re_sort_p_hist = True
-
     # write back to files
     if is_path_to_replace_in_fav:
         writeBackToExcludedHist(e_hist_dict)
@@ -545,49 +538,13 @@ def mapMissingDir(path_to_replace, replacing_path):
         if replacing_path in e_hist_dict:
             writeBackToExcludedHist(e_hist_dict)
         consolidateHistory()
-
     os.system("clear")
     print("Missing directory: " + path_to_replace)
     print("Replacing directory: "+ replacing_path)
     print("")
     print("Mapping performed successfully.")
 
-def buildHistDict(hist_dict, hist_file):
-    with open(hist_file, "r") as hist:
-        for entry in hist.readlines():
-            split_entry = entry.strip('\n').split(';')
-            hist_dict[split_entry[0]] = int(split_entry[1])
-
-def buildFavContent(fav_content):
-    with open(fav_file, "r") as fav:
-        for entry in fav.readlines():
-            fav_content.append(entry.strip('\n'))
-
-def resortAndWriteBackToPersistentHist(p_hist_dict):
-    with open(p_hist_file, "w") as p_hist:
-        for entry in sorted(p_hist_dict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-            p_hist.write(entry[0] + ";" + str(entry[1]) + '\n')
-
-def writeBackToExcludedHist(e_hist_dict):
-    with open(e_hist_file, "w") as e_hist:
-        for entry in e_hist_dict.items():
-            e_hist.write(entry[0] + ";" + str(entry[1]) + '\n')
-
-def resortAndWriteBackToFav(fav_content):
-    fav_dict = {}
-    for entry in fav_content:
-        fav_dict[entry] = os.path.basename(entry)
-    with open(fav_file, "w") as fav:
-        for entry in sorted(fav_dict.items(), key = lambda k:(k[1].lower(), k[0])):
-            fav.write(entry[0] + '\n')
-
-def writeBackToFav(fav_content):
-    with open(fav_file, "w") as fav:
-        for entry in fav_content:
-            fav.write(entry + '\n')
-
-
-# 10) Consolidate navigation history
+# 9) Shared functions
 def consolidateHistory():
     p_hist_max_entries = 15                            # maximum number of persistent history entries to be displayed in the navigation history menu
     c_hist_file = home_dir + ".goto_history"           # consolidated history file (content displayed in navigation history menu)
@@ -617,8 +574,20 @@ def consolidateHistory():
             c_hist.write(entry[0] + '\n')
         for entry in sorted(p_hist_dict.items(), key = lambda k:(k[1].lower(), k[0])):
             c_hist.write(entry[0] + '\n')
-
-# 11) Shared functions
+def sortFavorites():
+    # ensure the favorites file exists and create sorting dictionary
+    with open(fav_file, "a") as fav:
+        fav_dict = {}
+    # read data
+    with open(fav_file, "r") as fav:
+        fav_file_content = fav.readlines()
+        for entry in fav_file_content:
+            entry = entry.strip('\n')
+            fav_dict[entry] = os.path.basename(entry)
+    # sort
+    with open(fav_file, "w") as fav:
+        for entry in sorted(fav_dict.items(), key = lambda k:(k[1].lower(), k[0])):
+            fav.write(entry[0] + '\n')
 def removePathFromTempHistoryFile(hist_file, path):
     item_contained_in_hist_file = False
     hist_content = []
