@@ -1,10 +1,8 @@
-import sys, os
+import os
 import display as out
 import navigation_goto as navgt
 import command_goto as cgt
 from os.path import expanduser
-
-home_dir = expanduser("~") + "/"
 
 def navigate():
     # initialize the environment, ensure the navigation and command history menus are sorted/consolidated
