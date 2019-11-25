@@ -1,5 +1,5 @@
 import sys, os, datetime
-import common
+import common, nav_shared as ns
 from os.path import expanduser
 
 r_hist_max_entries = 10
@@ -279,7 +279,7 @@ def addToFavorites(dirPath = ""):
             with open(fav_file, "a") as fav:
                 fav.write(path_to_add + '\n')
             added_to_favorites = True
-            sortFavorites()
+            ns.sortFavorites(fav_file)
             print("Directory " + path_to_add + " added to favorites.")
         else:
             print("Directory " + path_to_add + " already added to favorites.")
@@ -378,7 +378,7 @@ def removeFromFavorites():
             with open(fav_file, "w") as fav:
                 for entry in fav_file_content:
                     fav.write(entry)
-            sortFavorites()
+            ns.sortFavorites(fav_file)
             # remove entry from excluded history and move it to persistent history if visited at least once
             path_to_remove = path_to_remove.strip('\n')
             removeFromExcludedHistory(path_to_remove)
@@ -411,9 +411,9 @@ def removeMissingDir(path_to_remove):
     # first remove it from the daily log file if there
     with open(l_hist_file, "a") as l_hist:
         l_hist.write("")
-    removePathFromTempHistoryFile(l_hist_file, path_to_remove)
+    ns.removePathFromTempHistoryFile(l_hist_file, path_to_remove)
     # remove from recent history if there
-    removed_from_r_hist = removePathFromTempHistoryFile(r_hist_file, path_to_remove)
+    removed_from_r_hist = ns.removePathFromTempHistoryFile(r_hist_file, path_to_remove)
     # remove the path from favorites file and excluded history OR from persistent history
     fav_content = []
     is_in_fav_file = False
@@ -478,9 +478,9 @@ def mapMissingDir(path_to_replace, replacing_path):
     # first remove the dir to be replaced from the daily log file if there
     with open(l_hist_file, "a") as l_hist:
         l_hist.write("")
-    removePathFromTempHistoryFile(l_hist_file, path_to_replace)
+    ns.removePathFromTempHistoryFile(l_hist_file, path_to_replace)
     # remove from recent history if there
-    removed_from_r_hist = removePathFromTempHistoryFile(r_hist_file, path_to_replace)
+    removed_from_r_hist = ns.removePathFromTempHistoryFile(r_hist_file, path_to_replace)
     # handle persistent and excluded history files update
     buildHistDict(p_hist_dict, p_hist_file)
     buildHistDict(e_hist_dict, e_hist_file)
@@ -574,27 +574,3 @@ def consolidateHistory():
             c_hist.write(entry[0] + '\n')
         for entry in sorted(p_hist_dict.items(), key = lambda k:(k[1].lower(), k[0])):
             c_hist.write(entry[0] + '\n')
-def sortFavorites():
-    fav_dict = {}
-    with open(fav_file, "r") as fav:
-        fav_file_content = fav.readlines()
-        for entry in fav_file_content:
-            entry = entry.strip('\n')
-            fav_dict[entry] = os.path.basename(entry)
-    with open(fav_file, "w") as fav:
-        for entry in sorted(fav_dict.items(), key = lambda k:(k[1].lower(), k[0])):
-            fav.write(entry[0] + '\n')
-def removePathFromTempHistoryFile(hist_file, path):
-    item_contained_in_hist_file = False
-    hist_content = []
-    with open(hist_file, "r") as hist:
-        for entry in hist.readlines():
-            if entry.strip('\n') == path:
-                item_contained_in_hist_file = True
-            else:
-                hist_content.append(entry)
-    if item_contained_in_hist_file == True:
-        with open(hist_file, "w") as hist:
-            for entry in hist_content:
-                hist.write(entry)
-    return item_contained_in_hist_file
