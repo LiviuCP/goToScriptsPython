@@ -2,7 +2,6 @@ import sys, os
 import display as out
 import navigation_goto as navgt
 import command_goto as cgt
-import cmd_menus_update as cmd
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
@@ -10,7 +9,7 @@ home_dir = expanduser("~") + "/"
 def navigate():
     # initialize the environment, ensure the navigation and command history menus are sorted/consolidated
     navgt.initNavMenus()
-    cmd.initCmdMenus()
+    cgt.initCmdMenus()
 
     #initialize required variables
     prevDir = os.getcwd()
@@ -63,7 +62,7 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
             print("No shell command previously executed")
             shouldForwardData = False
         else:
-            result = cmd.executeNewCommand(prevCommand)
+            result = cgt.executeNewCommand(prevCommand)
     elif navigationInput == ":":
         result = cgt.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cgt.editAndExecPrevCmd()
         if result[0] == 0:
@@ -81,7 +80,7 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
         elif result[0] == 1:
             navigationOutput = 1
     elif navigationInput == "::<>":
-        cmd.clearCommandHistory()
+        cgt.clearCommandHistory()
         shouldForwardData = False
     elif navigationInput == "<":
         result = navgt.visitNavigationMenu("-h", prevDir)
@@ -126,7 +125,7 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
         print("You exited navigation mode.")
     else:
         if navigationInput != "" and navigationInput[0] == ":":
-            result = cmd.executeNewCommand(navigationInput[1:])
+            result = cgt.executeNewCommand(navigationInput[1:])
             navigationOutput = 2
         else:
             result = navgt.goTo() if navigationInput == "" else navgt.goTo(navigationInput, prevDir)

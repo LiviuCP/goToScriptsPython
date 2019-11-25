@@ -68,16 +68,7 @@ def chooseCommandFromHistoryMenu(mode):
 
     return common.getOutput(user_input, c_hist_content, "command")
 
-# 3) Execute new command
-def executeNewCommand(command = ""):
-    if command == "":
-        print("No argument provided")
-        result = (3, "", "")
-    else:
-        result = executeCommand(command) # have this updated, a return will be available
-    return result
-
-# 4) Execute command
+# 3) Execute command
 def executeCommand(commandToExecute):
     if len(commandToExecute) >= minNrOfCmdChars:
         updateIndividualCommandHistoryFiles(commandToExecute)
@@ -120,7 +111,7 @@ def updateIndividualCommandHistoryFiles(command):
         for entry in c_r_hist_content:
             c_r_hist.write(entry+'\n')
 
-# 5) Consolidate command history
+# 4) Consolidate command history
 def consolidateCommandHistory():
     with open(c_r_hist_file, 'r') as c_r_hist:
         c_r_hist_entries = c_r_hist.readlines()
@@ -130,7 +121,7 @@ def consolidateCommandHistory():
         for entry in c_r_hist_entries:
             c_hist.write(entry)
 
-# 6) Clear command history
+# 5) Clear command history
 def clearCommandHistory():
     with open(c_r_hist_file, "w") as c_r_hist:
         c_r_hist.write("")

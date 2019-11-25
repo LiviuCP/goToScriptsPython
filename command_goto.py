@@ -61,3 +61,20 @@ def editAndExecPrevCmd(previousCommand = ""):
         passedInput = result[1]
         passedOutput = result[2]
     return (status, passedInput, passedOutput)
+
+# 3) Command menus initialization (wrapper for initCmdMenus)
+def initCmdMenus():
+    cmd.initCmdMenus()
+
+# 4) Execute new command
+def executeNewCommand(command = ""):
+    if command == "":
+        print("No argument provided")
+        result = (3, "", "")
+    else:
+        result = cmd.executeCommand(command) # have this updated, a return will be available
+    return result
+
+# 5) Clear command history (wrapper for the cmd_menus_update function)
+def clearCommandHistory():
+    cmd.clearCommandHistory()
