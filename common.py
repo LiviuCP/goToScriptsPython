@@ -1,6 +1,9 @@
+import os
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
+input_storage_file = home_dir + ".store_input"
+output_storage_file = home_dir + ".store_output"
 
 # common code to be used by cmd_menus.update.py and nav_menus_update.py
 
@@ -36,3 +39,22 @@ def getOutput(user_input, content, menu_type):
     else:
         output = ":1"
     return (output.strip("\n"), user_input, "")
+
+# if a valid absolute path is fed as argument the unchanged path (without any ending '/') is returned
+def getAbsoluteDirPath(dirPath):
+    if dirPath == "":
+        pathToAdd = os.getcwd()
+    else:
+        pathToAdd = dirPath
+        with open(input_storage_file, "w") as input_storage:
+            input_storage.write(pathToAdd)
+        # build BASH command for retrieving the absolute path of the replacing dir (if exists)
+        command = "input=`head -1 " + input_storage_file + "`; "
+        command = command + "output=" + output_storage_file + "; "
+        command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
+        os.system(command)
+        with open(output_storage_file, "r") as output_storage:
+            pathToAdd = output_storage.readline().strip('\n')
+        if pathToAdd == ":4":
+            pathToAdd = ""
+    return pathToAdd

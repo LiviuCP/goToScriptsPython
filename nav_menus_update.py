@@ -211,29 +211,6 @@ def clearHist():
 
 # 5) Add directory to favorites
 def addToFavorites(dirPath = ""):
-    # converts the dirPath into a usable absolute path (if possible); code :4 is being used for an invalid (or inaccessible) path (similar to other .py files where this code is used)
-    def getDirPath(dirPath):
-        if dirPath == "":
-            path_to_add = os.getcwd()
-        else:
-            path_to_add = dirPath
-            with open(input_storage_file, "w") as input_storage:
-                input_storage.write(path_to_add)
-            # build BASH command for retrieving the absolute path of the replacing dir (if exists)
-            command = "input=`head -1 " + input_storage_file + "`; "
-            command = command + "output=" + output_storage_file + "; "
-            command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
-            os.system(command)
-            with open(output_storage_file, "r") as output_storage:
-                path  = output_storage.readline().strip('\n')
-            if path == ":4":
-                os.system("clear")
-                print("Directory " + path_to_add + " does not exist, has been deleted or you might not have the required access level.")
-                print("Cannot add to favorites.")
-                path_to_add = ""
-            else:
-                path_to_add = path
-        return path_to_add
     # item should be moved to excluded history
     def excludeFromPersistentHistory(path_to_add):
         p_hist_update_dict = {}
@@ -260,7 +237,7 @@ def addToFavorites(dirPath = ""):
             with open(e_hist_file, "a") as e_hist:
                 e_hist.write(path_to_add + ";0\n")
     # actual function
-    path_to_add = getDirPath(dirPath)
+    path_to_add = common.getAbsoluteDirPath(dirPath)
     if path_to_add != "":
         added_to_favorites = False
 
@@ -283,7 +260,10 @@ def addToFavorites(dirPath = ""):
             print("Directory " + path_to_add + " added to favorites.")
         else:
             print("Directory " + path_to_add + " already added to favorites.")
-
+    else:
+        os.system("clear")
+        print("Directory " + dirPath + " does not exist, has been deleted or you might not have the required access level.")
+        print("Cannot add to favorites.")
 
 # 6) Remove directory from favorites
 
