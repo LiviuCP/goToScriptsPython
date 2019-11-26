@@ -58,3 +58,10 @@ def getAbsoluteDirPath(dirPath):
         if pathToAdd == ":4":
             pathToAdd = ""
     return pathToAdd
+
+def getNumberOfLines(file_path):
+    nrLines = 0
+    with open(file_path, "r") as fPath:
+        for entry in fPath.readlines():
+            nrLines = nrLines + 1
+    return nrLines

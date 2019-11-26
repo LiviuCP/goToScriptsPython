@@ -297,7 +297,7 @@ def removeFromFavorites():
         is_valid = True
         if user_input.isdigit():
             int_input = int(user_input)
-            if int_input > getNumberOfLines() or int_input == 0:
+            if int_input > common.getNumberOfLines(fav_file) or int_input == 0:
                 is_valid = False
         else:
             is_valid = False
@@ -312,13 +312,6 @@ def removeFromFavorites():
         print("Enter the number of the directory to be removed from favorites.")
         print("Enter ! to quit this dialog.")
         print('')
-    def getNumberOfLines():
-        nr_lines = 0
-        with open(fav_file, "r") as fav:
-            fav_file_content = fav.readlines()
-            for entry in fav_file_content:
-                nr_lines = nr_lines + 1
-        return nr_lines
     # *** actual function ***
     status = 0 # default status, successful removal or aborted by user
     user_input = ""
