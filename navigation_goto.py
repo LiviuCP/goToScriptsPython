@@ -1,5 +1,5 @@
 import sys, os
-import nav_menus_update as nav
+import common, nav_menus_update as nav
 from os.path import expanduser, isdir
 
 home_dir = expanduser("~") + "/"
@@ -169,8 +169,18 @@ def initNavMenus():
     nav.initNavMenus()
 
 # 7) Add directory to favorites (wrapper for the same method contained in nav menus update)
-def addDirToFavorites():
-    nav.addToFavorites()
+def addDirToFavorites(dirPath = ""):
+    pathToAdd = common.getAbsoluteDirPath(dirPath)
+    if pathToAdd != "":
+        if nav.isContainedInFavorites(pathToAdd) == False:
+            nav.addPathToFavorites(pathToAdd)
+            print("Directory " + pathToAdd + " added to favorites.")
+        else:
+            print("Directory " + pathToAdd + " already added to favorites.")
+    else:
+        os.system("clear")
+        print("Directory " + dirPath + " does not exist, has been deleted or you might not have the required access level.")
+        print("Cannot add to favorites.")
 
 # 8) Removed directory from favorites (wrapper for the same method contained in nav menus update)
 def removeDirFromFavorites():

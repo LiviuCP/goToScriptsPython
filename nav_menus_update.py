@@ -210,57 +210,44 @@ def clearHist():
     print("Content of navigation history menu has been erased.")
 
 # 5) Add directory to favorites
-def addToFavorites(dirPath = ""):
-    # *** helper functions ***
-    def isContainedInFavorites():
-        already_added_to_favorites = False
-        with open(fav_file, "r") as fav:
-            fav_content = fav.readlines()
-            for entry in fav_content:
-                if entry.strip('\n') == path_to_add:
-                    already_added_to_favorites = True
-                    break
-        return already_added_to_favorites
-    def addPathToFavorites(path_to_add):
-        p_hist_update_dict = {}
-        moved_to_excluded_hist = False
-        # move entry from persistent (if there) to excluded history
-        with open(p_hist_file, "r") as p_hist:
-            for entry in p_hist.readlines():
-                split_entry = entry.strip('\n').split(';')
-                path = split_entry[0]
-                if path == path_to_add:
-                    with open(e_hist_file, "a") as e_hist:
-                        e_hist.write(path + ";" + str(split_entry[1]) + "\n")
-                    moved_to_excluded_hist = True
-                else:
-                    p_hist_update_dict[path] = int(split_entry[1])
-        if moved_to_excluded_hist == True:
-            # re-create persistent history file and re-consolidate history
-            with open(p_hist_file, "w") as p_hist:
-                for entry in sorted(p_hist_update_dict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                    p_hist.write(entry[0] + ";" + str(entry[1]) + '\n')
-            consolidateHistory()
-        else:
-            # add file with no visits to excluded history, it still needs to be there; history remains unchanged
-            with open(e_hist_file, "a") as e_hist:
-                e_hist.write(path_to_add + ";0\n")
-        #append path to favorites entries
-        with open(fav_file, "a") as fav:
-            fav.write(path_to_add + '\n')
-        ns.sortFavorites(fav_file)
-    # actual function
-    path_to_add = common.getAbsoluteDirPath(dirPath)
-    if path_to_add != "":
-        if isContainedInFavorites() == False:
-            addPathToFavorites(path_to_add)
-            print("Directory " + path_to_add + " added to favorites.")
-        else:
-            print("Directory " + path_to_add + " already added to favorites.")
+def isContainedInFavorites(pathToAdd):
+    alreadyAddedToFavorites = False
+    with open(fav_file, "r") as fav:
+        favContent = fav.readlines()
+        for entry in favContent:
+            if entry.strip('\n') == pathToAdd:
+                alreadyAddedToFavorites = True
+                break
+    return alreadyAddedToFavorites
+
+def addPathToFavorites(pathToAdd):
+    pHistUpdateDict = {}
+    movedToExcluded_hist = False
+    # move entry from persistent (if there) to excluded history
+    with open(p_hist_file, "r") as pHist:
+        for entry in pHist.readlines():
+            splitEntry = entry.strip('\n').split(';')
+            path = splitEntry[0]
+            if path == pathToAdd:
+                with open(e_hist_file, "a") as eHist:
+                    eHist.write(path + ";" + str(splitEntry[1]) + "\n")
+                movedToExcludedHist = True
+            else:
+                pHistUpdateDict[path] = int(splitEntry[1])
+    if movedToExcludedHist == True:
+        # re-create persistent history file and re-consolidate history
+        with open(p_hist_file, "w") as pHist:
+            for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
+        consolidateHistory()
     else:
-        os.system("clear")
-        print("Directory " + dirPath + " does not exist, has been deleted or you might not have the required access level.")
-        print("Cannot add to favorites.")
+        # add file with no visits to excluded history, it still needs to be there; history remains unchanged
+        with open(e_hist_file, "a") as eHist:
+            eHist.write(pathToAdd + ";0\n")
+    #append path to favorites entries
+    with open(fav_file, "a") as fav:
+        fav.write(pathToAdd + '\n')
+    ns.sortFavorites(fav_file)
 
 # 6) Remove directory from favorites
 
