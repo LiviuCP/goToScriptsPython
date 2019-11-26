@@ -221,7 +221,7 @@ def addToFavorites(dirPath = ""):
                     already_added_to_favorites = True
                     break
         return already_added_to_favorites
-    def excludeFromPersistentHistory(path_to_add):
+    def addPathToFavorites(path_to_add):
         p_hist_update_dict = {}
         moved_to_excluded_hist = False
         # move entry from persistent (if there) to excluded history
@@ -245,16 +245,15 @@ def addToFavorites(dirPath = ""):
             # add file with no visits to excluded history, it still needs to be there; history remains unchanged
             with open(e_hist_file, "a") as e_hist:
                 e_hist.write(path_to_add + ";0\n")
+        #append path to favorites entries
+        with open(fav_file, "a") as fav:
+            fav.write(path_to_add + '\n')
+        ns.sortFavorites(fav_file)
     # actual function
     path_to_add = common.getAbsoluteDirPath(dirPath)
     if path_to_add != "":
         if isContainedInFavorites() == False:
-            #move entry from persistent history (if there) to excluded history
-            excludeFromPersistentHistory(path_to_add)
-            #append path to favorites entries
-            with open(fav_file, "a") as fav:
-                fav.write(path_to_add + '\n')
-            ns.sortFavorites(fav_file)
+            addPathToFavorites(path_to_add)
             print("Directory " + path_to_add + " added to favorites.")
         else:
             print("Directory " + path_to_add + " already added to favorites.")
