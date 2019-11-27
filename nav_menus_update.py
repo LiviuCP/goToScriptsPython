@@ -300,7 +300,7 @@ def removeFromFavorites():
     user_input = ""
     if os.path.getsize(fav_file) == 0:
         print("There are no entries in the favorites menu.")
-        status = 1
+        status = 4
     else:
         displayFavoritesEntryRemovalDialog()
         user_input = input()
@@ -323,7 +323,7 @@ def removeFromFavorites():
         elif user_input == '!':
             print("No entry removed from favorites menu.")
         else:
-            status = 2 #have this updated, forwarding user input has a different code!!!
+            status = 1 # forward user input as regular input
     return (status, user_input, "")
 
 # 7) Remove missing directory from history/favorites

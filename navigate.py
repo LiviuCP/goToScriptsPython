@@ -110,7 +110,7 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
         shouldForwardData = False
     elif navigationInput == "->":
         result = navgt.removeDirFromFavorites()
-        if result[0] == 2:
+        if result[0] == 1:
             navigationOutput = 1
     elif navigationInput == ":<>":
         navgt.clearVisitedDirsMenu()
