@@ -222,7 +222,7 @@ def isContainedInFavorites(pathToAdd):
 
 def addPathToFavorites(pathToAdd):
     pHistUpdateDict = {}
-    movedToExcluded_hist = False
+    movedToExcludedHist = False
     # move entry from persistent (if there) to excluded history
     with open(p_hist_file, "r") as pHist:
         for entry in pHist.readlines():
