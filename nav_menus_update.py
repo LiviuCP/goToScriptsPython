@@ -64,17 +64,11 @@ def choosePath(file_choice, user_input = ""):
                 print("")
                 print("-- RECENTLY VISITED --")
                 print("")
-                while line_nr <= r_hist_entries:
-                    entry = hist_content[line_nr-1].strip('\n')
-                    print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
-                    line_nr = line_nr + 1
+                common.displayFormattedNavFileContent(hist_content, 0, r_hist_entries)
                 print("")
                 print("--  MOST VISITED --")
                 print("")
-                while line_nr <= len(hist_content):
-                    entry = hist_content[line_nr-1].strip('\n')
-                    print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
-                    line_nr = line_nr + 1
+                common.displayFormattedNavFileContent(hist_content, r_hist_entries)
                 print("")
                 print("Current directory: " + os.getcwd())
                 print("")
@@ -98,11 +92,7 @@ def choosePath(file_choice, user_input = ""):
             else:
                 print("FAVORITE DIRECTORIES")
                 print("")
-                line_nr = 1
-                for entry in fav_content:
-                    entry = entry.strip('\n')
-                    print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
-                    line_nr = line_nr + 1
+                common.displayFormattedNavFileContent(fav_content)
                 print("")
                 print("Current directory: " + os.getcwd())
                 print("")
@@ -285,14 +275,6 @@ def removeFromFavorites():
                 for entry in sorted(p_hist_update_dict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
                     p_hist.write(entry[0] + ";" + str(entry[1]) + '\n')
             consolidateHistory()
-    def displayFavoritesContent():
-        with open(fav_file, "r") as fav:
-            fav_file_content = fav.readlines()
-            line_nr = 1
-            for entry in fav_file_content:
-                entry = entry.strip('\n')
-                print('{0:<10s} {1:<30s} {2:<160s}'.format(str(line_nr), os.path.basename(entry), entry))
-                line_nr = line_nr + 1
     def isValidInput(user_input):
         is_valid = True
         if user_input.isdigit():
@@ -305,7 +287,8 @@ def removeFromFavorites():
     def displayFavoritesEntryRemovalDialog():
         print("REMOVE DIRECTORY FROM FAVORITES")
         print('')
-        displayFavoritesContent()
+        with open(fav_file, "r") as fav:
+            common.displayFormattedNavFileContent(fav.readlines())
         print('')
         print("Current directory: " + os.getcwd())
         print('')
@@ -319,7 +302,7 @@ def removeFromFavorites():
         print("The favorites file " + fav_file + " does not exist or has been deleted.")
         status = 1
     elif os.path.getsize(fav_file) == 0:
-        print("The favorites file " + fav_file + " is empty!")
+        print("There are no entries in the favorites menu.")
         status = 1
     else:
         displayFavoritesEntryRemovalDialog()
