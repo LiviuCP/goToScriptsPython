@@ -298,10 +298,7 @@ def removeFromFavorites():
     # *** actual function ***
     status = 0 # default status, successful removal or aborted by user
     user_input = ""
-    if not os.path.isfile(fav_file):
-        print("The favorites file " + fav_file + " does not exist or has been deleted.")
-        status = 1
-    elif os.path.getsize(fav_file) == 0:
+    if os.path.getsize(fav_file) == 0:
         print("There are no entries in the favorites menu.")
         status = 1
     else:
