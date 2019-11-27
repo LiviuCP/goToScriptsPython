@@ -287,14 +287,16 @@ def removeFromFavorites():
     def displayFavoritesEntryRemovalDialog():
         print("REMOVE DIRECTORY FROM FAVORITES")
         print('')
-        with open(fav_file, "r") as fav:
-            common.displayFormattedNavFileContent(fav.readlines())
+        displayFormattedFavoritesContent()
         print('')
         print("Current directory: " + os.getcwd())
         print('')
         print("Enter the number of the directory to be removed from favorites.")
         print("Enter ! to quit this dialog.")
         print('')
+    def displayFormattedFavoritesContent():
+        with open(fav_file, "r") as fav:
+            common.displayFormattedNavFileContent(fav.readlines())
     def doRemoveFromFavorites(user_input):
         user_input = int(user_input)
         # remove entry from favorites and re-sort
