@@ -295,6 +295,21 @@ def removeFromFavorites():
         print("Enter the number of the directory to be removed from favorites.")
         print("Enter ! to quit this dialog.")
         print('')
+    def doRemoveFromFavorites(user_input):
+        user_input = int(user_input)
+        # remove entry from favorites and re-sort
+        with open(fav_file, "r") as fav:
+            fav_file_content = fav.readlines()
+            path_to_remove = fav_file_content[user_input-1]
+            fav_file_content.remove(path_to_remove)
+        with open(fav_file, "w") as fav:
+            for entry in fav_file_content:
+                fav.write(entry)
+        ns.sortFavorites(fav_file)
+        # remove entry from excluded history and move it to persistent history if visited at least once
+        path_to_remove = path_to_remove.strip('\n')
+        removeFromExcludedHistory(path_to_remove)
+        return path_to_remove
     # *** actual function ***
     status = 0 # default status, successful removal or aborted by user
     user_input = ""
@@ -306,20 +321,8 @@ def removeFromFavorites():
         user_input = input()
         os.system("clear")
         if isValidInput(user_input):
-            user_input = int(user_input)
-            # remove entry from favorites and re-sort
-            with open(fav_file, "r") as fav:
-                fav_file_content = fav.readlines()
-                path_to_remove = fav_file_content[user_input-1]
-                fav_file_content.remove(path_to_remove)
-            with open(fav_file, "w") as fav:
-                for entry in fav_file_content:
-                    fav.write(entry)
-            ns.sortFavorites(fav_file)
-            # remove entry from excluded history and move it to persistent history if visited at least once
-            path_to_remove = path_to_remove.strip('\n')
-            removeFromExcludedHistory(path_to_remove)
-            print("Entry " + path_to_remove + " removed from favorites menu.")
+            removed_path = doRemoveFromFavorites(user_input)
+            print("Entry " + removed_path + " removed from favorites menu.")
         elif user_input == '!':
             print("No entry removed from favorites menu.")
         else:
