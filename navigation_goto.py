@@ -9,18 +9,56 @@ output_storage_file = home_dir + ".store_output"
 # 1) Visit navigation menu
 
 def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
+    # *** helper functions ***
+    def displayHistMenu():
+        print("VISITED DIRECTORIES")
+        print("")
+        print("-- RECENTLY VISITED --")
+        print("")
+        nav.displayFormattedRecentHistContent()
+        print("")
+        print("--  MOST VISITED --")
+        print("")
+        nav.displayFormattedPersistentHistContent()
+        print("")
+        print("Current directory: " + os.getcwd())
+        print("")
+        print("Enter the number of the directory you want to navigate to.")
+        print("Enter ! to quit.")
+        print("")
+    def displayFavoritesMenu():
+        print("FAVORITE DIRECTORIES")
+        print("")
+        nav.displayFormattedFavoritesContent()
+        print("")
+        print("Current directory: " + os.getcwd())
+        print("")
+        print("Enter the number of the directory you want to navigate to.")
+        print("Enter ! to quit.")
+        print("")
+    # *** actual function ***
     status = 0 # default status, normal execution or missing dir successful removal/mapping
     passedInput = ""
     passedOutput = previousDir
     if menuChoice == "" or previousDir == "":
         print("Insufficient number of arguments")
         status = 3
-    elif userInput == "":
-        prevDir = previousDir
-        choiceResult = nav.choosePath(menuChoice)
     else:
         prevDir = previousDir
-        choiceResult = nav.choosePath(menuChoice, userInput)
+        if menuChoice != "-f" and menuChoice != "-h":
+            print("invalid argument provided, no menu selected")
+            choiceResult = (":3", "", "")
+        else:
+            menuName = "favorites" if menuChoice == "-f" else "history"
+            if userInput == "":
+                os.system("clear")
+                if nav.isMenuEmpty(menuChoice) == True:
+                    print("There are no entries in the " + menuName + " menu.")
+                else:
+                    displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
+                    userInput = input() # to update: enable path autocomplete
+                    os.system("clear")
+            choiceResult = nav.choosePath(menuChoice, userInput)
     if status == 0:
         dirPath = choiceResult[0]
         if dirPath == ":1" or dirPath == ":4":

@@ -46,65 +46,20 @@ def initNavMenus():
 # :2 - user exited the history/favorites menu, returned to navigation mode
 # :3 - invalid first argument
 # :4 - no entries in history/favorites menu
-def choosePath(menuChoice, userInput = ""):
-    # *** helper functions ***
-    def displayFormattedRecentHistContent():
-        with open(hist_file, "r") as hist, open(r_hist_file, "r") as r_hist:
-            common.displayFormattedNavFileContent(hist.readlines(), 0, len(r_hist.readlines()))
-    def displayFormattedPersistentHistContent():
-        with open(hist_file, "r") as hist, open(r_hist_file, "r") as r_hist:
-            common.displayFormattedNavFileContent(hist.readlines(), len(r_hist.readlines()))
-    def displayHistMenu():
-        print("VISITED DIRECTORIES")
-        print("")
-        print("-- RECENTLY VISITED --")
-        print("")
-        displayFormattedRecentHistContent()
-        print("")
-        print("--  MOST VISITED --")
-        print("")
-        displayFormattedPersistentHistContent()
-        print("")
-        print("Current directory: " + os.getcwd())
-        print("")
-        print("Enter the number of the directory you want to navigate to.")
-        print("Enter ! to quit.")
-        print("")
-    def displayFavoritesMenu():
-        print("FAVORITE DIRECTORIES")
-        print("")
-        displayFormattedFavoritesContent()
-        print("")
-        print("Current directory: " + os.getcwd())
-        print("")
-        print("Enter the number of the directory you want to navigate to.")
-        print("Enter ! to quit.")
-        print("")
-    def isMenuEmpty(menuChoice):
-        return os.path.getsize(fav_file if menuChoice == "-f" else hist_file) == 0
-    def doChoosePath(menuChoice, userInput):
-        file_path = fav_file if menuChoice == "-f" else hist_file
-        menuName = "favorites" if menuChoice == "-f" else "history"
-        with open(file_path, "r") as fPath:
-            content = fPath.readlines()
-        return common.getOutput(userInput, content, menuName)
-    # *** actual function ***
-    if menuChoice != "-f" and menuChoice != "-h":
-        print("invalid argument provided, no menu selected")
-        outcome = (":3", "", "")
-    else:
-        menuName = "favorites" if menuChoice == "-f" else "history"
-        if userInput == "":
-            os.system("clear")
-            if isMenuEmpty(menuChoice) == True:
-                print("There are no entries in the " + menuName + " menu.")
-            else:
-                displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
-                userInput = input() # to update: enable path autocomplete
-                os.system("clear")
-        outcome = doChoosePath(menuChoice, userInput)
-    return outcome
-
+def choosePath(menuChoice, userInput):
+    file_path = fav_file if menuChoice == "-f" else hist_file
+    menuName = "favorites" if menuChoice == "-f" else "history"
+    with open(file_path, "r") as fPath:
+        content = fPath.readlines()
+    return common.getOutput(userInput, content, menuName)
+def displayFormattedRecentHistContent():
+    with open(hist_file, "r") as hist, open(r_hist_file, "r") as r_hist:
+        common.displayFormattedNavFileContent(hist.readlines(), 0, len(r_hist.readlines()))
+def displayFormattedPersistentHistContent():
+    with open(hist_file, "r") as hist, open(r_hist_file, "r") as r_hist:
+        common.displayFormattedNavFileContent(hist.readlines(), len(r_hist.readlines()))
+def isMenuEmpty(menuChoice):
+    return os.path.getsize(fav_file if menuChoice == "-f" else hist_file) == 0
 # 3) Update individual navigation history files
 def updateHistory(visited_dir_path):
     # *** helper functions ***
