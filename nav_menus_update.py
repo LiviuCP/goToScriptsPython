@@ -136,7 +136,6 @@ def clearHist():
         for entry in fav_file_content:
             entry = entry.strip('\n')
             e_hist.write(entry + ';0\n')
-    print("Content of navigation history menu has been erased.")
 
 # 5) Add directory to favorites
 def isContainedInFavorites(pathToAdd):

@@ -206,6 +206,7 @@ def handleMissingDir(path, menu):
 # 5) Clear visited directories menu (wrapper for clear history)
 def clearVisitedDirsMenu():
     nav.clearHist()
+    print("Content of navigation history menu has been erased.")
 
 # 6) Init navigation menus (visited and favorite directories - wrapper for history and favorites init)
 def initNavMenus():
