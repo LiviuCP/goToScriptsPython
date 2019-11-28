@@ -159,7 +159,9 @@ def handleMissingDir(path, menu):
 
         # remove directory from history, don't map to anything
         if userChoice == "!r":
-            nav.removeMissingDir(missingDirPath)
+            removedPath = nav.removeMissingDir(missingDirPath)
+            os.system("clear")
+            print("Entry " + removedPath + " has been removed from the menus.")
             status = 0
         # map missing directory to a valid replacing dir
         elif userChoice == "!m":

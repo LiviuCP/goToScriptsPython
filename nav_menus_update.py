@@ -282,8 +282,7 @@ def removeMissingDir(path_to_remove):
     # consolidate history only if modified
     if removed_from_r_hist == True or removed_from_p_hist == True:
         consolidateHistory()
-    os.system("clear")
-    print("Entry " + path_to_remove + " has been removed from the menus.")
+    return path_to_remove
 
 # 8) Map missing directory in history/favorites
 def mapMissingDir(path_to_replace, replacing_path):
