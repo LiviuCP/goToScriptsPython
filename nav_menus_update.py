@@ -80,36 +80,22 @@ def choosePath(file_choice, user_input = ""):
         print("Enter the number of the directory you want to navigate to.")
         print("Enter ! to quit.")
         print("")
-    def chooseEntryFromHistoryMenu(already_provided_input, provided_input):
-        with open(hist_file, "r") as hist:
-            hist_content = hist.readlines()
-        if already_provided_input == False:
+    def chooseEntryFromMenu(file_path, alreadyProvidedInput, providedInput):
+        with open(file_path, "r") as fPath:
+            content = fPath.readlines()
+        menuType = "history" if file_path == hist_file else "favorites"
+        if alreadyProvidedInput == False:
             os.system("clear")
-            if len(hist_content) == 0:
-                print("There are no entries in the history menu.")
-                user_input = ""
+            if len(content) == 0:
+                print("There are no entries in the " + menuType + " menu.")
+                userInput = ""
             else:
-                displayHistMenu()
-                user_input = input() # to update: enable path autocomplete
+                displayHistMenu() if menuType == "history" else displayFavoritesMenu()
+                userInput = input() # to update: enable path autocomplete
                 os.system("clear")
         else:
-            user_input = provided_input
-        return common.getOutput(user_input, hist_content, "history")
-    def chooseEntryFromFavoritesMenu(already_provided_input, provided_input):
-        with open(fav_file, "r") as fav:
-            fav_content = fav.readlines()
-        if already_provided_input == False:
-            os.system("clear")
-            if (len(fav_content) == 0):
-                print("There are no entries in the favorites menu.")
-                user_input = ""
-            else:
-                displayFavoritesMenu()
-                user_input = input() # to update: enable path autocomplete
-                os.system("clear")
-        else:
-            user_input = provided_input
-        return common.getOutput(user_input, fav_content, "favorites")
+            userInput = providedInput
+        return common.getOutput(userInput, content, menuType)
     # *** actual function ***
     if file_choice == "":
         print("no menu selected")
@@ -117,9 +103,9 @@ def choosePath(file_choice, user_input = ""):
     else:
         already_provided_input = True if user_input != "" else False
         if file_choice == "-f": #favorites
-            outcome = chooseEntryFromFavoritesMenu(already_provided_input, user_input)
+            outcome = chooseEntryFromMenu(fav_file, already_provided_input, user_input)
         elif file_choice == "-h": #consolidated history
-            outcome = chooseEntryFromHistoryMenu(already_provided_input, user_input)
+            outcome = chooseEntryFromMenu(hist_file, already_provided_input, user_input)
         else:
             print("invalid argument provided")
             outcome = (":3", "", "")
