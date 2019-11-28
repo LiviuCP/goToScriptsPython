@@ -184,4 +184,32 @@ def addDirToFavorites(dirPath = ""):
 
 # 8) Removed directory from favorites (wrapper for the same method contained in nav menus update)
 def removeDirFromFavorites():
-    return nav.removeFromFavorites()
+    # *** helper functions ***
+    def displayFavoritesEntryRemovalDialog():
+        print("REMOVE DIRECTORY FROM FAVORITES")
+        print('')
+        nav.displayFormattedFavoritesContent()
+        print('')
+        print("Current directory: " + os.getcwd())
+        print('')
+        print("Enter the number of the directory to be removed from favorites.")
+        print("Enter ! to quit this dialog.")
+        print('')
+    # *** actual function ***
+    status = 0 # default status, successful removal or aborted by user
+    userInput = ""
+    if nav.isFavEmpty() == True:
+        print("There are no entries in the favorites menu.")
+        status = 4
+    else:
+        displayFavoritesEntryRemovalDialog()
+        userInput = input()
+        os.system("clear")
+        if nav.isValidInput(userInput):
+            removedPath = nav.removeFromFavorites(userInput)
+            print("Entry " + removedPath + " removed from favorites menu.")
+        elif userInput == '!':
+            print("No entry removed from favorites menu.")
+        else:
+            status = 1 # forward user input as regular input
+    return (status, userInput, "")

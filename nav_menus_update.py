@@ -240,96 +240,65 @@ def addPathToFavorites(pathToAdd):
     ns.sortFavorites(fav_file)
 
 # 6) Remove directory from favorites
-
-# exit codes have following meaning: 1 - fav file issues, 2 - input to be forwarded as regular input (path or command string)
-def removeFromFavorites():
+def removeFromFavorites(userInput):
     # *** helper functions ***
-    def removeFromExcludedHistory(path_to_remove):
-        e_hist_update_dict = {}
-        p_hist_update_dict = {}
-        path_to_remove_visits = 0
-        move_to_persistent_hist = False
+    def removeFromExcludedHistory(pathToRemove):
+        eHistUpdateDict = {}
+        pHistUpdateDict = {}
+        pathToRemoveVisits = 0
+        moveToPersistentHist = False
         # remove entry from excluded history
-        with open(e_hist_file, "r") as e_hist:
-            for entry in e_hist.readlines():
-                split_entry = entry.strip('\n').split(';')
-                path = split_entry[0]
-                visits = split_entry[1]
-                if path == path_to_remove:
+        with open(e_hist_file, "r") as eHist:
+            for entry in eHist.readlines():
+                splitEntry = entry.strip('\n').split(';')
+                path = splitEntry[0]
+                visits = splitEntry[1]
+                if path == pathToRemove:
                     if visits != "0":
-                        path_to_remove_visits = visits
-                        move_to_persistent_hist = True
+                        pathToRemoveVisits = visits
+                        moveToPersistentHist = True
                 else:
-                    e_hist_update_dict[path] = visits
-        with open(e_hist_file, "w") as e_hist:
-            for entry in e_hist_update_dict.items():
-                e_hist.write(entry[0] + ";" + entry[1] + "\n")
+                    eHistUpdateDict[path] = visits
+        with open(e_hist_file, "w") as eHist:
+            for entry in eHistUpdateDict.items():
+                eHist.write(entry[0] + ";" + entry[1] + "\n")
         # move item to persistent history file, re-sort it and re-consolidate history
-        if move_to_persistent_hist == True:
-            with open(p_hist_file, "r") as p_hist:
-                for entry in p_hist.readlines():
-                    split_entry = entry.strip('\n').split(';')
-                    p_hist_update_dict[split_entry[0]] = split_entry[1]
-                p_hist_update_dict[path_to_remove] = path_to_remove_visits
-            with open(p_hist_file, "w") as p_hist:
-                for entry in sorted(p_hist_update_dict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                    p_hist.write(entry[0] + ";" + str(entry[1]) + '\n')
+        if moveToPersistentHist == True:
+            with open(p_hist_file, "r") as pHist:
+                for entry in pHist.readlines():
+                    splitEntry = entry.strip('\n').split(';')
+                    pHistUpdateDict[splitEntry[0]] = splitEntry[1]
+                pHistUpdateDict[pathToRemove] = pathToRemoveVisits
+            with open(p_hist_file, "w") as pHist:
+                for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                    pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
             consolidateHistory()
-    def isValidInput(user_input):
-        is_valid = True
-        if user_input.isdigit():
-            int_input = int(user_input)
-            if int_input > common.getNumberOfLines(fav_file) or int_input == 0:
-                is_valid = False
-        else:
-            is_valid = False
-        return is_valid
-    def displayFavoritesEntryRemovalDialog():
-        print("REMOVE DIRECTORY FROM FAVORITES")
-        print('')
-        displayFormattedFavoritesContent()
-        print('')
-        print("Current directory: " + os.getcwd())
-        print('')
-        print("Enter the number of the directory to be removed from favorites.")
-        print("Enter ! to quit this dialog.")
-        print('')
-    def displayFormattedFavoritesContent():
-        with open(fav_file, "r") as fav:
-            common.displayFormattedNavFileContent(fav.readlines())
-    def doRemoveFromFavorites(user_input):
-        user_input = int(user_input)
-        # remove entry from favorites and re-sort
-        with open(fav_file, "r") as fav:
-            fav_file_content = fav.readlines()
-            path_to_remove = fav_file_content[user_input-1]
-            fav_file_content.remove(path_to_remove)
-        with open(fav_file, "w") as fav:
-            for entry in fav_file_content:
-                fav.write(entry)
-        ns.sortFavorites(fav_file)
-        # remove entry from excluded history and move it to persistent history if visited at least once
-        path_to_remove = path_to_remove.strip('\n')
-        removeFromExcludedHistory(path_to_remove)
-        return path_to_remove
-    # *** actual function ***
-    status = 0 # default status, successful removal or aborted by user
-    user_input = ""
-    if os.path.getsize(fav_file) == 0:
-        print("There are no entries in the favorites menu.")
-        status = 4
+    # *** actual function: remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once ***
+    with open(fav_file, "r") as fav:
+        favFileContent = fav.readlines()
+        pathToRemove = favFileContent[int(userInput)-1]
+        favFileContent.remove(pathToRemove)
+    with open(fav_file, "w") as fav:
+        for entry in favFileContent:
+            fav.write(entry)
+    ns.sortFavorites(fav_file)
+    pathToRemove = pathToRemove.strip('\n')
+    removeFromExcludedHistory(pathToRemove)
+    return pathToRemove
+def isValidInput(userInput):
+    isValid = True
+    if userInput.isdigit():
+        userInput = int(userInput)
+        if userInput > common.getNumberOfLines(fav_file) or userInput == 0:
+            isValid = False
     else:
-        displayFavoritesEntryRemovalDialog()
-        user_input = input()
-        os.system("clear")
-        if isValidInput(user_input):
-            removed_path = doRemoveFromFavorites(user_input)
-            print("Entry " + removed_path + " removed from favorites menu.")
-        elif user_input == '!':
-            print("No entry removed from favorites menu.")
-        else:
-            status = 1 # forward user input as regular input
-    return (status, user_input, "")
+        isValid = False
+    return isValid
+def displayFormattedFavoritesContent():
+    with open(fav_file, "r") as fav:
+        common.displayFormattedNavFileContent(fav.readlines())
+def isFavEmpty():
+    return os.path.getsize(fav_file) == 0
 
 # 7) Remove missing directory from history/favorites
 def removeMissingDir(path_to_remove):
