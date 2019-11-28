@@ -188,6 +188,11 @@ def handleMissingDir(path, menu):
                 print("Cannot perform mapping.")
             else:
                 nav.mapMissingDir(missingDirPath, replacingDirPath)
+                os.system("clear")
+                print("Missing directory: " + path_to_replace)
+                print("Replacing directory: "+ replacing_path)
+                print("")
+                print("Mapping performed successfully.")
             status = 0
         elif userChoice == "!":
             os.system("clear")

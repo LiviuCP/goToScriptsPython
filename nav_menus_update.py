@@ -388,11 +388,6 @@ def mapMissingDir(path_to_replace, replacing_path):
         if replacing_path in e_hist_dict:
             writeBackToExcludedHist(e_hist_dict)
         consolidateHistory()
-    os.system("clear")
-    print("Missing directory: " + path_to_replace)
-    print("Replacing directory: "+ replacing_path)
-    print("")
-    print("Mapping performed successfully.")
 
 # 9) Consolidate navigation menu (persistent and recent history)
 def consolidateHistory():
