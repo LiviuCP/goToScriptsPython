@@ -48,6 +48,38 @@ def initNavMenus():
 # :4 - no entries in history/favorites menu
 def choosePath(file_choice, user_input = ""):
     # *** helper functions ***
+    def displayFormattedRecentHistContent():
+        with open(hist_file, "r") as hist, open(r_hist_file, "r") as r_hist:
+            common.displayFormattedNavFileContent(hist.readlines(), 0, len(r_hist.readlines()))
+    def displayFormattedPersistentHistContent():
+        with open(hist_file, "r") as hist, open(r_hist_file, "r") as r_hist:
+            common.displayFormattedNavFileContent(hist.readlines(), len(r_hist.readlines()))
+    def displayHistMenu():
+        print("VISITED DIRECTORIES")
+        print("")
+        print("-- RECENTLY VISITED --")
+        print("")
+        displayFormattedRecentHistContent()
+        print("")
+        print("--  MOST VISITED --")
+        print("")
+        displayFormattedPersistentHistContent()
+        print("")
+        print("Current directory: " + os.getcwd())
+        print("")
+        print("Enter the number of the directory you want to navigate to.")
+        print("Enter ! to quit.")
+        print("")
+    def displayFavoritesMenu():
+        print("FAVORITE DIRECTORIES")
+        print("")
+        displayFormattedFavoritesContent()
+        print("")
+        print("Current directory: " + os.getcwd())
+        print("")
+        print("Enter the number of the directory you want to navigate to.")
+        print("Enter ! to quit.")
+        print("")
     def chooseEntryFromHistoryMenu(already_provided_input, provided_input):
         with open(hist_file, "r") as hist:
             hist_content = hist.readlines()
@@ -57,26 +89,8 @@ def choosePath(file_choice, user_input = ""):
                 print("There are no entries in the history menu.")
                 user_input = ""
             else:
-                with open(r_hist_file, "r") as r_hist:
-                    r_hist_entries = len(r_hist.readlines())
-                line_nr = 1
-                print("VISITED DIRECTORIES")
-                print("")
-                print("-- RECENTLY VISITED --")
-                print("")
-                common.displayFormattedNavFileContent(hist_content, 0, r_hist_entries)
-                print("")
-                print("--  MOST VISITED --")
-                print("")
-                common.displayFormattedNavFileContent(hist_content, r_hist_entries)
-                print("")
-                print("Current directory: " + os.getcwd())
-                print("")
-                print("Enter the number of the directory you want to navigate to.")
-                print("Enter ! to quit.")
-                print("")
-                # to update: enable path autocomplete
-                user_input = input()
+                displayHistMenu()
+                user_input = input() # to update: enable path autocomplete
                 os.system("clear")
         else:
             user_input = provided_input
@@ -90,17 +104,8 @@ def choosePath(file_choice, user_input = ""):
                 print("There are no entries in the favorites menu.")
                 user_input = ""
             else:
-                print("FAVORITE DIRECTORIES")
-                print("")
-                common.displayFormattedNavFileContent(fav_content)
-                print("")
-                print("Current directory: " + os.getcwd())
-                print("")
-                print("Enter the number of the directory you want to navigate to.")
-                print("Enter ! to quit.")
-                print("")
-                # to update: enable path autocomplete
-                user_input = input()
+                displayFavoritesMenu()
+                user_input = input() # to update: enable path autocomplete
                 os.system("clear")
         else:
             user_input = provided_input
