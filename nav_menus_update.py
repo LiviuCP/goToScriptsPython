@@ -387,6 +387,7 @@ def mapMissingDir(path_to_replace, replacing_path):
         if replacing_path in e_hist_dict:
             writeBackToExcludedHist(e_hist_dict)
         consolidateHistory()
+    return (path_to_replace, replacing_path)
 
 # 9) Consolidate navigation menu (persistent and recent history)
 def consolidateHistory():

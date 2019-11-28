@@ -184,13 +184,12 @@ def handleMissingDir(path, menu):
             if replacingDirPath == ":4":
                 os.system("clear")
                 print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted or you might not have the required access level.")
-
                 print("Cannot perform mapping.")
             else:
-                nav.mapMissingDir(missingDirPath, replacingDirPath)
+                mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
                 os.system("clear")
-                print("Missing directory: " + path_to_replace)
-                print("Replacing directory: "+ replacing_path)
+                print("Missing directory: " + mappingResult[0])
+                print("Replacing directory: " + mappingResult[1])
                 print("")
                 print("Mapping performed successfully.")
             status = 0
