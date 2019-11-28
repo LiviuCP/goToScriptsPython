@@ -46,7 +46,7 @@ def initNavMenus():
 # :2 - user exited the history/favorites menu, returned to navigation mode
 # :3 - invalid first argument
 # :4 - no entries in history/favorites menu
-def choosePath(file_choice, user_input = ""):
+def choosePath(menuChoice, userInput = ""):
     # *** helper functions ***
     def displayFormattedRecentHistContent():
         with open(hist_file, "r") as hist, open(r_hist_file, "r") as r_hist:
@@ -80,37 +80,30 @@ def choosePath(file_choice, user_input = ""):
         print("Enter the number of the directory you want to navigate to.")
         print("Enter ! to quit.")
         print("")
-    def chooseEntryFromMenu(file_path, alreadyProvidedInput, providedInput):
+    def isMenuEmpty(menuChoice):
+        return os.path.getsize(fav_file if menuChoice == "-f" else hist_file) == 0
+    def doChoosePath(menuChoice, userInput):
+        file_path = fav_file if menuChoice == "-f" else hist_file
+        menuName = "favorites" if menuChoice == "-f" else "history"
         with open(file_path, "r") as fPath:
             content = fPath.readlines()
-        menuType = "history" if file_path == hist_file else "favorites"
-        if alreadyProvidedInput == False:
-            os.system("clear")
-            if len(content) == 0:
-                print("There are no entries in the " + menuType + " menu.")
-                userInput = ""
-            else:
-                displayHistMenu() if menuType == "history" else displayFavoritesMenu()
-                userInput = input() # to update: enable path autocomplete
-                os.system("clear")
-        else:
-            userInput = providedInput
-        return common.getOutput(userInput, content, menuType)
+        return common.getOutput(userInput, content, menuName)
     # *** actual function ***
-    if file_choice == "":
-        print("no menu selected")
+    if menuChoice != "-f" and menuChoice != "-h":
+        print("invalid argument provided, no menu selected")
         outcome = (":3", "", "")
     else:
-        already_provided_input = True if user_input != "" else False
-        if file_choice == "-f": #favorites
-            outcome = chooseEntryFromMenu(fav_file, already_provided_input, user_input)
-        elif file_choice == "-h": #consolidated history
-            outcome = chooseEntryFromMenu(hist_file, already_provided_input, user_input)
-        else:
-            print("invalid argument provided")
-            outcome = (":3", "", "")
+        menuName = "favorites" if menuChoice == "-f" else "history"
+        if userInput == "":
+            os.system("clear")
+            if isMenuEmpty(menuChoice) == True:
+                print("There are no entries in the " + menuName + " menu.")
+            else:
+                displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
+                userInput = input() # to update: enable path autocomplete
+                os.system("clear")
+        outcome = doChoosePath(menuChoice, userInput)
     return outcome
-
 
 # 3) Update individual navigation history files
 def updateHistory(visited_dir_path):
