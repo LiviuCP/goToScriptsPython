@@ -47,7 +47,10 @@ def visitCommandMenu(mode = ""):
         elif commandHistoryEntry != ":3" and commandHistoryEntry != ":4":
             if mode == "--execute":
                 commandToExecute = commandHistoryEntry
+                print("Repeated command is being executed: " + commandToExecute)
+                print("--------------------------")
                 result = cmd.executeCommand(commandToExecute)
+                print("Repeated command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
             else:
                 result = editAndExecPrevCmd(commandHistoryEntry)
                 if result[0] != 0:
@@ -67,7 +70,7 @@ def editAndExecPrevCmd(previousCommand = ""):
     passedOutput = ""
 
     if previousCommand == "":
-        print("No shell command previously executed. Enter a new command")
+        print("No shell command executed in this session. Enter a new command")
     else:
         print("Please edit the below command and hit ENTER to execute")
         readline.set_pre_input_hook(hook)
@@ -81,7 +84,11 @@ def editAndExecPrevCmd(previousCommand = ""):
         print("Command aborted. You returned to navigation menu.")
         status = 1
     else:
+        commandType = "Edited" if previousCommand != "" else "New"
+        print(commandType + " command is being executed: " + commandToExecute)
+        print("--------------------------")
         result = cmd.executeCommand(commandToExecute)
+        print(commandType + " command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
         passedInput = result[1]
         passedOutput = result[2]
     return (status, passedInput, passedOutput)
@@ -91,12 +98,16 @@ def initCmdMenus():
     cmd.initCmdMenus()
 
 # 4) Execute new command
-def executeNewCommand(command = ""):
+def executeCommand(command = "", repeatPrev = False):
     if command == "":
         print("No argument provided")
         result = (3, "", "")
     else:
+        commandType = "Repeated" if repeatPrev == True else "New"
+        print(commandType + " command is being executed: " + command)
+        print("--------------------------")
         result = cmd.executeCommand(command) # have this updated, a return will be available
+        print(commandType + " command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
     return result
 
 # 5) Clear command history (wrapper for the cmd_menus_update function)

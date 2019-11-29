@@ -57,7 +57,7 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
             print("No shell command previously executed")
             shouldForwardData = False
         else:
-            result = cgt.executeNewCommand(prevCommand)
+            result = cgt.executeCommand(prevCommand, True)
     elif navigationInput == ":":
         result = cgt.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cgt.editAndExecPrevCmd()
         if result[0] == 0:
@@ -120,7 +120,7 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
         print("You exited navigation mode.")
     else:
         if navigationInput != "" and navigationInput[0] == ":":
-            result = cgt.executeNewCommand(navigationInput[1:])
+            result = cgt.executeCommand(navigationInput[1:])
             navigationOutput = 2
         else:
             result = navgt.goTo() if navigationInput == "" else navgt.goTo(navigationInput, prevDir)

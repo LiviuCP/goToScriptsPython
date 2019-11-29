@@ -57,8 +57,6 @@ def executeCommand(commandToExecute):
     if len(commandToExecute) >= minNrOfCmdChars:
         updateIndividualCommandHistoryFiles(commandToExecute)
         consolidateCommandHistory()
-    print("Command is being executed: " + commandToExecute)
-    print("--------------------------")
     # build and execute command
     sourceCommand = "source ~/.bashrc;" #include .bashrc to ensure the aliases and scripts work
     executionStatus = "echo $? > " + output_storage_file
@@ -69,7 +67,6 @@ def executeCommand(commandToExecute):
         status = output.readline().strip('\n')
         printedStatus = "with errors" if status != "0" else "successfully"
     print("--------------------------")
-    print("Command finished " + printedStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
     return (0, commandToExecute, printedStatus)
 
 # 4) Clear command history
