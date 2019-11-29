@@ -53,11 +53,11 @@ def choosePath(menuChoice, userInput):
         content = fPath.readlines()
     return common.getOutput(userInput, content, menuName)
 def displayFormattedRecentHistContent():
-    with open(hist_file, "r") as hist, open(r_hist_file, "r") as r_hist:
-        common.displayFormattedNavFileContent(hist.readlines(), 0, len(r_hist.readlines()))
+    with open(hist_file, "r") as hist, open(r_hist_file, "r") as rHist:
+        common.displayFormattedNavFileContent(hist.readlines(), 0, len(rHist.readlines()))
 def displayFormattedPersistentHistContent():
-    with open(hist_file, "r") as hist, open(r_hist_file, "r") as r_hist:
-        common.displayFormattedNavFileContent(hist.readlines(), len(r_hist.readlines()))
+    with open(hist_file, "r") as hist, open(r_hist_file, "r") as rHist:
+        common.displayFormattedNavFileContent(hist.readlines(), len(rHist.readlines()))
 def isMenuEmpty(menuChoice):
     return os.path.getsize(fav_file if menuChoice == "-f" else hist_file) == 0
 # 3) Update individual navigation history files
