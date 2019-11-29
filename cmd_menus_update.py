@@ -78,7 +78,6 @@ def clearCommandHistory():
         c_r_hist.write("")
     with open(c_hist_file, "w") as c_hist:
         c_hist.write("")
-    print("Content of command history menu has been erased.")
 
 # 5) Shared functions
 def consolidateCommandHistory():

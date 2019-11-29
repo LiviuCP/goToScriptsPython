@@ -102,3 +102,4 @@ def executeNewCommand(command = ""):
 # 5) Clear command history (wrapper for the cmd_menus_update function)
 def clearCommandHistory():
     cmd.clearCommandHistory()
+    print("Content of command history menu has been erased.")
