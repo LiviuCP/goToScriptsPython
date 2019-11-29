@@ -6,16 +6,40 @@ home_dir = expanduser("~") + "/"
 
 # 1) Go to command menu
 
-def visitCommandMenu(commandMode = ""):
+def visitCommandMenu(mode = ""):
+    # *** helper functions ***
+    def displayCmdHistMenu(mode):
+        print("COMMANDS LIST")
+        print("")
+        if mode == "--execute":
+            print("-- EXECUTE MODE --")
+        else:
+            print("-- EDIT MODE--")
+        print("")
+        cmd.displayFormattedCmdHistContent()
+        print("")
+        print("Current directory: " + os.getcwd())
+        print("")
+        print("Enter command number.")
+        print("Enter ! to quit.")
+        print("")
+    # *** actual function ***
     status = 0 # default status (normal execution)
     passedInput = ""
     passedOutput = ""
-    if commandMode == "":
-        print("Insufficient number of arguments")
+    if mode != "--edit" and mode != "--execute":
+        print("Invalid argument provided")
         status = 3
     else:
-        mode = commandMode
-        choiceResult = cmd.chooseCommand(mode)
+        os.system("clear")
+        if cmd.isCommandMenuEmpty():
+            print("There are no entries in the command history menu.")
+            userInput = ""
+        else:
+            displayCmdHistMenu(mode)
+            userInput = input() # to update: enable path autocomplete
+            os.system("clear")
+        choiceResult = cmd.chooseCommand(userInput)
         commandHistoryEntry = choiceResult[0]
         if commandHistoryEntry == ":1" or commandHistoryEntry == ":2":
             status = int(commandHistoryEntry[1])

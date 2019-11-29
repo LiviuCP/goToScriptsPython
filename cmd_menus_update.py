@@ -25,50 +25,15 @@ def initCmdMenus():
 # :2 - user exited the command menu, returned to navigation mode
 # :3 - invalid first argument
 # :4 - no entries in command menu
-def chooseCommand(mode = ""):
-    # *** helper functions ***
-    def chooseCommandFromHistoryMenu(mode):
-        with open(c_hist_file, "r") as c_hist:
-            c_hist_content = c_hist.readlines()
-        os.system("clear")
-        c_hist_entries = len(c_hist_content)
-        line_nr = 1
-        if c_hist_entries == 0:
-            print("There are no entries in the command history menu.")
-            user_input = ""
-        else:
-            print("COMMANDS LIST")
-            print("")
-            if mode == "--execute":
-                print("-- EXECUTE MODE --")
-            else:
-                print("-- EDIT MODE--")
-            print("")
-            while line_nr <= c_hist_entries:
-                entry = c_hist_content[line_nr-1].strip('\n')
-                print('{0:<10s} {1:<140s}'.format(str(line_nr), entry))
-                line_nr = line_nr + 1
-            print("")
-            print("Current directory: " + os.getcwd())
-            print("")
-            print("Enter command number.")
-            print("Enter ! to quit.")
-            print("")
-            # to update: enable path autocomplete
-            user_input = input()
-            os.system("clear")
-        return common.getOutput(user_input, c_hist_content, "command")
-    # *** actual function ***
-    editCommand = False
-    if mode == "":
-        print("no argument provided")
-        outcome = (":3", "", "")
-    elif mode != "--edit" and mode != "--execute":
-        print("invalid argument provided")
-        outcome = (":3", "", "")
-    else:
-        outcome = chooseCommandFromHistoryMenu(mode)
-    return outcome
+def chooseCommand(userInput):
+    with open(c_hist_file, "r") as cHist:
+        cHistContent = cHist.readlines()
+    return common.getOutput(userInput, cHistContent, "command")
+def isCommandMenuEmpty():
+    return os.path.getsize(c_hist_file) == 0
+def displayFormattedCmdHistContent():
+    with open(c_hist_file, "r") as cHist:
+        common.displayFormattedCmdFileContent(cHist.readlines())
 
 # 3) Execute command
 def executeCommand(commandToExecute):
