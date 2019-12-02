@@ -48,9 +48,9 @@ def initNavMenus():
 # :3 - invalid first argument
 # :4 - no entries in history/favorites menu
 def choosePath(menuChoice, userInput):
-    file_path = fav_file if menuChoice == "-f" else hist_file
+    filePath = fav_file if menuChoice == "-f" else hist_file
     menuName = "favorites" if menuChoice == "-f" else "history"
-    with open(file_path, "r") as fPath:
+    with open(filePath, "r") as fPath:
         content = fPath.readlines()
     return common.getOutput(userInput, content, menuName)
 def displayFormattedRecentHistContent():
@@ -64,9 +64,9 @@ def isMenuEmpty(menuChoice):
 # 3) Update individual navigation history files
 def updateHistory(visitedDirPath):
     # *** helper functions ***
-    def canUpdateVisitsInHistoryFile(hist_file, updateDict, visitedPath):
+    def canUpdateVisitsInHistoryFile(histFile, updateDict, visitedPath):
         entryContainedInFile = False
-        with open(hist_file, "r") as hist:
+        with open(histFile, "r") as hist:
             for entry in hist.readlines():
                 splitEntry = entry.strip('\n').split(';')
                 path = splitEntry[0]
