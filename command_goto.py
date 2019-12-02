@@ -1,11 +1,7 @@
-import sys, os, readline
+import os, readline
 import cmd_menus_update as cmd
-from os.path import expanduser
-
-home_dir = expanduser("~") + "/"
 
 # 1) Go to command menu
-
 def visitCommandMenu(mode = ""):
     # *** helper functions ***
     def displayCmdHistMenu(mode):
