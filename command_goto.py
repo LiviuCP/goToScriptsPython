@@ -82,7 +82,7 @@ def editAndExecPrevCmd(previousCommand = ""):
         print("Command aborted. You returned to navigation menu.")
         status = 1
     else:
-        commandType = "Edited" if previousCommand != "" else "New"
+        commandType = "Edited" if previousCommand != "" else "Entered"
         print(commandType + " command is being executed: " + commandToExecute)
         print("--------------------------")
         result = cmd.executeCommand(commandToExecute)
@@ -101,7 +101,7 @@ def executeCommand(command = "", repeatPrev = False):
         print("No argument provided")
         result = (3, "", "")
     else:
-        commandType = "Repeated" if repeatPrev == True else "New"
+        commandType = "Repeated" if repeatPrev == True else "Entered"
         print(commandType + " command is being executed: " + command)
         print("--------------------------")
         result = cmd.executeCommand(command) # have this updated, a return will be available
