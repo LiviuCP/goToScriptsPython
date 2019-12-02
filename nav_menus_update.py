@@ -365,22 +365,18 @@ def mapMissingDir(pathToReplace, replacingPath):
 
 # 9) Consolidate navigation menu (persistent and recent history)
 def consolidateHistory():
-    with open(r_hist_file, 'r') as rHist:
-        rHistEntries = rHist.readlines()
-    with open(p_hist_file, 'r') as pHist:
-        pHistEntries = pHist.readlines()
-    with open(hist_file, 'w') as hist:             # always ensure the file is cleared before (re-)consolidating history
+    with open(r_hist_file, 'r') as rHist, open(p_hist_file, 'r') as pHist, open(hist_file, 'w') as hist:
         rHistDict = {}
         pHistDict = {}
-    for entry in rHistEntries:
-        rHistDict[entry.strip('\n')] = os.path.basename(entry.strip('\n'))
-    limit = 0
-    for entry in pHistEntries:
-        splitEntry = entry.split(";")
-        pHistDict[splitEntry[0]] = os.path.basename(splitEntry[0])
-        limit = limit + 1
-        if (limit == p_hist_max_entries):
-            break
+        for entry in rHist.readlines():
+            rHistDict[entry.strip('\n')] = os.path.basename(entry.strip('\n'))
+        limit = 0
+        for entry in pHist.readlines():
+            splitEntry = entry.split(";")
+            pHistDict[splitEntry[0]] = os.path.basename(splitEntry[0])
+            limit = limit + 1
+            if (limit == p_hist_max_entries):
+                break
     # sort entries by directory name so the user can easily find the dirs in the navigation history
     with open(hist_file, 'a') as hist:
         for entry in sorted(rHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
