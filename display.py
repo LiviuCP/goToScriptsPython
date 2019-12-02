@@ -1,9 +1,9 @@
 import sys, os
 
-maxNrOfItems = 50 #maximum number of files/dirs listed from current directory in navigation mode
-maxNrOfChars = 25 #maximum number of characters to be displayed for each item from current directory in navigation mode
-beginCharsToDisplay = maxNrOfChars // 2 #first characters to be displayed for a filename exceeding maxNrOfChars
-endCharsToDisplay = beginCharsToDisplay - maxNrOfChars #last characters to be displayed for a filename exceeding maxNrOfChars
+max_nr_of_items = 50 #maximum number of files/dirs listed from current directory in navigation mode
+max_nr_of_chars = 25 #maximum number of characters to be displayed for each item from current directory in navigation mode
+begin_chars_to_display = max_nr_of_chars // 2 #first characters to be displayed for a filename exceeding max_nr_of_chars
+end_chars_to_display = begin_chars_to_display - max_nr_of_chars #last characters to be displayed for a filename exceeding max_nr_of_chars
 
 # 1) Display general navigation output
 def displayGeneralNavOutput(command = "", result = ""):
@@ -53,23 +53,23 @@ def displayCurrentDirContent():
         if dirItem[0] != ".": #exclude hidden files/directories
             if os.path.isdir(dirItem):
                 dirItem = dirItem + "/"
-                if len(dirItem)-1 > maxNrOfChars:
-                    dirItem = dirItem[0:beginCharsToDisplay] + "..." + dirItem[endCharsToDisplay-1:]
-            elif len(dirItem) > maxNrOfChars:
-                dirItem = dirItem[0:beginCharsToDisplay] + "..." + dirItem[endCharsToDisplay:]
+                if len(dirItem)-1 > max_nr_of_chars:
+                    dirItem = dirItem[0:begin_chars_to_display] + "..." + dirItem[end_chars_to_display-1:]
+            elif len(dirItem) > max_nr_of_chars:
+                dirItem = dirItem[0:begin_chars_to_display] + "..." + dirItem[end_chars_to_display:]
             dirContent.append(dirItem)
 
     dirContent.sort(key=lambda v: v.upper())
 
     nrOfItems = len(dirContent)
-    if nrOfItems > maxNrOfItems:
+    if nrOfItems > max_nr_of_items:
         printAllItems = False
-        dirContent = dirContent[:maxNrOfItems]
+        dirContent = dirContent[:max_nr_of_items]
 
     printDirContentToColumns(dirContent)
 
     if printAllItems == False:
-        print("Number of items contained in the directory (" + str(nrOfItems) + ") exceeds the displayed ones (" + str(maxNrOfItems) + ")! Type :ls -p | less to display all directory items.")
+        print("Number of items contained in the directory (" + str(nrOfItems) + ") exceeds the displayed ones (" + str(max_nr_of_items) + ")! Type :ls -p | less to display all directory items.")
     else:
         print("Number of items contained in the directory: " + str(nrOfItems))
 
