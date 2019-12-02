@@ -84,14 +84,14 @@ def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
     return (status, passedInput, passedOutput)
 
 # 2) Go to directory
-def goTo(gt_directory = "", prev_directory = ""):
+def goTo(gtDirectory = "", prevDirectory = ""):
     forwardInput = ""
     prevDir = os.getcwd()
 
-    if gt_directory == "":
+    if gtDirectory == "":
         directory = home_dir
     else:
-        directory = gt_directory
+        directory = gtDirectory
 
     # build and execute command
     getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
@@ -103,11 +103,11 @@ def goTo(gt_directory = "", prev_directory = ""):
     os.system(executeCommandWithStatus)
 
     # read command exit code and create the status message
-    with open(output_storage_file, "r") as output_storage:
-        success = True if output_storage.readline().strip('\n') == "0" else False
+    with open(output_storage_file, "r") as outputStorage:
+        success = True if outputStorage.readline().strip('\n') == "0" else False
     if success == True:
-        with open(input_storage_file, "r") as input_storage:
-            currentDir = input_storage.readline().strip('\n')
+        with open(input_storage_file, "r") as inputStorage:
+            currentDir = inputStorage.readline().strip('\n')
         os.chdir(currentDir)
         print("Previous directory: " + prevDir)
         print("Current directory: " + currentDir)
@@ -116,7 +116,7 @@ def goTo(gt_directory = "", prev_directory = ""):
             nav.consolidateHistory()
     else:
         # ensure the previously visited dir stays the same in case the requested dir cannot be accessed
-        prevDir = prev_directory
+        prevDir = prevDirectory
         print("Error when attempting to change directory! Possible causes: ")
         print(" - chosen directory path does not exist or has been deleted")
         print(" - chosen path is not a directory")
@@ -171,8 +171,8 @@ def handleMissingDir(path, menu):
             print("Enter the name and/or path of the replacing directory.")
             replacingDir = input()
 
-            with open(input_storage_file, "w") as input_storage:
-                input_storage.write(replacingDir)
+            with open(input_storage_file, "w") as inputStorage:
+                inputStorage.write(replacingDir)
 
             # build BASH command for retrieving the absolute path of the replacing dir (if exists)
             command = "input=`head -1 " + input_storage_file + "`; "
@@ -181,8 +181,8 @@ def handleMissingDir(path, menu):
 
             os.system(command)
 
-            with open(output_storage_file, "r") as output_storage:
-                replacingDirPath = output_storage.readline().strip('\n')
+            with open(output_storage_file, "r") as outputStorage:
+                replacingDirPath = outputStorage.readline().strip('\n')
             if replacingDirPath == ":4":
                 os.system("clear")
                 print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted or you might not have the required access level.")
