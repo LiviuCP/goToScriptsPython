@@ -11,8 +11,8 @@ min_nr_of_cmd_chars = 10
 
 # 1) Initialize command environment
 def initCmdMenus():
-    with open(c_r_hist_file, "a") as crHist:
-        crHist.write("")
+    with open(c_r_hist_file, "a"):
+        print("", end='')
     # limit the number of entries from recent command history to the maximum allowed
     common.limitEntriesNr(c_r_hist_file, c_r_hist_max_entries)
     # will have a more important role once persistent command history will be implemented
