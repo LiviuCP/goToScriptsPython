@@ -17,26 +17,15 @@ output_storage_file = home_dir + ".store_output"
 
 # 1) Initialize navigation environment
 def initNavMenus():
-    # ensure all required files exist
-    with open(r_hist_file, "a") as rHist:
-        rHist.write("")
-    with open(p_hist_file, "a") as pHist:
-        pHist.write("")
-    with open(e_hist_file, "a") as eHist:
-        eHist.write("")
-    with open (fav_file, "a") as fav:
-        fav.write("")
-    with open(input_storage_file, "a") as inputStorage:
-        inputStorage.write("")
-    with open(output_storage_file, "a") as outputStorage:
-        outputStorage.write("")
-    # limit the number of entries from recent command and navigation history files to the maximum allowed
-    common.limitEntriesNr(r_hist_file, r_hist_max_entries)
     # create the log directory and/or daily log file if not existing
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
-    with open(l_hist_file, "a") as lHist:
-        lHist.write("")
+    # ensure all required files exist
+    with open(r_hist_file, "a"), open(p_hist_file, "a"), open(e_hist_file, "a"), open(l_hist_file, "a"), \
+         open (fav_file, "a"), open(input_storage_file, "a"), open(output_storage_file, "a"):
+        print("", end='')
+    # limit the number of entries from recent command and navigation history files to the maximum allowed
+    common.limitEntriesNr(r_hist_file, r_hist_max_entries)
     # get consolidated recent/persistent history menu
     consolidateHistory()
 
