@@ -27,8 +27,7 @@ def initCmdMenus():
 # :4 - no entries in command menu
 def chooseCommand(userInput):
     with open(c_hist_file, "r") as cHist:
-        cHistContent = cHist.readlines()
-    return common.getOutput(userInput, cHistContent, "command")
+        return common.getMenuEntry(userInput, cHist.readlines())
 def isCommandMenuEmpty():
     return os.path.getsize(c_hist_file) == 0
 def displayFormattedCmdHistContent():

@@ -66,6 +66,7 @@ def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
             passedInput = choiceResult[1]
         elif dirPath == ":2":
             status = int(dirPath[1])
+            print("You exited the " + menuName + " menu!")
         elif dirPath != ":3":
             if not os.path.isdir(dirPath):
                 handleResult = handleMissingDir(dirPath, menuChoice)

@@ -40,6 +40,8 @@ def visitCommandMenu(mode = ""):
         if commandHistoryEntry == ":1" or commandHistoryEntry == ":2":
             status = int(commandHistoryEntry[1])
             passedInput = choiceResult[1]
+            if status == 2:
+                print("You exited the command menu!")
         elif commandHistoryEntry != ":3" and commandHistoryEntry != ":4":
             if mode == "--execute":
                 commandToExecute = commandHistoryEntry

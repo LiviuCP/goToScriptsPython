@@ -48,11 +48,8 @@ def initNavMenus():
 # :3 - invalid first argument
 # :4 - no entries in history/favorites menu
 def choosePath(menuChoice, userInput):
-    filePath = fav_file if menuChoice == "-f" else hist_file
-    menuName = "favorites" if menuChoice == "-f" else "history"
-    with open(filePath, "r") as fPath:
-        content = fPath.readlines()
-    return common.getOutput(userInput, content, menuName)
+    with open(fav_file if menuChoice == "-f" else hist_file, "r") as fPath:
+        return common.getMenuEntry(userInput, fPath.readlines())
 def displayFormattedRecentHistContent():
     with open(hist_file, "r") as hist, open(r_hist_file, "r") as rHist:
         common.displayFormattedNavFileContent(hist.readlines(), 0, len(rHist.readlines()))

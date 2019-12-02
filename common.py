@@ -18,7 +18,7 @@ def limitEntriesNr(filePath, maxEntries):
             for entryNr in range(0, maxEntries):
                 f.write(fileContent[entryNr])
 
-def getOutput(userInput, content, menuType):
+def getMenuEntry(userInput, content):
     def isInputValid(userInput, content):
         isValid = True
         if userInput.isdigit():
@@ -28,16 +28,11 @@ def getOutput(userInput, content, menuType):
         else:
             isValid = False
         return isValid
-    if len(content) == 0:
-        output = ":4"
-    elif isInputValid(userInput, content):
+    if isInputValid(userInput, content):
         userInput = int(userInput) - 1
         output = content[userInput]
-    elif userInput == '!':
-        print("You exited " + menuType + " menu!")
-        output = ":2"
     else:
-        output = ":1"
+        output = ":4" if len(content) == 0 else ":2" if userInput == '!' else ":1"
     return (output.strip("\n"), userInput, "")
 
 # if a valid absolute path is fed as argument the unchanged path (without any ending '/') is returned
