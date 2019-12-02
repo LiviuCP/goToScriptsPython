@@ -15,7 +15,6 @@ def displayGeneralNavOutput(command = "", result = ""):
     else:
         lastCommand = command
         commandResult = result
-
     print("")
     print("****************************************************************************************************")
     print("")
@@ -26,9 +25,7 @@ def displayGeneralNavOutput(command = "", result = ""):
     print("")
     print("Directory content (hidden items are excluded):")
     print("")
-
     displayCurrentDirContent()
-
     print("")
     print("----------------------------------------------------------------------------------------------------")
     print("")
@@ -48,7 +45,6 @@ def displayGeneralNavOutput(command = "", result = ""):
 def displayCurrentDirContent():
     dirContent = []
     printAllItems = True
-
     for dirItem in os.listdir("."):
         if dirItem[0] != ".": #exclude hidden files/directories
             if os.path.isdir(dirItem):
@@ -58,16 +54,12 @@ def displayCurrentDirContent():
             elif len(dirItem) > max_nr_of_chars:
                 dirItem = dirItem[0:begin_chars_to_display] + "..." + dirItem[end_chars_to_display:]
             dirContent.append(dirItem)
-
     dirContent.sort(key=lambda v: v.upper())
-
     nrOfItems = len(dirContent)
     if nrOfItems > max_nr_of_items:
         printAllItems = False
         dirContent = dirContent[:max_nr_of_items]
-
     printDirContentToColumns(dirContent)
-
     if printAllItems == False:
         print("Number of items contained in the directory (" + str(nrOfItems) + ") exceeds the displayed ones (" + str(max_nr_of_items) + ")! Type :ls -p | less to display all directory items.")
     else:

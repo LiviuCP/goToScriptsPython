@@ -3,7 +3,6 @@ import cmd_menus_update as cmd
 
 # 1) Go to command menu
 def visitCommandMenu(mode = ""):
-    # *** helper functions ***
     def displayCmdHistMenu(mode):
         print("COMMANDS LIST")
         print("")

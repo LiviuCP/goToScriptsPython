@@ -5,14 +5,12 @@ def navigate():
     # initialize the environment, ensure the navigation and command history menus are sorted/consolidated
     navgt.initNavMenus()
     cgt.initCmdMenus()
-
     #initialize required variables
     prevDir = os.getcwd()
     prevCommand = ""
     commandResult = ""
     navigationInput = ""
     forwardUserInput = False
-
     # enter the directory navigation console
     os.system("clear")
     print("Welcome to navigation mode!")
@@ -23,7 +21,6 @@ def navigate():
             else:
                 out.displayGeneralNavOutput(prevCommand, commandResult)
         navigationInput = input()
-
         while True == True:
             os.system("clear")
             result = handleNavigationOption(navigationInput, prevDir, prevCommand)
@@ -42,13 +39,12 @@ def navigate():
         if navigationInput == "!":
             break
 
-# return codes: 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd
+""" return codes: 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd """
 def handleNavigationOption(navigationInput, prevDir, prevCommand):
     navigationOutput = 0
     passedInput = ""
     passedOutput = ""
     shouldForwardData = True
-
     if navigationInput == "?":
         out.displayHelp()
         shouldForwardData = False
@@ -125,11 +121,9 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
         else:
             result = navgt.goTo() if navigationInput == "" else navgt.goTo(navigationInput, prevDir)
             navigationOutput = 4
-
     if shouldForwardData == True:
         passedInput = result[1]
         passedOutput = result[2]
-
     return (navigationOutput, passedInput, passedOutput)
 
 navigate()

@@ -1,11 +1,11 @@
+""" common code to be used by cmd_menus.update.py and nav_menus_update.py """
+
 import os
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
 input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
-
-# common code to be used by cmd_menus.update.py and nav_menus_update.py
 
 def limitEntriesNr(filePath, maxEntries):
     with open(filePath, "r") as f:
@@ -18,6 +18,13 @@ def limitEntriesNr(filePath, maxEntries):
             for entryNr in range(0, maxEntries):
                 f.write(fileContent[entryNr])
 
+"""
+The returned outcome could have following special values in the first field:
+:1 - user input to be forwarded as regular input (path name/command)
+:2 - user exited the command menu, returned to navigation mode
+:3 - invalid first argument
+:4 - empty menu
+"""
 def getMenuEntry(userInput, content):
     def isInputValid(userInput, content):
         isValid = True

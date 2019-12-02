@@ -9,7 +9,6 @@ output_storage_file = home_dir + ".store_output"
 # 1) Visit navigation menu
 
 def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
-    # *** helper functions ***
     def displayHistMenu():
         print("VISITED DIRECTORIES")
         print("")
@@ -230,7 +229,6 @@ def addDirToFavorites(dirPath = ""):
 
 # 8) Removed directory from favorites (wrapper for the same method contained in nav menus update)
 def removeDirFromFavorites():
-    # *** helper functions ***
     def displayFavoritesEntryRemovalDialog():
         print("REMOVE DIRECTORY FROM FAVORITES")
         print('')

@@ -1,6 +1,6 @@
-import os
+""" functions shared within nav_menu_update.py and not used elsewhere """
 
-# functions shared within nav_menu_update.py and not used elsewhere
+import os
 
 def sortFavorites(favFile): # to do: handle empty argument
     favDict = {}

@@ -19,12 +19,6 @@ def initCmdMenus():
     consolidateCommandHistory()
 
 # 2) Choose command from menu
-
-# The returned outcome could have following special values in the first field:
-# :1 - user input to be forwarded as regular input (path name/command)
-# :2 - user exited the command menu, returned to navigation mode
-# :3 - invalid first argument
-# :4 - no entries in command menu
 def chooseCommand(userInput):
     with open(c_hist_file, "r") as cHist:
         return common.getMenuEntry(userInput, cHist.readlines())
@@ -36,7 +30,6 @@ def displayFormattedCmdHistContent():
 
 # 3) Execute command
 def executeCommand(commandToExecute):
-    # *** helper functions ***
     def updateIndividualCommandHistoryFiles(command):
         with open(c_r_hist_file, "r") as crHist:
             crHistContent = []
@@ -80,7 +73,6 @@ def consolidateCommandHistory():
     with open(c_r_hist_file, 'r') as crHist:
         crHistEntries = crHist.readlines()
         crHistEntries.sort()
-    # always ensure the file is cleared before (re-)consolidating history
     with open(c_hist_file, 'w') as cHist:
         for entry in crHistEntries:
             cHist.write(entry)

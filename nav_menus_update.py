@@ -17,25 +17,17 @@ output_storage_file = home_dir + ".store_output"
 
 # 1) Initialize navigation environment
 def initNavMenus():
-    # create the log directory and/or daily log file if not existing
+    # ensure all required files and dirs exist
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
-    # ensure all required files exist
     with open(r_hist_file, "a"), open(p_hist_file, "a"), open(e_hist_file, "a"), open(l_hist_file, "a"), \
          open (fav_file, "a"), open(input_storage_file, "a"), open(output_storage_file, "a"):
         print("", end='')
-    # limit the number of entries from recent command and navigation history files to the maximum allowed
+    # limit the number of entries from recent navigation history files to the maximum allowed and get unified (recent + persistent) history
     common.limitEntriesNr(r_hist_file, r_hist_max_entries)
-    # get consolidated recent/persistent history menu
     consolidateHistory()
 
 # 2) Choose path from history or favorites menu
-
-# The returned outcome could have following special values in the first field:
-# :1 - user input to be forwarded as regular input (path name/command)
-# :2 - user exited the history/favorites menu, returned to navigation mode
-# :3 - invalid first argument
-# :4 - no entries in history/favorites menu
 def choosePath(menuChoice, userInput):
     with open(fav_file if menuChoice == "-f" else hist_file, "r") as fPath:
         return common.getMenuEntry(userInput, fPath.readlines())
@@ -49,7 +41,6 @@ def isMenuEmpty(menuChoice):
     return os.path.getsize(fav_file if menuChoice == "-f" else hist_file) == 0
 # 3) Update individual navigation history files
 def updateHistory(visitedDirPath):
-    # *** helper functions ***
     def canUpdateVisitsInHistoryFile(histFile, updateDict, visitedPath):
         entryContainedInFile = False
         with open(histFile, "r") as hist:
@@ -166,7 +157,6 @@ def addPathToFavorites(pathToAdd):
 
 # 6) Remove directory from favorites
 def removeFromFavorites(userInput):
-    # *** helper functions ***
     def removeFromExcludedHistory(pathToRemove):
         eHistUpdateDict = {}
         pHistUpdateDict = {}
@@ -227,7 +217,6 @@ def isFavEmpty():
 
 # 7) Remove missing directory from history/favorites
 def removeMissingDir(pathToRemove):
-    # *** helper functions ***
     def removePathFromPermHistoryFile(histFile, pathToRemove):
         itemContainedInHistFile = False
         histContent = []
@@ -273,7 +262,6 @@ def removeMissingDir(pathToRemove):
 
 # 8) Map missing directory in history/favorites
 def mapMissingDir(pathToReplace, replacingPath):
-    # *** helper functions ***
     def buildHistDict(histDict, histFile):
         with open(histFile, "r") as hist:
             for entry in hist.readlines():
