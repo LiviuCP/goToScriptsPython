@@ -99,19 +99,9 @@ def updateHistory(visitedDirPath):
 
 # 4) Clear navigation history
 def clearHist():
-    with open(r_hist_file, "w") as rHist:
-        rHist.write("")
-    with open(p_hist_file, "w") as pHist:
-        pHist.write("")
-    with open(hist_file, "w") as hist:
-        hist.write("")
-    with open(l_hist_file, "w") as lHist:
-        lHist.write("")
-    # only reset number of visits in excluded history file (entries should remain as the favorites menu should NOT be cleared)
-    with open(fav_file, "r") as fav:
-        favFileContent = fav.readlines()
-    with open(e_hist_file, "w") as eHist:
-        for entry in favFileContent:
+    with open(r_hist_file, "w"), open(p_hist_file, "w"), open(hist_file, "w"), open(l_hist_file, "w"), open(e_hist_file, "w") as eHist, open(fav_file, "r") as fav:
+        #re-create excluded history with 0 number of visits for each entry
+        for entry in fav.readlines():
             entry = entry.strip('\n')
             eHist.write(entry + ';0\n')
 
