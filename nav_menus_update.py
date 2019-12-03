@@ -218,38 +218,34 @@ def removeMissingDir(pathToRemove):
                     itemContainedInHistFile = True
                 else:
                     histContent.append(entry)
-        if itemContainedInHistFile == True:
-            with open(histFile, "w") as hist:
-                for entry in histContent:
-                    hist.write(entry)
+            if itemContainedInHistFile == True:
+                with open(histFile, "w") as hist:
+                    for entry in histContent:
+                        hist.write(entry)
     # *** actual function ***
-    removedFromPHist = False
-    # first remove it from the daily log file if there
-    with open(l_hist_file, "a") as lHist:
-        lHist.write("")
-    ns.removePathFromTempHistoryFile(l_hist_file, pathToRemove)
-    # remove from recent history if there
-    removedFromRHist = ns.removePathFromTempHistoryFile(r_hist_file, pathToRemove)
-    # remove the path from favorites file and excluded history OR from persistent history
-    favContent = []
-    isInFavFile = False
-    with open(fav_file, "r") as fav:
+    with open(fav_file, "r") as fav, open(l_hist_file, "a") as lHist:
+        lHist.close() # no action required, just ensure the file exists
+        ns.removePathFromTempHistoryFile(l_hist_file, pathToRemove)
+        removedFromPHist = False
+        removedFromRHist = ns.removePathFromTempHistoryFile(r_hist_file, pathToRemove)
+        favContent = []
+        isInFavFile = False
         for entry in fav.readlines():
             if entry.strip('\n') == pathToRemove:
                 isInFavFile = True
             else:
                 favContent.append(entry)
-    if isInFavFile == True:
-        with open(fav_file, "w") as fav:
-            for entry in favContent:
-                fav.write(entry)
-        removePathFromPermHistoryFile(e_hist_file, pathToRemove)
-    else:
-        removedFromPHist = removePathFromPermHistoryFile(p_hist_file, pathToRemove)
-    # consolidate history only if modified
-    if removedFromRHist == True or removedFromPHist == True:
-        consolidateHistory()
-    return pathToRemove
+        if isInFavFile == True:
+            fav.close()
+            with open(fav_file, "w") as fav:
+                for entry in favContent:
+                    fav.write(entry)
+            removePathFromPermHistoryFile(e_hist_file, pathToRemove)
+        else:
+            removedFromPHist = removePathFromPermHistoryFile(p_hist_file, pathToRemove)
+        if removedFromRHist == True or removedFromPHist == True:
+            consolidateHistory()
+        return pathToRemove
 
 # 8) Map missing directory in history/favorites
 def mapMissingDir(pathToReplace, replacingPath):
