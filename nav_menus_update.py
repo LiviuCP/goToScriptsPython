@@ -42,8 +42,8 @@ def isMenuEmpty(menuChoice):
 # 3) Update individual navigation history files
 def updateHistory(visitedDirPath):
     def canUpdateVisitsInHistoryFile(histFile, updateDict, visitedPath):
-        entryContainedInFile = False
         with open(histFile, "r") as hist:
+            entryContainedInFile = False
             for entry in hist.readlines():
                 splitEntry = entry.strip('\n').split(';')
                 path = splitEntry[0]
@@ -52,50 +52,49 @@ def updateHistory(visitedDirPath):
                     entryContainedInFile = True
                 else:
                     updateDict[splitEntry[0]] = int(splitEntry[1])
-        return entryContainedInFile
+            return entryContainedInFile
     # *** actual function ***
-    with open(l_hist_file, "a") as lHist:
-        lHist.write("")
-    with open(r_hist_file, "r") as rHist:
+    with open(l_hist_file, "a") as lHist, open(r_hist_file, "r") as rHist:
         rHistContent = []
         rHistEntries = 0
         for entry in rHist.readlines():
             rHistContent.append(entry.strip('\n'))
             rHistEntries = rHistEntries + 1
-    if visitedDirPath in rHistContent:
-        rHistContent.remove(visitedDirPath)
-    elif rHistEntries == r_hist_max_entries:
-        rHistContent.remove(rHistContent[rHistEntries-1])
-    rHistContent = [visitedDirPath] + rHistContent
-    with open(r_hist_file, "w") as rHist:
-        for entry in rHistContent:
-            rHist.write(entry+'\n')
-    with open(l_hist_file, "r") as lHist:
-        lHistContent = []
-        for entry in lHist.readlines():
-            lHistContent.append(entry.strip('\n'))
-    # only update persistent or excluded history file if the visited path is not being contained in the visit log for the current day
-    if visitedDirPath not in lHistContent:
-        pHistUpdateDict = {}
-        if (canUpdateVisitsInHistoryFile(p_hist_file, pHistUpdateDict, visitedDirPath) == True):
-            with open(p_hist_file, "w") as pHist:
-                for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                    pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
-        else:
-            eHistUpdateDict = {}
-
-            if (canUpdateVisitsInHistoryFile(e_hist_file, eHistUpdateDict, visitedDirPath) == True):
-                with open(e_hist_file, "w") as eHist:
-                    for entry in eHistUpdateDict.items():
-                        eHist.write(entry[0] + ";" + str(entry[1]) + '\n')
-            else:
-                pHistUpdateDict[visitedDirPath] = 1
-                with open(p_hist_file, "w") as pHist:
-                    for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                        pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
-        # update log file for the current day
-        with open(l_hist_file, "a") as lHist:
-            lHist.write(visitedDirPath + "\n")
+        if visitedDirPath in rHistContent:
+            rHistContent.remove(visitedDirPath)
+        elif rHistEntries == r_hist_max_entries:
+            rHistContent.remove(rHistContent[rHistEntries-1])
+        rHistContent = [visitedDirPath] + rHistContent
+        rHist.close()
+        lHist.close()
+        with open(r_hist_file, "w") as rHist, open(l_hist_file, "r") as lHist:
+            for entry in rHistContent:
+                rHist.write(entry+'\n')
+            lHistContent = []
+            for entry in lHist.readlines():
+                lHistContent.append(entry.strip('\n'))
+            lHist.close()
+            # only update persistent or excluded history file if the visited path is not being contained in the visit log for the current day
+            if visitedDirPath not in lHistContent:
+                pHistUpdateDict = {}
+                if (canUpdateVisitsInHistoryFile(p_hist_file, pHistUpdateDict, visitedDirPath) == True):
+                    with open(p_hist_file, "w") as pHist:
+                        for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                            pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
+                else:
+                    eHistUpdateDict = {}
+                    if (canUpdateVisitsInHistoryFile(e_hist_file, eHistUpdateDict, visitedDirPath) == True):
+                        with open(e_hist_file, "w") as eHist:
+                            for entry in eHistUpdateDict.items():
+                                eHist.write(entry[0] + ";" + str(entry[1]) + '\n')
+                    else:
+                        pHistUpdateDict[visitedDirPath] = 1
+                        with open(p_hist_file, "w") as pHist:
+                            for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                                pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
+                # update log file for the current day
+                with open(l_hist_file, "a") as lHist:
+                    lHist.write(visitedDirPath + "\n")
 
 # 4) Clear navigation history
 def clearHist():
