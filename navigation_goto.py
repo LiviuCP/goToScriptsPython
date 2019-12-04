@@ -87,12 +87,7 @@ def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
 def goTo(gtDirectory = "", prevDirectory = ""):
     forwardInput = ""
     prevDir = os.getcwd()
-
-    if gtDirectory == "":
-        directory = home_dir
-    else:
-        directory = gtDirectory
-
+    directory = home_dir if gtDirectory == "" else gtDirectory
     # build and execute command
     getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
     sourceCommand = "source ~/.bashrc;" #include .bashrc to ensure the aliases and scripts work
@@ -101,29 +96,27 @@ def goTo(gtDirectory = "", prevDirectory = ""):
     writeCurrentDir = "pwd > " + input_storage_file + ";"
     executeCommandWithStatus = getDir + "\n" + sourceCommand + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeCurrentDir
     os.system(executeCommandWithStatus)
-
     # read command exit code and create the status message
     with open(output_storage_file, "r") as outputStorage:
         success = True if outputStorage.readline().strip('\n') == "0" else False
-    if success == True:
-        with open(input_storage_file, "r") as inputStorage:
-            currentDir = inputStorage.readline().strip('\n')
-        os.chdir(currentDir)
-        print("Previous directory: " + prevDir)
-        print("Current directory: " + currentDir)
-        if (prevDir != currentDir):
-            nav.updateHistory(currentDir)
-            nav.consolidateHistory()
-    else:
-        # ensure the previously visited dir stays the same in case the requested dir cannot be accessed
-        prevDir = prevDirectory
-        print("Error when attempting to change directory! Possible causes: ")
-        print(" - chosen directory path does not exist or has been deleted")
-        print(" - chosen path is not a directory")
-        print(" - insufficient access rights")
-        print("Please try again!")
-
-    return(0, "", prevDir) # to investigate : update the return code?
+        if success == True:
+            with open(input_storage_file, "r") as inputStorage:
+                currentDir = inputStorage.readline().strip('\n')
+                os.chdir(currentDir)
+                print("Previous directory: " + prevDir)
+                print("Current directory: " + currentDir)
+                if (prevDir != currentDir):
+                    nav.updateHistory(currentDir)
+                    nav.consolidateHistory()
+        else:
+            # ensure the previously visited dir stays the same in case the requested dir cannot be accessed
+            prevDir = prevDirectory
+            print("Error when attempting to change directory! Possible causes: ")
+            print(" - chosen directory path does not exist or has been deleted")
+            print(" - chosen path is not a directory")
+            print(" - insufficient access rights")
+            print("Please try again!")
+        return(0, "", prevDir) # to investigate : update the return code?
 
 # 3) Handle missing directory in navigation menu
 
