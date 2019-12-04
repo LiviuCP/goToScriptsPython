@@ -15,7 +15,7 @@ l_hist_file = log_dir + datetime.datetime.now().strftime("%Y%m%d")
 input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 
-# 1) Initialize navigation environment
+""" navigation history/favorites menu init/access functions """
 def initNavMenus():
     # ensure all required files and dirs exist
     if not os.path.exists(log_dir):
@@ -27,7 +27,6 @@ def initNavMenus():
     common.limitEntriesNr(r_hist_file, r_hist_max_entries)
     consolidateHistory()
 
-# 2) Choose path from history or favorites menu
 def choosePath(menuChoice, userInput):
     with open(fav_file if menuChoice == "-f" else hist_file, "r") as fPath:
         return common.getMenuEntry(userInput, fPath.readlines())
@@ -40,7 +39,7 @@ def displayFormattedPersistentHistContent():
 def isMenuEmpty(menuChoice):
     return os.path.getsize(fav_file if menuChoice == "-f" else hist_file) == 0
 
-# 3) Update individual navigation history files
+""" navigation history update functions """
 def updateHistory(visitedDirPath):
     def canUpdateVisitsInHistoryFile(histFile, updateDict, visitedPath):
         with open(histFile, "r") as hist:
@@ -97,7 +96,26 @@ def updateHistory(visitedDirPath):
                 with open(l_hist_file, "a") as lHist:
                     lHist.write(visitedDirPath + "\n")
 
-# 4) Clear navigation history
+def consolidateHistory():
+    with open(r_hist_file, 'r') as rHist, open(p_hist_file, 'r') as pHist, open(hist_file, 'w') as hist:
+        rHistDict = {}
+        pHistDict = {}
+        for entry in rHist.readlines():
+            rHistDict[entry.strip('\n')] = os.path.basename(entry.strip('\n'))
+        limit = 0
+        for entry in pHist.readlines():
+            splitEntry = entry.split(";")
+            pHistDict[splitEntry[0]] = os.path.basename(splitEntry[0])
+            limit = limit + 1
+            if (limit == p_hist_max_entries):
+                break
+    # sort entries by directory name so the user can easily find the dirs in the navigation history
+    with open(hist_file, 'a') as hist:
+        for entry in sorted(rHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
+            hist.write(entry[0] + '\n')
+        for entry in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
+            hist.write(entry[0] + '\n')
+
 def clearHist():
     with open(r_hist_file, "w"), open(p_hist_file, "w"), open(hist_file, "w"), open(l_hist_file, "w"), open(e_hist_file, "w") as eHist, open(fav_file, "r") as fav:
         #re-create excluded history with 0 number of visits for each entry
@@ -105,7 +123,7 @@ def clearHist():
             entry = entry.strip('\n')
             eHist.write(entry + ';0\n')
 
-# 5) Add directory to favorites
+""" add/remove from favorites functions """
 def isContainedInFavorites(pathToAdd):
     with open(fav_file, "r") as fav:
         alreadyAddedToFavorites = False
@@ -146,7 +164,6 @@ def addPathToFavorites(pathToAdd):
             fav.write(pathToAdd + '\n')
         ns.sortFavorites(fav_file)
 
-# 6) Remove directory from favorites
 def removeFromFavorites(userInput):
     def removeFromExcludedHistory(pathToRemove):
         eHistUpdateDict = {}
@@ -206,7 +223,7 @@ def displayFormattedFavoritesContent():
 def isFavEmpty():
     return os.path.getsize(fav_file) == 0
 
-# 7) Remove missing directory from history/favorites
+""" missing item removal / mapping from navigation history/favorites menu """
 def removeMissingDir(pathToRemove):
     def removePathFromPermHistoryFile(histFile, pathToRemove):
         itemContainedInHistFile = False
@@ -247,7 +264,6 @@ def removeMissingDir(pathToRemove):
             consolidateHistory()
         return pathToRemove
 
-# 8) Map missing directory in history/favorites
 def mapMissingDir(pathToReplace, replacingPath):
     def buildHistDict(histDict, histFile):
         with open(histFile, "r") as hist:
@@ -349,24 +365,3 @@ def mapMissingDir(pathToReplace, replacingPath):
             writeBackToExcludedHist(eHistDict)
         consolidateHistory()
     return (pathToReplace, replacingPath)
-
-# 9) Consolidate navigation menu (persistent and recent history)
-def consolidateHistory():
-    with open(r_hist_file, 'r') as rHist, open(p_hist_file, 'r') as pHist, open(hist_file, 'w') as hist:
-        rHistDict = {}
-        pHistDict = {}
-        for entry in rHist.readlines():
-            rHistDict[entry.strip('\n')] = os.path.basename(entry.strip('\n'))
-        limit = 0
-        for entry in pHist.readlines():
-            splitEntry = entry.split(";")
-            pHistDict[splitEntry[0]] = os.path.basename(splitEntry[0])
-            limit = limit + 1
-            if (limit == p_hist_max_entries):
-                break
-    # sort entries by directory name so the user can easily find the dirs in the navigation history
-    with open(hist_file, 'a') as hist:
-        for entry in sorted(rHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
-            hist.write(entry[0] + '\n')
-        for entry in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
-            hist.write(entry[0] + '\n')
