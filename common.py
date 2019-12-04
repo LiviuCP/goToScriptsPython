@@ -63,11 +63,8 @@ def getAbsoluteDirPath(dirPath):
     return pathToAdd
 
 def getNumberOfLines(filePath):
-    nrLines = 0
     with open(filePath, "r") as fPath:
-        for entry in fPath.readlines():
-            nrLines = nrLines + 1
-    return nrLines
+        return len(fPath.readlines())
 
 def displayFormattedNavFileContent(fileContent, firstRowNr = 0, limit = -1):
     nrOfRows = len(fileContent)
