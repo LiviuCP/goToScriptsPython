@@ -62,10 +62,8 @@ def executeCommand(commandToExecute):
 
 # 4) Clear command history
 def clearCommandHistory():
-    with open(c_r_hist_file, "w") as crHist:
-        crHist.write("")
-    with open(c_hist_file, "w") as cHist:
-        cHist.write("")
+    with open(c_r_hist_file, "w"), open(c_hist_file, "w"):
+        print("", end='')
 
 # 5) Shared functions
 def consolidateCommandHistory():
