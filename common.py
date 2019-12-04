@@ -13,10 +13,11 @@ def limitEntriesNr(filePath, maxEntries):
         fileEntries = 0
         for entry in fileContent:
             fileEntries = fileEntries + 1
-    if fileEntries > maxEntries:
-        with open(filePath, "w") as f:
-            for entryNr in range(0, maxEntries):
-                f.write(fileContent[entryNr])
+        if fileEntries > maxEntries:
+            f.close()
+            with open(filePath, "w") as f:
+                for entryNr in range(0, maxEntries):
+                    f.write(fileContent[entryNr])
 
 """
 The returned outcome could have following special values in the first field:
