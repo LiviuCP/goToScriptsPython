@@ -51,15 +51,15 @@ def getAbsoluteDirPath(dirPath):
         pathToAdd = dirPath
         with open(input_storage_file, "w") as inputStorage:
             inputStorage.write(pathToAdd)
-        # build BASH command for retrieving the absolute path of the replacing dir (if exists)
-        command = "input=`head -1 " + input_storage_file + "`; "
-        command = command + "output=" + output_storage_file + "; "
-        command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
-        os.system(command)
-        with open(output_storage_file, "r") as outputStorage:
-            pathToAdd = outputStorage.readline().strip('\n')
-        if pathToAdd == ":4":
-            pathToAdd = ""
+            inputStorage.close() # file needs to be closed otherwise the below executed BASH command might return unexpected results
+            # build BASH command for retrieving the absolute path of the replacing dir (if exists)
+            command = "input=`head -1 " + input_storage_file + "`; "
+            command = command + "output=" + output_storage_file + "; "
+            command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
+            os.system(command)
+            with open(output_storage_file, "r") as outputStorage:
+                pathToAdd = outputStorage.readline().strip('\n')
+                pathToAdd = "" if pathToAdd == ":4" else pathToAdd
     return pathToAdd
 
 def getNumberOfLines(filePath):
