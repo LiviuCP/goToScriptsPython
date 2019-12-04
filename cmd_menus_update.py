@@ -9,14 +9,13 @@ output_storage_file = home_dir + ".store_output"
 c_r_hist_max_entries = 25
 min_nr_of_cmd_chars = 10
 
-# 1) Initialize command environment
+""" command history menu init/access functions """
 def initCmdMenus():
     with open(c_r_hist_file, "a") as crHist:
         crHist.close() #just ensure the file exists
         common.limitEntriesNr(c_r_hist_file, c_r_hist_max_entries)
         consolidateCommandHistory()
 
-# 2) Choose command from menu
 def chooseCommand(userInput):
     with open(c_hist_file, "r") as cHist:
         return common.getMenuEntry(userInput, cHist.readlines())
@@ -26,7 +25,7 @@ def displayFormattedCmdHistContent():
     with open(c_hist_file, "r") as cHist:
         common.displayFormattedCmdFileContent(cHist.readlines())
 
-# 3) Execute command
+""" command execution functions """
 def executeCommand(commandToExecute):
     def updateIndividualCommandHistoryFiles(command):
         with open(c_r_hist_file, "r") as crHist:
@@ -60,12 +59,11 @@ def executeCommand(commandToExecute):
         print("--------------------------")
         return (0, commandToExecute, printedStatus)
 
-# 4) Clear command history
+""" command history update functions """
 def clearCommandHistory():
     with open(c_r_hist_file, "w"), open(c_hist_file, "w"):
         print("", end='')
 
-# 5) Shared functions
 def consolidateCommandHistory():
     with open(c_r_hist_file, 'r') as crHist, open(c_hist_file, 'w') as cHist:
         crHistEntries = crHist.readlines()
