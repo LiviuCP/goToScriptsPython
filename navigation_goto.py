@@ -127,24 +127,22 @@ def goTo(gtDirectory = "", prevDirectory = ""):
 
 # 3) Handle missing directory in navigation menu
 
-# The status returned by this method can have following values:
-# 0 - mapping or removal attempted by user
-# 1 - user input to be forwarded as regular input (dir path or command string)
-# 2 - user exited the choose path dialog, returned to navigation mode
-# 3 - invalid or missing arguments
-# 4 - replacing directory to which mapping is requested does not exist
+"""
+The status returned by this method can have following values:
+0 - mapping or removal attempted by user
+1 - user input to be forwarded as regular input (dir path or command string)
+2 - user exited the choose path dialog, returned to navigation mode
+3 - invalid or missing arguments
+4 - replacing directory to which mapping is requested does not exist
+"""
 def handleMissingDir(path, menu):
     # we need two arguments, one for missing directory path and second for menu type (history/favorites)
-    if path == "" or menu == "":
-        print("handleMissingDir: missing arguments")
-        status = 3
-    elif menu != '-h' and menu != '-f':
-        print("handleMissingDir: invalid second argument")
+    if path == "" or menu not in ["-h", "-f"]:
+        print("handleMissingDir: invalid arguments")
         status = 3
     else:
         missingDirPath = path
-        menuType = "history" if menu == '-h' else "favorites"
-
+        menuType = "history" if menu == "-h" else "favorites"
         os.system("clear")
         print("Invalid path " + missingDirPath)
         print("The directory might have been moved, renamed or deleted.")
@@ -154,9 +152,7 @@ def handleMissingDir(path, menu):
         print("!m to map to an existing directory")
         print("! to quit")
         print("")
-
         userChoice = input()
-
         # remove directory from history, don't map to anything
         if userChoice == "!r":
             removedPath = nav.removeMissingDir(missingDirPath)
@@ -170,38 +166,34 @@ def handleMissingDir(path, menu):
             print("")
             print("Enter the name and/or path of the replacing directory.")
             replacingDir = input()
-
             with open(input_storage_file, "w") as inputStorage:
                 inputStorage.write(replacingDir)
-
-            # build BASH command for retrieving the absolute path of the replacing dir (if exists)
-            command = "input=`head -1 " + input_storage_file + "`; "
-            command = command + "output=" + output_storage_file + "; "
-            command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
-
-            os.system(command)
-
-            with open(output_storage_file, "r") as outputStorage:
-                replacingDirPath = outputStorage.readline().strip('\n')
-            if replacingDirPath == ":4":
-                os.system("clear")
-                print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted or you might not have the required access level.")
-                print("Cannot perform mapping.")
-            else:
-                mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
-                os.system("clear")
-                print("Missing directory: " + mappingResult[0])
-                print("Replacing directory: " + mappingResult[1])
-                print("")
-                print("Mapping performed successfully.")
-            status = 0
+                inputStorage.close() # file needs to be closed otherwise the below executed BASH command might return unexpected results
+                # build BASH command for retrieving the absolute path of the replacing dir (if exists)
+                command = "input=`head -1 " + input_storage_file + "`; "
+                command = command + "output=" + output_storage_file + "; "
+                command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
+                os.system(command)
+                with open(output_storage_file, "r") as outputStorage:
+                    replacingDirPath = outputStorage.readline().strip('\n')
+                    if replacingDirPath == ":4":
+                        os.system("clear")
+                        print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted or you might not have the required access level.")
+                        print("Cannot perform mapping.")
+                    else:
+                        mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
+                        os.system("clear")
+                        print("Missing directory: " + mappingResult[0])
+                        print("Replacing directory: " + mappingResult[1])
+                        print("")
+                        print("Mapping performed successfully.")
+                    status = 0
         elif userChoice == "!":
             os.system("clear")
             print("You exited the " + menuType +  " menu")
             status = 2
         else:
             status = 1
-
     return (status, userChoice, "")
 
 # 5) Clear visited directories menu (wrapper for clear history)
