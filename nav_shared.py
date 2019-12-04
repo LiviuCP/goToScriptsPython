@@ -9,9 +9,10 @@ def sortFavorites(favFile): # to do: handle empty argument
         for entry in favFileContent:
             entry = entry.strip('\n')
             favDict[entry] = os.path.basename(entry)
-    with open(favFile, "w") as fav:
-        for entry in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0])):
-            fav.write(entry[0] + '\n')
+        fav.close()
+        with open(favFile, "w") as fav:
+            for entry in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0])):
+                fav.write(entry[0] + '\n')
 
 def removePathFromTempHistoryFile(histFile, path): # to do: handle empty arguments
     itemContainedInHistFile = False
