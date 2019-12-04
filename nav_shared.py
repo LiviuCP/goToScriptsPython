@@ -15,16 +15,16 @@ def sortFavorites(favFile): # to do: handle empty argument
                 fav.write(entry[0] + '\n')
 
 def removePathFromTempHistoryFile(histFile, path): # to do: handle empty arguments
-    itemContainedInHistFile = False
-    histContent = []
     with open(histFile, "r") as hist:
+        itemContainedInHistFile = False
+        histContent = []
         for entry in hist.readlines():
             if entry.strip('\n') == path:
                 itemContainedInHistFile = True
             else:
                 histContent.append(entry)
-    if itemContainedInHistFile == True:
-        with open(histFile, "w") as hist:
-            for entry in histContent:
-                hist.write(entry)
-    return itemContainedInHistFile
+        if itemContainedInHistFile == True:
+            with open(histFile, "w") as hist:
+                for entry in histContent:
+                    hist.write(entry)
+        return itemContainedInHistFile
