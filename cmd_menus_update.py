@@ -35,14 +35,15 @@ def executeCommand(commandToExecute):
             for entry in crHist.readlines():
                 crHistContent.append(entry.strip('\n'))
                 crHistEntries = crHistEntries + 1
-        if command in crHistContent:
-            crHistContent.remove(command)
-        elif crHistEntries == c_r_hist_max_entries:
-            crHistContent.remove(crHistContent[crHistEntries-1])
-        crHistContent = [command] + crHistContent
-        with open(c_r_hist_file, "w") as crHist:
-            for entry in crHistContent:
-                crHist.write(entry+'\n')
+            crHist.close()
+            if command in crHistContent:
+                crHistContent.remove(command)
+            elif crHistEntries == c_r_hist_max_entries:
+                crHistContent.remove(crHistContent[crHistEntries-1])
+            crHistContent = [command] + crHistContent
+            with open(c_r_hist_file, "w") as crHist:
+                for entry in crHistContent:
+                    crHist.write(entry+'\n')
     # *** actual function ***
     if len(commandToExecute) >= min_nr_of_cmd_chars:
         updateIndividualCommandHistoryFiles(commandToExecute)
@@ -56,8 +57,8 @@ def executeCommand(commandToExecute):
     with open(output_storage_file, "r") as output:
         status = output.readline().strip('\n')
         printedStatus = "with errors" if status != "0" else "successfully"
-    print("--------------------------")
-    return (0, commandToExecute, printedStatus)
+        print("--------------------------")
+        return (0, commandToExecute, printedStatus)
 
 # 4) Clear command history
 def clearCommandHistory():
