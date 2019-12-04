@@ -67,9 +67,8 @@ def clearCommandHistory():
 
 # 5) Shared functions
 def consolidateCommandHistory():
-    with open(c_r_hist_file, 'r') as crHist:
+    with open(c_r_hist_file, 'r') as crHist, open(c_hist_file, 'w') as cHist:
         crHistEntries = crHist.readlines()
         crHistEntries.sort()
-    with open(c_hist_file, 'w') as cHist:
         for entry in crHistEntries:
             cHist.write(entry)
