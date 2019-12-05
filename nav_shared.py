@@ -18,19 +18,21 @@ def sortFavorites(favFile):
         print("sortFavorites: Invalid argument")
 
 def removePathFromTempHistoryFile(histFile, path):
-    if os.path.isfile(histFile) and path != "":
-        with open(histFile, "r") as hist:
-            itemContainedInHistFile = False
-            histContent = []
-            for entry in hist.readlines():
-                if entry.strip('\n') == path:
-                    itemContainedInHistFile = True
-                else:
-                    histContent.append(entry)
-            if itemContainedInHistFile == True:
-                with open(histFile, "w") as hist:
-                    for entry in histContent:
-                        hist.write(entry)
-            return itemContainedInHistFile
+    if histFile != "" and path != "":
+        with open(histFile, "a") as hist:
+            hist.close() #just make sure the file exists
+            with open(histFile, "r") as hist:
+                itemContainedInHistFile = False
+                histContent = []
+                for entry in hist.readlines():
+                    if entry.strip('\n') == path:
+                        itemContainedInHistFile = True
+                    else:
+                        histContent.append(entry)
+                if itemContainedInHistFile == True:
+                    with open(histFile, "w") as hist:
+                        for entry in histContent:
+                            hist.write(entry)
+                return itemContainedInHistFile
     else:
         print("removePathFromTempHistoryFile: Invalid arguments")

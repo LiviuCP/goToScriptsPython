@@ -213,6 +213,7 @@ def removePathFromFavorites(userInput):
             pathToRemove = pathToRemove.strip('\n')
             removeFromExcludedHistory(pathToRemove)
             return pathToRemove
+
 def isValidInput(userInput):
     isValid = True
     if userInput.isdigit():
@@ -222,9 +223,11 @@ def isValidInput(userInput):
     else:
         isValid = False
     return isValid
+
 def displayFormattedFavoritesContent():
     with open(fav_file, "r") as fav:
         common.displayFormattedNavFileContent(fav.readlines())
+
 def isFavEmpty():
     return os.path.getsize(fav_file) == 0
 
@@ -245,8 +248,7 @@ def removeMissingDir(pathToRemove):
                     for entry in histContent:
                         hist.write(entry)
     # *** actual function ***
-    with open(fav_file, "r") as fav, open(l_hist_file, "a") as lHist:
-        lHist.close() # no action required, just ensure the file exists
+    with open(fav_file, "r") as fav:
         ns.removePathFromTempHistoryFile(l_hist_file, pathToRemove)
         removedFromPHist = False
         removedFromRHist = ns.removePathFromTempHistoryFile(r_hist_file, pathToRemove)
@@ -307,8 +309,6 @@ def mapMissingDir(pathToReplace, replacingPath):
     reSortPHist = False
     reSortFav = False
     # first remove the dir to be replaced from the daily log file if there
-    with open(l_hist_file, "a") as lHist:
-        lHist.write("")
     ns.removePathFromTempHistoryFile(l_hist_file, pathToReplace)
     # remove from recent history if there
     removedFromRHist = ns.removePathFromTempHistoryFile(r_hist_file, pathToReplace)
