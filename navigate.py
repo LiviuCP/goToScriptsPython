@@ -2,16 +2,13 @@ import os
 import display as out, navigation_goto as navgt, command_goto as cgt
 
 def navigate():
-    # initialize the environment, ensure the navigation and command history menus are sorted/consolidated
     navgt.initNavMenus()
     cgt.initCmdMenus()
-    #initialize required variables
     prevDir = os.getcwd()
     prevCommand = ""
     commandResult = ""
     navigationInput = ""
     forwardUserInput = False
-    # enter the directory navigation console
     os.system("clear")
     print("Welcome to navigation mode!")
     while True == True:
@@ -99,7 +96,7 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
         elif result[0] == 1 or result[0] == 4: #forward user input if favorites menu is empty and the user enters <[entry_nr] (result == 4)
             navigationOutput = 1
     elif navigationInput == ",":
-        result = navgt.goTo(prevDir, os.getcwd()) # have it updated, return available
+        result = navgt.goTo(prevDir, os.getcwd())
         navigationOutput = 4
     elif navigationInput == "+>":
         navgt.addDirToFavorites()
