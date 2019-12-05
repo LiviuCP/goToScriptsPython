@@ -165,14 +165,13 @@ def addPathToFavorites(pathToAdd):
             fav.close() # close, in use by sortFavorites()
             ns.sortFavorites(fav_file)
 
-def removeFromFavorites(userInput):
+def removePathFromFavorites(userInput):
     def removeFromExcludedHistory(pathToRemove):
-        eHistUpdateDict = {}
-        pHistUpdateDict = {}
-        pathToRemoveVisits = 0
-        moveToPersistentHist = False
-        # remove entry from excluded history
         with open(e_hist_file, "r") as eHist:
+            eHistUpdateDict = {}
+            pHistUpdateDict = {}
+            pathToRemoveVisits = 0
+            moveToPersistentHist = False
             for entry in eHist.readlines():
                 splitEntry = entry.strip('\n').split(';')
                 path = splitEntry[0]
@@ -183,32 +182,37 @@ def removeFromFavorites(userInput):
                         moveToPersistentHist = True
                 else:
                     eHistUpdateDict[path] = visits
-        with open(e_hist_file, "w") as eHist:
-            for entry in eHistUpdateDict.items():
-                eHist.write(entry[0] + ";" + entry[1] + "\n")
-        # move item to persistent history file, re-sort it and re-consolidate history
-        if moveToPersistentHist == True:
-            with open(p_hist_file, "r") as pHist:
-                for entry in pHist.readlines():
-                    splitEntry = entry.strip('\n').split(';')
-                    pHistUpdateDict[splitEntry[0]] = splitEntry[1]
-                pHistUpdateDict[pathToRemove] = pathToRemoveVisits
-            with open(p_hist_file, "w") as pHist:
-                for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                    pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
-            consolidateHistory()
+            eHist.close()
+            with open(e_hist_file, "w") as eHist:
+                for entry in eHistUpdateDict.items():
+                    eHist.write(entry[0] + ";" + entry[1] + "\n")
+                # move item to persistent history file, re-sort it and re-consolidate history
+                if moveToPersistentHist == True:
+                    with open(p_hist_file, "r") as pHist:
+                        for entry in pHist.readlines():
+                            splitEntry = entry.strip('\n').split(';')
+                            pHistUpdateDict[splitEntry[0]] = splitEntry[1]
+                        pHistUpdateDict[pathToRemove] = pathToRemoveVisits
+                        pHist.close()
+                        with open(p_hist_file, "w") as pHist:
+                            for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                                pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
+                            pHist.close()
+                            consolidateHistory()
     # *** actual function: remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once ***
     with open(fav_file, "r") as fav:
         favFileContent = fav.readlines()
         pathToRemove = favFileContent[int(userInput)-1]
         favFileContent.remove(pathToRemove)
-    with open(fav_file, "w") as fav:
-        for entry in favFileContent:
-            fav.write(entry)
-    ns.sortFavorites(fav_file)
-    pathToRemove = pathToRemove.strip('\n')
-    removeFromExcludedHistory(pathToRemove)
-    return pathToRemove
+        fav.close()
+        with open(fav_file, "w") as fav:
+            for entry in favFileContent:
+                fav.write(entry)
+            fav.close() # close, in use by sortFavorites()
+            ns.sortFavorites(fav_file)
+            pathToRemove = pathToRemove.strip('\n')
+            removeFromExcludedHistory(pathToRemove)
+            return pathToRemove
 def isValidInput(userInput):
     isValid = True
     if userInput.isdigit():

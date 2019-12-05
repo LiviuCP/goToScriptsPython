@@ -228,7 +228,7 @@ def removeDirFromFavorites():
         userInput = input()
         os.system("clear")
         if nav.isValidInput(userInput):
-            removedPath = nav.removeFromFavorites(userInput)
+            removedPath = nav.removePathFromFavorites(userInput)
             print("Entry " + removedPath + " removed from favorites menu.")
         elif userInput == '!':
             print("No entry removed from favorites menu.")
