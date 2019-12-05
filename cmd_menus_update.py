@@ -56,7 +56,6 @@ def executeCommand(commandToExecute):
     with open(output_storage_file, "r") as output:
         status = output.readline().strip('\n')
         printedStatus = "with errors" if status != "0" else "successfully"
-        print("--------------------------")
         return (0, commandToExecute, printedStatus)
 
 """ command history update functions """

@@ -11,6 +11,7 @@ def executeCommand(command = "", repeatPrev = False):
         print(commandType + " command is being executed: " + command)
         print("--------------------------")
         result = cmd.executeCommand(command) # have this updated, a return will be available
+        print("--------------------------")
         print(commandType + " command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
     return result
 
@@ -42,6 +43,7 @@ def editAndExecPrevCmd(previousCommand = ""):
         print(commandType + " command is being executed: " + commandToExecute)
         print("--------------------------")
         result = cmd.executeCommand(commandToExecute)
+        print("--------------------------")
         print(commandType + " command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
         passedInput = result[1]
         passedOutput = result[2]
@@ -96,6 +98,7 @@ def visitCommandMenu(mode = ""):
                 print("Repeated command is being executed: " + commandToExecute)
                 print("--------------------------")
                 result = cmd.executeCommand(commandToExecute)
+                print("--------------------------")
                 print("Repeated command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
             else:
                 result = editAndExecPrevCmd(commandHistoryEntry)
