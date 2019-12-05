@@ -1,5 +1,5 @@
 import sys, os, datetime
-import common, nav_shared as ns
+import common, sharedNavFunctions as ns
 from os.path import expanduser
 
 r_hist_max_entries = 10
@@ -30,12 +30,15 @@ def initNavMenus():
 def choosePath(menuChoice, userInput):
     with open(fav_file if menuChoice == "-f" else hist_file, "r") as fPath:
         return common.getMenuEntry(userInput, fPath.readlines())
+
 def displayFormattedRecentHistContent():
     with open(hist_file, "r") as hist, open(r_hist_file, "r") as rHist:
         common.displayFormattedNavFileContent(hist.readlines(), 0, len(rHist.readlines()))
+
 def displayFormattedPersistentHistContent():
     with open(hist_file, "r") as hist, open(r_hist_file, "r") as rHist:
         common.displayFormattedNavFileContent(hist.readlines(), len(rHist.readlines()))
+
 def isMenuEmpty(menuChoice):
     return os.path.getsize(fav_file if menuChoice == "-f" else hist_file) == 0
 
@@ -53,7 +56,6 @@ def updateHistory(visitedDirPath):
                 else:
                     updateDict[splitEntry[0]] = int(splitEntry[1])
             return entryContainedInFile
-    # *** actual function ***
     with open(l_hist_file, "a") as lHist, open(r_hist_file, "r") as rHist:
         rHistContent = []
         rHistEntries = 0
@@ -197,7 +199,7 @@ def removePathFromFavorites(userInput):
                                 pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
                             pHist.close()
                             consolidateHistory()
-    # *** actual function: remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once ***
+    # remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once
     with open(fav_file, "r") as fav:
         favFileContent = fav.readlines()
         pathToRemove = favFileContent[int(userInput)-1]
@@ -245,7 +247,6 @@ def removeMissingDir(pathToRemove):
                 with open(histFile, "w") as hist:
                     for entry in histContent:
                         hist.write(entry)
-    # *** actual function ***
     with open(fav_file, "r") as fav:
         ns.removePathFromTempHistoryFile(l_hist_file, pathToRemove)
         removedFromPHist = False
@@ -298,7 +299,6 @@ def mapMissingDir(pathToReplace, replacingPath):
         with open(fav_file, "w") as fav:
             for entry in favContent:
                 fav.write(entry + '\n')
-    # *** actual function ***
     favContent = []
     pHistDict = {}
     eHistDict = {}

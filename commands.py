@@ -1,5 +1,5 @@
 import os, readline
-import cmd_menus_update as cmd
+import commandsBackend as cmd
 
 """ core command execution functions """
 def executeCommand(command = "", repeatPrev = False):

@@ -1,9 +1,9 @@
 import os
-import display as out, navigation_goto as navgt, command_goto as cgt
+import display as out, navigation as nav, commands as cmd
 
 def navigate():
-    navgt.initNavMenus()
-    cgt.initCmdMenus()
+    nav.initNavMenus()
+    cmd.initCmdMenus()
     prevDir = os.getcwd()
     prevCommand = ""
     commandResult = ""
@@ -50,73 +50,73 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
             print("No shell command previously executed")
             shouldForwardData = False
         else:
-            result = cgt.executeCommand(prevCommand, True)
+            result = cmd.executeCommand(prevCommand, True)
     elif navigationInput == ":":
-        result = cgt.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cgt.editAndExecPrevCmd()
+        result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
         if result[0] == 0:
             navigationOutput = 2
     elif navigationInput == ":<":
-        result = cgt.visitCommandMenu("--execute")
+        result = cmd.visitCommandMenu("--execute")
         if result[0] == 0:
             navigationOutput = 2
         elif result[0] == 1:
             navigationOutput = 1
     elif navigationInput == "::":
-        result = cgt.visitCommandMenu("--edit")
+        result = cmd.visitCommandMenu("--edit")
         if result[0] == 0:
             navigationOutput = 2
         elif result[0] == 1:
             navigationOutput = 1
     elif navigationInput == "::<>":
-        cgt.clearCommandHistory()
+        cmd.clearCommandHistory()
         shouldForwardData = False
     elif navigationInput == "<":
-        result = navgt.visitNavigationMenu("-h", prevDir)
+        result = nav.visitNavigationMenu("-h", prevDir)
         if result[0] == 0:
             navigationOutput = 4
         elif result[0] == 1:
             navigationOutput = 1
     elif navigationInput == ">":
-        result = navgt.visitNavigationMenu("-f", prevDir)
+        result = nav.visitNavigationMenu("-f", prevDir)
         if result[0] == 0:
             navigationOutput = 4
         elif result[0] == 1:
             navigationOutput = 1
     elif len(navigationInput) > 1 and navigationInput[0] == "<":
-        result = navgt.visitNavigationMenu("-h", prevDir, navigationInput[1:])
+        result = nav.visitNavigationMenu("-h", prevDir, navigationInput[1:])
         if result[0] == 0:
             navigationOutput = 4
         elif result[0] == 1 or result[0] == 4: #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
             navigationOutput = 1
     elif len(navigationInput) > 1 and navigationInput[0] == ">":
         navInput = navigationInput[1:]
-        result = navgt.visitNavigationMenu("-f", prevDir, navigationInput[1:])
+        result = nav.visitNavigationMenu("-f", prevDir, navigationInput[1:])
         if result[0] == 0:
             navigationOutput = 4
         elif result[0] == 1 or result[0] == 4: #forward user input if favorites menu is empty and the user enters <[entry_nr] (result == 4)
             navigationOutput = 1
     elif navigationInput == ",":
-        result = navgt.goTo(prevDir, os.getcwd())
+        result = nav.goTo(prevDir, os.getcwd())
         navigationOutput = 4
     elif navigationInput == "+>":
-        navgt.addDirToFavorites()
+        nav.addDirToFavorites()
         shouldForwardData = False
     elif navigationInput == "->":
-        result = navgt.removeDirFromFavorites()
+        result = nav.removeDirFromFavorites()
         if result[0] == 1:
             navigationOutput = 1
     elif navigationInput == ":<>":
-        navgt.clearVisitedDirsMenu()
+        nav.clearVisitedDirsMenu()
         shouldForwardData = False
     elif navigationInput == "!":
         shouldForwardData = False
         print("You exited navigation mode.")
     else:
         if navigationInput != "" and navigationInput[0] == ":":
-            result = cgt.executeCommand(navigationInput[1:])
+            result = cmd.executeCommand(navigationInput[1:])
             navigationOutput = 2
         else:
-            result = navgt.goTo() if navigationInput == "" else navgt.goTo(navigationInput, prevDir)
+            result = nav.goTo() if navigationInput == "" else nav.goTo(navigationInput, prevDir)
             navigationOutput = 4
     if shouldForwardData == True:
         passedInput = result[1]
