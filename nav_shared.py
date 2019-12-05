@@ -2,29 +2,35 @@
 
 import os
 
-def sortFavorites(favFile): # to do: handle empty argument
-    favDict = {}
-    with open(favFile, "r") as fav:
-        favFileContent = fav.readlines()
-        for entry in favFileContent:
-            entry = entry.strip('\n')
-            favDict[entry] = os.path.basename(entry)
-        fav.close()
-        with open(favFile, "w") as fav:
-            for entry in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0])):
-                fav.write(entry[0] + '\n')
+def sortFavorites(favFile):
+    if os.path.isfile(favFile):
+        with open(favFile, "r") as fav:
+            favDict = {}
+            favFileContent = fav.readlines()
+            for entry in favFileContent:
+                entry = entry.strip('\n')
+                favDict[entry] = os.path.basename(entry)
+            fav.close()
+            with open(favFile, "w") as fav:
+                for entry in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0])):
+                    fav.write(entry[0] + '\n')
+    else:
+        print("sortFavorites: Invalid argument")
 
-def removePathFromTempHistoryFile(histFile, path): # to do: handle empty arguments
-    with open(histFile, "r") as hist:
-        itemContainedInHistFile = False
-        histContent = []
-        for entry in hist.readlines():
-            if entry.strip('\n') == path:
-                itemContainedInHistFile = True
-            else:
-                histContent.append(entry)
-        if itemContainedInHistFile == True:
-            with open(histFile, "w") as hist:
-                for entry in histContent:
-                    hist.write(entry)
-        return itemContainedInHistFile
+def removePathFromTempHistoryFile(histFile, path):
+    if os.path.isfile(histFile) and path != "":
+        with open(histFile, "r") as hist:
+            itemContainedInHistFile = False
+            histContent = []
+            for entry in hist.readlines():
+                if entry.strip('\n') == path:
+                    itemContainedInHistFile = True
+                else:
+                    histContent.append(entry)
+            if itemContainedInHistFile == True:
+                with open(histFile, "w") as hist:
+                    for entry in histContent:
+                        hist.write(entry)
+            return itemContainedInHistFile
+    else:
+        print("removePathFromTempHistoryFile: Invalid arguments")
