@@ -20,12 +20,12 @@ def initNavMenus():
     # ensure all required files and dirs exist
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
-    with open(r_hist_file, "a"), open(p_hist_file, "a"), open(e_hist_file, "a"), open(l_hist_file, "a"), \
+    with open(r_hist_file, "a") as rHist, open(p_hist_file, "a") as pHist, open(e_hist_file, "a"), open(l_hist_file, "a"), \
          open (fav_file, "a"), open(input_storage_file, "a"), open(output_storage_file, "a"):
-        print("", end='')
-    # limit the number of entries from recent navigation history files to the maximum allowed and get unified (recent + persistent) history
-    common.limitEntriesNr(r_hist_file, r_hist_max_entries)
-    consolidateHistory()
+        rHist.close() # close, in use by limitEntriesNr()
+        common.limitEntriesNr(r_hist_file, r_hist_max_entries) # limit the number of entries from recent navigation history files to the maximum allowed and get unified (recent + persistent) history
+        pHist.close() # close, in use by consolidateHistory()
+        consolidateHistory()
 
 def choosePath(menuChoice, userInput):
     with open(fav_file if menuChoice == "-f" else hist_file, "r") as fPath:
