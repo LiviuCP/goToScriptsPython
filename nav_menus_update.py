@@ -109,8 +109,6 @@ def consolidateHistory():
             limit = limit + 1
             if (limit == p_hist_max_entries):
                 break
-    # sort entries by directory name so the user can easily find the dirs in the navigation history
-    with open(hist_file, 'a') as hist:
         for entry in sorted(rHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
             hist.write(entry[0] + '\n')
         for entry in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
