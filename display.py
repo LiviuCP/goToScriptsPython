@@ -5,7 +5,6 @@ max_nr_of_chars = 25 #maximum number of characters to be displayed for each item
 begin_chars_to_display = max_nr_of_chars // 2 #first characters to be displayed for a filename exceeding max_nr_of_chars
 end_chars_to_display = begin_chars_to_display - max_nr_of_chars #last characters to be displayed for a filename exceeding max_nr_of_chars
 
-# 1) Display general navigation output
 def displayGeneralNavOutput(command = "", result = ""):
     commandResult = ""
     if command == "" and result == "":
@@ -79,7 +78,6 @@ def printDirContentToColumns(content):
         print('{0:<40s} {1:<40s} {2:<40s} {3:<40s}'.format(content[baseIndex], content[baseIndex + 1], content[baseIndex + 2], content[baseIndex + 3]))
     print("")
 
-# 2) Display help
 def displayHelp():
     os.system("clear")
     print("Navigation functions")
