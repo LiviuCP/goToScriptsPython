@@ -162,7 +162,8 @@ def addPathToFavorites(pathToAdd):
         #append path to favorites entries
         with open(fav_file, "a") as fav:
             fav.write(pathToAdd + '\n')
-        ns.sortFavorites(fav_file)
+            fav.close() # close, in use by sortFavorites()
+            ns.sortFavorites(fav_file)
 
 def removeFromFavorites(userInput):
     def removeFromExcludedHistory(pathToRemove):
