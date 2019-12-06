@@ -36,7 +36,7 @@ def navigate():
         if navigationInput == "!":
             break
 
-""" return codes: 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd """
+""" return codes: -1 - goTo not successfully executed, 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd """
 def handleNavigationOption(navigationInput, prevDir, prevCommand):
     navigationOutput = 0
     passedInput = ""
@@ -53,48 +53,29 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
             result = cmd.executeCommand(prevCommand, True)
     elif navigationInput == ":":
         result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
-        if result[0] == 0:
-            navigationOutput = 2
+        navigationOutput = 2 if result[0] == 0 else navigationOutput
     elif navigationInput == ":<":
         result = cmd.visitCommandMenu("--execute")
-        if result[0] == 0:
-            navigationOutput = 2
-        elif result[0] == 1:
-            navigationOutput = 1
+        navigationOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else navigationOutput
     elif navigationInput == "::":
         result = cmd.visitCommandMenu("--edit")
-        if result[0] == 0:
-            navigationOutput = 2
-        elif result[0] == 1:
-            navigationOutput = 1
+        navigationOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else navigationOutput
     elif navigationInput == "::<>":
         cmd.clearCommandHistory()
         shouldForwardData = False
     elif navigationInput == "<":
         result = nav.visitNavigationMenu("-h", prevDir)
-        if result[0] == 0:
-            navigationOutput = 4
-        elif result[0] == 1:
-            navigationOutput = 1
+        navigationOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else navigationOutput
     elif navigationInput == ">":
         result = nav.visitNavigationMenu("-f", prevDir)
-        if result[0] == 0:
-            navigationOutput = 4
-        elif result[0] == 1:
-            navigationOutput = 1
+        navigationOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else navigationOutput
     elif len(navigationInput) > 1 and navigationInput[0] == "<":
         result = nav.visitNavigationMenu("-h", prevDir, navigationInput[1:])
-        if result[0] == 0:
-            navigationOutput = 4
-        elif result[0] == 1 or result[0] == 4: #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
-            navigationOutput = 1
+        navigationOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else navigationOutput #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
     elif len(navigationInput) > 1 and navigationInput[0] == ">":
         navInput = navigationInput[1:]
         result = nav.visitNavigationMenu("-f", prevDir, navigationInput[1:])
-        if result[0] == 0:
-            navigationOutput = 4
-        elif result[0] == 1 or result[0] == 4: #forward user input if favorites menu is empty and the user enters <[entry_nr] (result == 4)
-            navigationOutput = 1
+        navigationOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else navigationOutput #forward user input if favorites menu is empty and the user enters >[entry_nr] (result == 4)
     elif navigationInput == ",":
         result = nav.goTo(prevDir, os.getcwd())
         navigationOutput = 4 if result[0] == 0 else navigationOutput
@@ -103,8 +84,7 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
         shouldForwardData = False
     elif navigationInput == "->":
         result = nav.removeDirFromFavorites()
-        if result[0] == 1:
-            navigationOutput = 1
+        navigationOutput = 1 if result[0] == 1 else navigationOutput
     elif navigationInput == ":<>":
         nav.clearVisitedDirsMenu()
         shouldForwardData = False
