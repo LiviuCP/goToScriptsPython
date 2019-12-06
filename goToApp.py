@@ -97,7 +97,7 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
             navigationOutput = 1
     elif navigationInput == ",":
         result = nav.goTo(prevDir, os.getcwd())
-        navigationOutput = 4
+        navigationOutput = 4 if result[0] == 0 else navigationOutput
     elif navigationInput == "+>":
         nav.addDirToFavorites()
         shouldForwardData = False
@@ -117,7 +117,7 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
             navigationOutput = 2
         else:
             result = nav.goTo() if navigationInput == "" else nav.goTo(navigationInput, prevDir)
-            navigationOutput = 4
+            navigationOutput = 4 if result[0] == 0 else navigationOutput
     if shouldForwardData == True:
         passedInput = result[1]
         passedOutput = result[2]

@@ -8,7 +8,7 @@ output_storage_file = home_dir + ".store_output"
 
 """ core function for visiting directories """
 def goTo(gtDirectory = "", prevDirectory = ""):
-    forwardInput = ""
+    status = 0 #default status, successful execution
     prevDir = os.getcwd()
     directory = home_dir if gtDirectory == "" else gtDirectory
     # build and execute command
@@ -32,14 +32,14 @@ def goTo(gtDirectory = "", prevDirectory = ""):
                     nav.updateHistory(currentDir)
                     nav.consolidateHistory()
         else:
-            # ensure the previously visited dir stays the same in case the requested dir cannot be accessed
-            prevDir = prevDirectory
+            status = -1 # unsuccessful goTo, cannot change dir
+            prevDir = prevDirectory # ensure the previously visited dir stays the same for consistency reasons (not actually used if the goTo execution is not successful)
             print("Error when attempting to change directory! Possible causes: ")
             print(" - chosen directory path does not exist or has been deleted")
             print(" - chosen path is not a directory")
             print(" - insufficient access rights")
             print("Please try again!")
-        return(0, "", prevDir) # to investigate : update the return code?
+        return(status, "", prevDir)
 
 """ navigation menu functions """
 def initNavMenus():
@@ -111,7 +111,8 @@ def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
                     passedInput = handleResult[1]
                     passedOutput = handleResult[2]
             else:
-                goToResult = goTo(dirPath, prevDir) # to investigate: provide different return codes for goTo and update status to match the goTo return code ? (in any case avoid return code 1!)
+                goToResult = goTo(dirPath, prevDir)
+                status = goToResult[0]
                 passedInput = goToResult[1]
                 passedOutput = goToResult[2]
         else:
