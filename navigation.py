@@ -1,5 +1,5 @@
 import sys, os
-import common, navigationBackend as nav
+import common, navigation_backend as nav
 from os.path import expanduser, isdir
 
 home_dir = expanduser("~") + "/"

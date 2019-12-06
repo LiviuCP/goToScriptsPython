@@ -1,5 +1,5 @@
 import sys, os, datetime
-import common, sharedNavFunctions as ns
+import common, shared_nav_functions as ns
 from os.path import expanduser
 
 r_hist_max_entries = 10
