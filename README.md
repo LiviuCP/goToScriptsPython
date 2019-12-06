@@ -32,32 +32,19 @@ However a GUI mode might be available depending on distribution. For example on 
 
 Clone from the repo, then follow these steps from either branch:
 
-a. Ensure you have Python 3 installed. Check if /usr/bin/python3 exists.
+a. Ensure you have Python 3 installed. Check if /usr/bin/python3 exists. Minimum required Python version is 3.4.
 b. Copy all Python files to the home directory. This looks pretty messy at the
 moment but I will correct it. The python script is still under construction.
-c. Create an alias for /usr/bin/python3 navigate.py in .bashrc
-d. Temporary fix: create an empty file .store_output in the home
-directory. This bug is planned to be fixed soon.
-e. Restart the terminal once ready and start using the functionality by
-executing the instruction mentioned at point c.
+c. Create an alias for /usr/bin/python3 [absolute_path_of_cloned_repo]/goto_app.py in .bashrc
+d. Restart the terminal once ready and start using the functionality by executing the instruction mentioned at point c.
 
 4. KNOWN ISSUES/BUGS
 
-1) In some Linux implementations the there are empty lines between menu
-entries. This is planned to be fixed soon.
+1) In some Linux implementations the there might be empty lines between menu entries depending on terminal window size. This is planned to be fixed in the next version.
 
-2) When having directories like ./abcd and ./abcdefgh there are issues when
-using wildcards. For example if using *ab to switch to either of these two an
-error will occur and the cd will not be executed. A workaround is to type a*d
-for switching to abcd or a*h for switching to abcdefgh. Also a good practice
-that I recommend is not to create a folder that has its name string included
-as first part of the string of another dir.
+2) When having directories like ./abcd and ./abcdefgh there are issues when using wildcards. For example if using *ab to switch to either of these two an error will occur and the change dir command will not be executed. A workaround is to type a*d for switching to abcd or a*h for switching to abcdefgh. Also a good practice that I recommend is (as much as possible) not to create a folder that has its name included as first part of the string of another dir.
 
-If any other bugs are discovered please feel free to comment on my Github page
-(https://github.com/LiviuCP) or write me an e-mail (liviucst@gmail.com).
-
-Please note that these scripts are currently in the initial phase, there are
-still many changes to be done until they become "mature".
+If any other bugs are discovered please feel free to report them on my Github page: https://github.com/LiviuCP.
 
 5. FUNCTIONALITY
 
@@ -67,7 +54,7 @@ Following features are contained in the script:
 - storing directories in a favorites menu
 - command executing functionality
 
-To access these functions you need to execute the navigate.py script. These features will be detailed in the following sections.
+To access these functions you need to execute the goto_app.py script. These features will be detailed in the following sections.
 
 5.1. The goto functionality
 
@@ -102,13 +89,11 @@ If you cannot find a entry simply enter the required path(s) to navigate to the 
 
 From the navigation menu enter the comma character (,) and press ENTER in order to achieve this. You can run this function as many times as you wish. The system will toggle between the two directories.
 
-Note: if previously entering argument '.' the goToPrevDir function will re-visit the current directory. If no directory had been visited since entering the navigation mode the script will issue a warning and the current directory will remain unchanged.
+Note: if previously entering argument '.' the goToPrevDir function will re-visit the current directory. This also happens if no directory had been visited since entering the navigation mode.
 
 5.4. Adding a directory to favorites
 
 From navigation mode go to the directory you need to add to favorites. Then simply enter +> and press RETURN. Each directory can only be added once to the favorites menu.
-
-Another way of adding the directory would be executing the addToFavorites function with the dir path as argument (both relative and absolute paths are allowed).
 
 5.5. Removing a directory from favorites
 
@@ -138,11 +123,12 @@ All possible navigation options can be viewed by entering the ? character follow
 
 6. THE HISTORY FUNCTIONALITY
 
-Each time a directory is visited, the event is tracked in a history file. There are four files where this tracking is done:
+Each time a directory is visited, the event is tracked in a history file. There are five files where this tracking is done:
 - the recent history file
 - the persistent history file
 - the consolidated history file
 - the excluded history file
+- the daily log history file
 
 In addition to these a command history menu is available, that tracks the most recently executed shell commands in navigation mode. This is different from the standard BASH history as it only tracks the commands initiated in navigation mode, namely the ones preceded by the : character. Currently 2 files are being used for doing this tracking:
 - the recent command history file
@@ -170,7 +156,7 @@ When a directory is added to favorites its entry from the persistent history fil
 
 When the directory is removed from favorites the entry is moved back to persistent history with the actual number of visits.
 
-If the directory hadn't been visited prior to adding to favorites (e.g. if adding it by calling the addToFavorites function with the directory path as argument when in another directory) an entry with 0 visits is created in the excluded history file. If the directory is removed from favorites before visiting it the entry is removed both from favorites file and excluded history and nothing is added to persistent history. 
+If the directory hadn't been visited prior to adding to favorites (e.g. if adding it by calling the addToFavorites function with the directory path as argument when in another directory) an entry with 0 visits is created in the excluded history file. If the directory is removed from favorites before visiting it the entry is removed both from favorites file and excluded history and nothing is added to persistent history.
 
 6.5. Command history
 
@@ -208,6 +194,6 @@ If the user chooses to remap the path to an existing one, two options are availa
 
 8. MISCELLANEOUS
 
-It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0.
+1) It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :<> in either history or favorites menus and hit ENTER in order to clear all history.
 
-Type :<> in either history or favorites menus and hit ENTER in order to clear all history.
+2) Unlike the equivalent BASH scripts (that can be downloaded from the goToScripts repo: https://github.com/LiviuCP/gotoScripts.git), when exiting the Python script (either by entering ! or CTRL+C) the current directory is not retained but the terminal will revert to the original directory that was current when launching the goto_app.py. Also when executing CTRL+C for script exit a Python error will occur due to keyboard interrupt. This is not something to worry about but the more elegant exit solution is by using the '!' key followed by ENTER.
