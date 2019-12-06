@@ -7,22 +7,22 @@ def execute():
     prevDir = os.getcwd()
     prevCommand = ""
     commandResult = ""
-    navigationInput = ""
+    userInput = ""
     forwardUserInput = False
     os.system("clear")
     print("Welcome to navigation mode!")
     while True == True:
-        if navigationInput != "?":
+        if userInput != "?":
             if prevCommand == "":
                 out.displayGeneralNavOutput()
             else:
                 out.displayGeneralNavOutput(prevCommand, commandResult)
-        navigationInput = input()
+        userInput = input()
         while True == True:
             os.system("clear")
-            result = handleUserInput(navigationInput, prevDir, prevCommand)
+            result = handleUserInput(userInput, prevDir, prevCommand)
             if result[0] == 1:
-                navigationInput = result[1]
+                userInput = result[1]
                 forwardUserInput = True
             elif result[0] == 2:
                 prevCommand = result[1]
@@ -33,74 +33,73 @@ def execute():
                 forwardUserInput = False
             else:
                 break
-        if navigationInput == "!":
+        if userInput == "!":
             break
 
 """ return codes: -1 - goTo not successfully executed, 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd """
-def handleUserInput(navigationInput, prevDir, prevCommand):
-    navigationOutput = 0
+def handleUserInput(userInput, prevDir, prevCommand):
+    handleOutput = 0
     passedInput = ""
     passedOutput = ""
     shouldForwardData = True
-    if navigationInput == "?":
+    if userInput == "?":
         out.displayHelp()
         shouldForwardData = False
-    elif navigationInput == ":-":
+    elif userInput == ":-":
         if prevCommand == "":
             print("No shell command previously executed")
             shouldForwardData = False
         else:
             result = cmd.executeCommand(prevCommand, True)
-    elif navigationInput == ":":
+    elif userInput == ":":
         result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
-        navigationOutput = 2 if result[0] == 0 else navigationOutput
-    elif navigationInput == ":<":
+        handleOutput = 2 if result[0] == 0 else handleOutput
+    elif userInput == ":<":
         result = cmd.visitCommandMenu("--execute")
-        navigationOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else navigationOutput
-    elif navigationInput == "::":
+        handleOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+    elif userInput == "::":
         result = cmd.visitCommandMenu("--edit")
-        navigationOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else navigationOutput
-    elif navigationInput == "::<>":
+        handleOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+    elif userInput == "::<>":
         cmd.clearCommandHistory()
         shouldForwardData = False
-    elif navigationInput == "<":
+    elif userInput == "<":
         result = nav.visitNavigationMenu("-h", prevDir)
-        navigationOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else navigationOutput
-    elif navigationInput == ">":
+        handleOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+    elif userInput == ">":
         result = nav.visitNavigationMenu("-f", prevDir)
-        navigationOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else navigationOutput
-    elif len(navigationInput) > 1 and navigationInput[0] == "<":
-        result = nav.visitNavigationMenu("-h", prevDir, navigationInput[1:])
-        navigationOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else navigationOutput #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
-    elif len(navigationInput) > 1 and navigationInput[0] == ">":
-        navInput = navigationInput[1:]
-        result = nav.visitNavigationMenu("-f", prevDir, navigationInput[1:])
-        navigationOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else navigationOutput #forward user input if favorites menu is empty and the user enters >[entry_nr] (result == 4)
-    elif navigationInput == ",":
+        handleOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+    elif len(userInput) > 1 and userInput[0] == "<":
+        result = nav.visitNavigationMenu("-h", prevDir, userInput[1:])
+        handleOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else handleOutput #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
+    elif len(userInput) > 1 and userInput[0] == ">":
+        result = nav.visitNavigationMenu("-f", prevDir, userInput[1:])
+        handleOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else handleOutput #forward user input if favorites menu is empty and the user enters >[entry_nr] (result == 4)
+    elif userInput == ",":
         result = nav.goTo(prevDir, os.getcwd())
-        navigationOutput = 4 if result[0] == 0 else navigationOutput
-    elif navigationInput == "+>":
+        handleOutput = 4 if result[0] == 0 else handleOutput
+    elif userInput == "+>":
         nav.addDirToFavorites()
         shouldForwardData = False
-    elif navigationInput == "->":
+    elif userInput == "->":
         result = nav.removeDirFromFavorites()
-        navigationOutput = 1 if result[0] == 1 else navigationOutput
-    elif navigationInput == ":<>":
+        handleOutput = 1 if result[0] == 1 else handleOutput
+    elif userInput == ":<>":
         nav.clearVisitedDirsMenu()
         shouldForwardData = False
-    elif navigationInput == "!":
+    elif userInput == "!":
         shouldForwardData = False
         print("You exited navigation mode.")
     else:
-        if navigationInput != "" and navigationInput[0] == ":":
-            result = cmd.executeCommand(navigationInput[1:])
-            navigationOutput = 2
+        if userInput != "" and userInput[0] == ":":
+            result = cmd.executeCommand(userInput[1:])
+            handleOutput = 2
         else:
-            result = nav.goTo() if navigationInput == "" else nav.goTo(navigationInput, prevDir)
-            navigationOutput = 4 if result[0] == 0 else navigationOutput
+            result = nav.goTo() if userInput == "" else nav.goTo(userInput, prevDir)
+            handleOutput = 4 if result[0] == 0 else handleOutput
     if shouldForwardData == True:
         passedInput = result[1]
         passedOutput = result[2]
-    return (navigationOutput, passedInput, passedOutput)
+    return (handleOutput, passedInput, passedOutput)
 
 execute()
