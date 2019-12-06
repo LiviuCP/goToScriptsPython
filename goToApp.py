@@ -13,10 +13,7 @@ def execute():
     print("Welcome to navigation mode!")
     while True == True:
         if userInput != "?":
-            if prevCommand == "":
-                out.displayGeneralOutput()
-            else:
-                out.displayGeneralOutput(prevCommand, commandResult)
+            out.displayGeneralOutput() if prevCommand == "" else out.displayGeneralOutput(prevCommand, commandResult)
         userInput = input()
         while True == True:
             os.system("clear")
