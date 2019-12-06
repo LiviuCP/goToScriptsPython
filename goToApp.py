@@ -14,9 +14,9 @@ def execute():
     while True == True:
         if userInput != "?":
             if prevCommand == "":
-                out.displayGeneralNavOutput()
+                out.displayGeneralOutput()
             else:
-                out.displayGeneralNavOutput(prevCommand, commandResult)
+                out.displayGeneralOutput(prevCommand, commandResult)
         userInput = input()
         while True == True:
             os.system("clear")

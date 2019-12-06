@@ -5,7 +5,7 @@ max_nr_of_chars = 25 #maximum number of characters to be displayed for each item
 begin_chars_to_display = max_nr_of_chars // 2 #first characters to be displayed for a filename exceeding max_nr_of_chars
 end_chars_to_display = begin_chars_to_display - max_nr_of_chars #last characters to be displayed for a filename exceeding max_nr_of_chars
 
-def displayGeneralNavOutput(command = "", result = ""):
+def displayGeneralOutput(command = "", result = ""):
     commandResult = ""
     if command == "" and result == "":
         lastCommand = 'none'
