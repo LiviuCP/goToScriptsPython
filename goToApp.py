@@ -1,7 +1,7 @@
 import os
 import display as out, navigation as nav, commands as cmd
 
-def navigate():
+def execute():
     nav.initNavMenus()
     cmd.initCmdMenus()
     prevDir = os.getcwd()
@@ -20,7 +20,7 @@ def navigate():
         navigationInput = input()
         while True == True:
             os.system("clear")
-            result = handleNavigationOption(navigationInput, prevDir, prevCommand)
+            result = handleUserInput(navigationInput, prevDir, prevCommand)
             if result[0] == 1:
                 navigationInput = result[1]
                 forwardUserInput = True
@@ -37,7 +37,7 @@ def navigate():
             break
 
 """ return codes: -1 - goTo not successfully executed, 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd """
-def handleNavigationOption(navigationInput, prevDir, prevCommand):
+def handleUserInput(navigationInput, prevDir, prevCommand):
     navigationOutput = 0
     passedInput = ""
     passedOutput = ""
@@ -103,4 +103,4 @@ def handleNavigationOption(navigationInput, prevDir, prevCommand):
         passedOutput = result[2]
     return (navigationOutput, passedInput, passedOutput)
 
-navigate()
+execute()
