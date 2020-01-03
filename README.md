@@ -26,7 +26,7 @@ Currently it is only supported on Linux. It is planned to add Mac OS support in 
 
 On the Linux version the "CLI-only" mode is supported. This means the script does not synchronize the current directory of the terminal with the one from the explorer window. The reason for this implementation is that there are several distributions of Linux and the explorer tool might be differ from one to another.
 
-However a GUI mode might be available depending on distribution. For example on OpenSUSE it is possible to run the CLI-only script in a terminal embedded in the explorer window in KDE.
+Unlike the BASH version of the script it is NOT possible to obtain synchronization between terminal and graphical explorer if the terminal is embedded in an explorer window (as on OpenSUSE). This is due to the fact that the script runs in a sub-shell of the terminal. If you require this synchronization please use the BASH scripts (see section 8. for more details)
 
 3. INSTALLATION
 
@@ -107,11 +107,11 @@ In order to do this you just need to enter the : character followed by the actua
 
 To repeat the last executed command just enter the :- characters and press ENTER.
 
-To enter a new command by editing the previously executed one just enter : and press ENTER. This feature is only available on BASH4 so make sure to upgrade the shell in order to use it.
+To enter a new command by editing the previously executed one just enter : and press ENTER.
 
 It is also possible to enter the command history menu by typing :< and pressing ENTER. Similar to navigation history by entering a valid number the chosen command is executed.
 
-The command history can also be accessed in edit mode by entering :: and pressing ENTER. In edit mode when the number of a command is entered the string of the command is displayed for editing. After editing and pressing ENTER the new command will be executed. The command execution can be aborted by entering : at the end of the string and pressing ENTER. This feature is only available in BASH4. In BASH3 the menu can be accessed in edit mode however when entering the number of the command to be edited an error will be triggered.
+The command history can also be accessed in edit mode by entering :: and pressing ENTER. In edit mode when the number of a command is entered the string of the command is displayed for editing. After editing and pressing ENTER the new command will be executed. The command execution can be aborted by entering : at the end of the string and pressing ENTER.
 
 To erase the command history enter ::<> and press ENTER. You will not be able to enter the command history menu if no entry is available.
 
