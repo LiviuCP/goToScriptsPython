@@ -179,7 +179,9 @@ def handleMissingDir(path, menu):
                         print("Missing directory: " + mappingResult[0])
                         print("Replacing directory: " + mappingResult[1])
                         print("")
-                        print("Mapping performed successfully.")
+                        print("Mapping performed successfully, navigating to replacing directory ...")
+                        print("")
+                        goTo(mappingResult[1], os.getcwd())
                     status = 0
         elif userChoice == "!":
             os.system("clear")
