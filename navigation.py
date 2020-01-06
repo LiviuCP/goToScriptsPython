@@ -13,11 +13,10 @@ def goTo(gtDirectory = "", prevDirectory = ""):
     directory = home_dir if gtDirectory == "" else gtDirectory
     # build and execute command
     getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
-    sourceCommand = "source ~/.bashrc;" #include .bashrc to ensure the aliases and scripts work
-    executionStatus = "echo $? > " + output_storage_file + ";"
     cdCommand = "cd " + '\"' + "$directory" + '\"' + " 2> /dev/null;"
+    executionStatus = "echo $? > " + output_storage_file + ";"
     writeCurrentDir = "pwd > " + input_storage_file + ";"
-    executeCommandWithStatus = getDir + "\n" + sourceCommand + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeCurrentDir
+    executeCommandWithStatus = getDir + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeCurrentDir
     os.system(executeCommandWithStatus)
     # read command exit code and create the status message
     with open(output_storage_file, "r") as outputStorage:
