@@ -52,7 +52,7 @@ def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
         print("")
         nav.displayFormattedRecentHistContent()
         print("")
-        print("--  MOST VISITED --")
+        print("-- MOST VISITED --")
         print("")
         nav.displayFormattedPersistentHistContent()
         print("")
