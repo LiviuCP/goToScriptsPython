@@ -13,7 +13,7 @@ def execute():
     print("Welcome to navigation mode!")
     while True == True:
         if userInput != "?":
-            out.displayGeneralOutput() if prevCommand == "" else out.displayGeneralOutput(prevCommand, commandResult)
+            out.displayGeneralOutput(prevDir) if prevCommand == "" else out.displayGeneralOutput(prevDir, prevCommand, commandResult)
         userInput = input()
         while True == True:
             os.system("clear")
@@ -92,7 +92,7 @@ def handleUserInput(userInput, prevDir, prevCommand):
             result = cmd.executeCommand(userInput[1:])
             handleOutput = 2
         else:
-            result = nav.goTo() if userInput == "" else nav.goTo(userInput, prevDir)
+            result = nav.goTo(userInput, prevDir)
             handleOutput = 4 if result[0] == 0 else handleOutput
     if shouldForwardData == True:
         passedInput = result[1]

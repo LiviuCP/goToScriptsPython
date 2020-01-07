@@ -7,7 +7,7 @@ input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 
 """ core function for visiting directories """
-def goTo(gtDirectory = "", prevDirectory = ""):
+def goTo(gtDirectory, prevDirectory):
     status = 0 #default status, successful execution
     prevDir = os.getcwd()
     directory = home_dir if gtDirectory == "" else gtDirectory
@@ -25,11 +25,13 @@ def goTo(gtDirectory = "", prevDirectory = ""):
             with open(input_storage_file, "r") as inputStorage:
                 currentDir = inputStorage.readline().strip('\n')
                 os.chdir(currentDir)
-                print("Previous directory: " + prevDir)
-                print("Current directory: " + currentDir)
                 if (prevDir != currentDir):
+                    print("Switched to new directory: " + currentDir)
                     nav.updateHistory(currentDir)
                     nav.consolidateHistory()
+                else:
+                    print("Current directory remains unchanged: " + currentDir)
+                    prevDir = prevDirectory
         else:
             status = -1 # unsuccessful goTo, cannot change dir
             prevDir = prevDirectory # ensure the previously visited dir stays the same for consistency reasons (not actually used if the goTo execution is not successful)

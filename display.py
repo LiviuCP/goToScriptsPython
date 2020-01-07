@@ -5,7 +5,8 @@ max_nr_of_chars = 25 #maximum number of characters to be displayed for each item
 begin_chars_to_display = max_nr_of_chars // 2 #first characters to be displayed for a filename exceeding max_nr_of_chars
 end_chars_to_display = begin_chars_to_display - max_nr_of_chars #last characters to be displayed for a filename exceeding max_nr_of_chars
 
-def displayGeneralOutput(command = "", result = ""):
+def displayGeneralOutput(prevDir, command = "", result = ""):
+    previousDirectory = "none" if prevDir == "" else prevDir
     commandResult = ""
     if command == "" and result == "":
         lastCommand = 'none'
@@ -17,8 +18,8 @@ def displayGeneralOutput(command = "", result = ""):
     print("")
     print("****************************************************************************************************")
     print("")
-    print("Current directory")
-    print(os.getcwd())
+    print("Current directory: " + os.getcwd())
+    print("Previous directory: " + previousDirectory)
     print("")
     print("----------------------------------------------------------------------------------------------------")
     print("")
