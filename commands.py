@@ -9,9 +9,9 @@ def executeCommand(command = "", repeatPrev = False):
     else:
         commandType = "Repeated" if repeatPrev == True else "Entered"
         print(commandType + " command is being executed: " + command)
-        print("--------------------------")
+        print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
         result = cmd.executeCommand(command) # have this updated, a return will be available
-        print("--------------------------")
+        print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
         print(commandType + " command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
     return result
 
@@ -41,9 +41,9 @@ def editAndExecPrevCmd(previousCommand = ""):
     else:
         commandType = "Edited" if previousCommand != "" else "Entered"
         print(commandType + " command is being executed: " + commandToExecute)
-        print("--------------------------")
+        print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
         result = cmd.executeCommand(commandToExecute)
-        print("--------------------------")
+        print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
         print(commandType + " command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
         passedInput = result[1]
         passedOutput = result[2]
@@ -96,9 +96,9 @@ def visitCommandMenu(mode = ""):
             if mode == "--execute":
                 commandToExecute = commandHistoryEntry
                 print("Repeated command is being executed: " + commandToExecute)
-                print("--------------------------")
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 result = cmd.executeCommand(commandToExecute)
-                print("--------------------------")
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 print("Repeated command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
             else:
                 result = editAndExecPrevCmd(commandHistoryEntry)
