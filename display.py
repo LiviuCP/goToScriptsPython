@@ -16,18 +16,18 @@ def displayGeneralOutput(prevDir, command = "", result = ""):
         lastCommand = command
         commandResult = result
     print("")
-    print("****************************************************************************************************")
+    print("********************************************************************************************************************************************************")
     print("")
     print("Current directory: " + os.getcwd())
     print("Previous directory: " + previousDirectory)
     print("")
-    print("----------------------------------------------------------------------------------------------------")
+    print("--------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Directory content (hidden items are excluded):")
     print("")
     displayCurrentDirContent()
     print("")
-    print("----------------------------------------------------------------------------------------------------")
+    print("--------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Last executed shell command", end='')
     if commandResult != "":
@@ -36,10 +36,10 @@ def displayGeneralOutput(prevDir, command = "", result = ""):
         print(":")
     print(lastCommand)
     print("")
-    print("****************************************************************************************************")
+    print("********************************************************************************************************************************************************")
     print("")
     print("Enter the path of the directory you want to visit (press ENTER to return to the home dir).")
-    print("Enter ? for the list of of available commands or ! to quit navigation mode.'")
+    print("Enter ? for the list of of available commands or ! to quit navigation mode.")
     print("")
 
 def displayCurrentDirContent():
