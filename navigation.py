@@ -46,7 +46,7 @@ def goTo(gtDirectory, prevDirectory):
 def initNavMenus():
     nav.initNavMenus()
 
-def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
+def visitNavigationMenu(menuChoice, previousDir, userInput = ""):
     def displayHistMenu():
         print("VISITED DIRECTORIES")
         print("")
@@ -73,53 +73,47 @@ def visitNavigationMenu(menuChoice = "", previousDir = "", userInput = ""):
         print("Enter the number of the directory you want to navigate to.")
         print("Enter ! to quit.")
         print("")
-    # *** actual function ***
     status = 0 # default status, normal execution or missing dir successful removal/mapping
     passedInput = ""
     passedOutput = previousDir
-    if menuChoice == "" or previousDir == "":
-        print("Insufficient number of arguments")
-        status = 3
+    prevDir = previousDir
+    if menuChoice != "-f" and menuChoice != "-h":
+        print("invalid argument provided, no menu selected")
+        choiceResult = (":3", "", "")
     else:
-        prevDir = previousDir
-        if menuChoice != "-f" and menuChoice != "-h":
-            print("invalid argument provided, no menu selected")
-            choiceResult = (":3", "", "")
-        else:
-            menuName = "favorites" if menuChoice == "-f" else "history"
-            if userInput == "":
-                os.system("clear")
-                if nav.isMenuEmpty(menuChoice) == True:
-                    print("There are no entries in the " + menuName + " menu.")
-                else:
-                    displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
-                    userInput = input() # to update: enable path autocomplete
-                    os.system("clear")
-            choiceResult = nav.choosePath(menuChoice, userInput)
-    if status == 0:
-        dirPath = choiceResult[0]
-        if dirPath == ":1" or dirPath == ":4":
-            status = int(dirPath[1])
-            passedInput = choiceResult[1]
-        elif dirPath == ":2":
-            status = int(dirPath[1])
-            print("You exited the " + menuName + " menu!")
-        elif dirPath != ":3":
-            if not os.path.isdir(dirPath):
-                handleResult = handleMissingDir(dirPath, menuChoice)
-                if handleResult[0] == 1:
-                    status = 1 #forward user input
-                    passedInput = handleResult[1]
-                    passedOutput = handleResult[2]
+        menuName = "favorites" if menuChoice == "-f" else "history"
+        if userInput == "":
+            os.system("clear")
+            if nav.isMenuEmpty(menuChoice) == True:
+                print("There are no entries in the " + menuName + " menu.")
             else:
-                goToResult = goTo(dirPath, prevDir)
-                status = goToResult[0]
-                passedInput = goToResult[1]
-                passedOutput = goToResult[2]
+                displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
+                userInput = input() # to update: enable path autocomplete
+                os.system("clear")
+        choiceResult = nav.choosePath(menuChoice, userInput)
+    dirPath = choiceResult[0]
+    if dirPath == ":1" or dirPath == ":4":
+        status = int(dirPath[1])
+        passedInput = choiceResult[1]
+    elif dirPath == ":2":
+        status = int(dirPath[1])
+        print("You exited the " + menuName + " menu!")
+    elif dirPath != ":3":
+        if not os.path.isdir(dirPath):
+            handleResult = handleMissingDir(dirPath, menuChoice)
+            if handleResult[0] == 1:
+                status = 1 #forward user input
+                passedInput = handleResult[1]
+                passedOutput = handleResult[2]
         else:
-            status = 3
-            passedInput = ""
-            passedOutput = ""
+            goToResult = goTo(dirPath, prevDir)
+            status = goToResult[0]
+            passedInput = goToResult[1]
+            passedOutput = goToResult[2]
+    else:
+        status = 3
+        passedInput = ""
+        passedOutput = ""
     return (status, passedInput, passedOutput)
 
 """
