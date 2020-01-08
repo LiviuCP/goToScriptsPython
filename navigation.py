@@ -105,6 +105,8 @@ def visitNavigationMenu(menuChoice, previousDir, userInput = ""):
                 status = 1 #forward user input
                 passedInput = handleResult[1]
                 passedOutput = handleResult[2]
+            elif handleResult[0] == 0:
+                passedOutput = handleResult[2] # previous directory in case mapping was successful
         else:
             goToResult = goTo(dirPath, prevDir)
             status = goToResult[0]
@@ -125,6 +127,7 @@ The status returned by this method can have following values:
 4 - replacing directory to which mapping is requested does not exist
 """
 def handleMissingDir(path, menu):
+    prevDir = os.getcwd() # used in case mapping is successfully done for keeping the previous directory information consistent (otherwise not used, info is ignored by calling function)
     # we need two arguments, one for missing directory path and second for menu type (history/favorites)
     if path == "" or menu not in ["-h", "-f"]:
         print("handleMissingDir: invalid arguments")
@@ -169,6 +172,7 @@ def handleMissingDir(path, menu):
                         os.system("clear")
                         print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted or you might not have the required access level.")
                         print("Cannot perform mapping.")
+                        status = 4
                     else:
                         mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
                         os.system("clear")
@@ -178,14 +182,14 @@ def handleMissingDir(path, menu):
                         print("Mapping performed successfully, navigating to replacing directory ...")
                         print("")
                         goTo(mappingResult[1], os.getcwd())
-                    status = 0
+                        status = 0
         elif userChoice == "!":
             os.system("clear")
             print("You exited the " + menuType +  " menu")
             status = 2
         else:
             status = 1
-    return (status, userChoice, "")
+    return (status, userChoice, prevDir)
 
 def clearVisitedDirsMenu():
     nav.clearHist()
