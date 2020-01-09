@@ -162,6 +162,7 @@ def handleMissingDir(path, menu, previousDir):
             print("")
             print("Enter the name and/or path of the replacing directory.")
             print("Enter < for mapping from history menu and > for mapping from favorites.")
+            print("Enter ! to quit mapping.")
             replacingDir = input()
             if replacingDir == "<" or replacingDir == ">":
                 menuName = "history" if replacingDir == "<" else "favorites"
@@ -178,6 +179,11 @@ def handleMissingDir(path, menu, previousDir):
                     replacingDir = menuVisitResult[1] #input mirrored back, "normal" input interpreted as user entered path
                 else:
                     replacingDir = menuVisitResult[0] #path retrieved from menu
+            elif replacingDir == "!":
+                os.system("clear")
+                print("Mapping aborted.")
+                status = 2
+                doMapping = False
             if doMapping == True:
                 with open(input_storage_file, "w") as inputStorage:
                     inputStorage.write(replacingDir)
