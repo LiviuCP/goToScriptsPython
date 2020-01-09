@@ -161,6 +161,7 @@ def handleMissingDir(path, menu, previousDir):
             print("Missing directory: " + missingDirPath)
             print("")
             print("Enter the name and/or path of the replacing directory.")
+            print("Enter < for mapping from history menu and > for mapping from favorites.")
             replacingDir = input()
             if replacingDir == "<" or replacingDir == ">":
                 menuName = "history" if replacingDir == "<" else "favorites"
