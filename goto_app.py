@@ -61,16 +61,16 @@ def handleUserInput(userInput, prevDir, prevCommand):
         cmd.clearCommandHistory()
         shouldForwardData = False
     elif userInput == "<":
-        result = nav.visitNavigationMenu("-h", prevDir)
+        result = nav.executeGoToFromMenu("-h", prevDir)
         handleOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
     elif userInput == ">":
-        result = nav.visitNavigationMenu("-f", prevDir)
+        result = nav.executeGoToFromMenu("-f", prevDir)
         handleOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
     elif len(userInput) > 1 and userInput[0] == "<":
-        result = nav.visitNavigationMenu("-h", prevDir, userInput[1:])
+        result = nav.executeGoToFromMenu("-h", prevDir, userInput[1:])
         handleOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else handleOutput #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
     elif len(userInput) > 1 and userInput[0] == ">":
-        result = nav.visitNavigationMenu("-f", prevDir, userInput[1:])
+        result = nav.executeGoToFromMenu("-f", prevDir, userInput[1:])
         handleOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else handleOutput #forward user input if favorites menu is empty and the user enters >[entry_nr] (result == 4)
     elif userInput == ",":
         result = nav.goTo(prevDir, os.getcwd())

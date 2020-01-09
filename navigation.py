@@ -46,7 +46,42 @@ def goTo(gtDirectory, prevDirectory):
 def initNavMenus():
     nav.initNavMenus()
 
-def visitNavigationMenu(menuChoice, previousDir, userInput = ""):
+def executeGoToFromMenu(menuChoice, previousDir, userInput = ""):
+    menuVisitResult = visitNavigationMenu(menuChoice, userInput)
+    status = 0 # default status, normal execution or missing dir successful removal/mapping
+    passedInput = ""
+    passedOutput = previousDir
+    dirPath = menuVisitResult[0]
+    menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "invalid"
+    if dirPath == ":1" or dirPath == ":4":
+        status = int(dirPath[1])
+        passedInput = menuVisitResult[1]
+        if dirPath == ":4":
+            print("There are no entries in the " + menuName + " menu.")
+    elif dirPath == ":2":
+        status = int(dirPath[1])
+        print("You exited the " + menuName + " menu!")
+    elif dirPath != ":3":
+        if not os.path.isdir(dirPath):
+            handleResult = handleMissingDir(dirPath, menuChoice, previousDir)
+            if handleResult[0] == 1:
+                status = 1 #forward user input
+                passedInput = handleResult[1]
+                passedOutput = handleResult[2]
+            elif handleResult[0] == 0:
+                passedOutput = handleResult[2] # previous directory in case mapping was successful
+        else:
+            goToResult = goTo(dirPath, previousDir)
+            status = goToResult[0]
+            passedInput = goToResult[1]
+            passedOutput = goToResult[2]
+    else:
+        status = 3
+        passedInput = ""
+        passedOutput = ""
+    return (status, passedInput, passedOutput)
+
+def visitNavigationMenu(menuChoice, userInput = ""):
     def displayHistMenu():
         print("VISITED DIRECTORIES")
         print("")
@@ -73,50 +108,18 @@ def visitNavigationMenu(menuChoice, previousDir, userInput = ""):
         print("Enter the number of the directory you want to navigate to.")
         print("Enter ! to quit.")
         print("")
-    status = 0 # default status, normal execution or missing dir successful removal/mapping
-    passedInput = ""
-    passedOutput = previousDir
-    prevDir = previousDir
     if menuChoice != "-f" and menuChoice != "-h":
         print("invalid argument provided, no menu selected")
         choiceResult = (":3", "", "")
     else:
-        menuName = "favorites" if menuChoice == "-f" else "history"
         if userInput == "":
             os.system("clear")
-            if nav.isMenuEmpty(menuChoice) == True:
-                print("There are no entries in the " + menuName + " menu.")
-            else:
+            if not nav.isMenuEmpty(menuChoice) == True:
                 displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
                 userInput = input() # to update: enable path autocomplete
                 os.system("clear")
         choiceResult = nav.choosePath(menuChoice, userInput)
-    dirPath = choiceResult[0]
-    if dirPath == ":1" or dirPath == ":4":
-        status = int(dirPath[1])
-        passedInput = choiceResult[1]
-    elif dirPath == ":2":
-        status = int(dirPath[1])
-        print("You exited the " + menuName + " menu!")
-    elif dirPath != ":3":
-        if not os.path.isdir(dirPath):
-            handleResult = handleMissingDir(dirPath, menuChoice)
-            if handleResult[0] == 1:
-                status = 1 #forward user input
-                passedInput = handleResult[1]
-                passedOutput = handleResult[2]
-            elif handleResult[0] == 0:
-                passedOutput = handleResult[2] # previous directory in case mapping was successful
-        else:
-            goToResult = goTo(dirPath, prevDir)
-            status = goToResult[0]
-            passedInput = goToResult[1]
-            passedOutput = goToResult[2]
-    else:
-        status = 3
-        passedInput = ""
-        passedOutput = ""
-    return (status, passedInput, passedOutput)
+    return choiceResult
 
 """
 The status returned by this method can have following values:
@@ -126,8 +129,8 @@ The status returned by this method can have following values:
 3 - invalid or missing arguments
 4 - replacing directory to which mapping is requested does not exist
 """
-def handleMissingDir(path, menu):
-    prevDir = os.getcwd() # used in case mapping is successfully done for keeping the previous directory information consistent (otherwise not used, info is ignored by calling function)
+def handleMissingDir(path, menu, previousDir):
+    prevDir = previousDir # keep actual previous dir information in case remove dir from menu is executed (otherwise it will be lost)
     # we need two arguments, one for missing directory path and second for menu type (history/favorites)
     if path == "" or menu not in ["-h", "-f"]:
         print("handleMissingDir: invalid arguments")
@@ -181,7 +184,8 @@ def handleMissingDir(path, menu):
                         print("")
                         print("Mapping performed successfully, navigating to replacing directory ...")
                         print("")
-                        goTo(mappingResult[1], os.getcwd())
+                        prevDir = os.getcwd() # prev dir to be updated to current dir in case of successful mapping
+                        goTo(mappingResult[1], prevDir)
                         status = 0
         elif userChoice == "!":
             os.system("clear")
