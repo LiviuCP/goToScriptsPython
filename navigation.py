@@ -32,6 +32,18 @@ def goTo(gtDirectory, prevDirectory):
                 else:
                     print("Current directory remains unchanged: " + currentDir)
                     prevDir = prevDirectory
+                # update current directory in Finder
+                setDelays = "delayBeforeClose=0.2;" + "\n" + "delayAfterReopen=0.3;" + "\n" + "delayErrorReopen=1.8;" + "\n"
+                closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
+                handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n"
+                reopenFinder = "else open . 2> /dev/null;" + "\n"
+                handleReopeningError = "if [[ $? != 0 ]]; then sleep $delayErrorReopen; echo \'An error occured when opening the new directory in Finder\'; " + "\n"
+                addDelayAfterSuccessfulReopen = "else sleep $delayAfterReopen;" + "\n" + "fi" + "\n" + "fi" + "\n"
+                openTerminal = "open -a terminal;"
+                updateFinder = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
+#                print("The update Finder command is: ")
+#                print(updateFinder)
+#                os.system(updateFinder)
         else:
             status = -1 # unsuccessful goTo, cannot change dir
             prevDir = prevDirectory # ensure the previously visited dir stays the same for consistency reasons (not actually used if the goTo execution is not successful)
