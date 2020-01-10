@@ -130,11 +130,12 @@ The status returned by this method can have following values:
 4 - replacing directory to which mapping is requested does not exist
 """
 def handleMissingDir(path, menu, previousDir):
+    status = 0 # default status, successful missing directory path mapping or removal
     prevDir = previousDir # keep actual previous dir information in case remove dir from menu is executed (otherwise it will be lost)
     # we need two arguments, one for missing directory path and second for menu type (history/favorites)
     if path == "" or menu not in ["-h", "-f"]:
-        print("handleMissingDir: invalid arguments")
         status = 3
+        print("handleMissingDir: invalid arguments")
     else:
         missingDirPath = path
         menuType = "history" if menu == "-h" else "favorites"
@@ -153,7 +154,6 @@ def handleMissingDir(path, menu, previousDir):
             removedPath = nav.removeMissingDir(missingDirPath)
             os.system("clear")
             print("Entry " + removedPath + " has been removed from the menus.")
-            status = 0
         # map missing directory to a valid replacing dir
         elif userChoice == "!m":
             doMapping = True
@@ -168,22 +168,22 @@ def handleMissingDir(path, menu, previousDir):
                 menuName = "history" if replacingDir == "<" else "favorites"
                 menuVisitResult = visitNavigationMenu("-h" if replacingDir == "<" else "-f")
                 if menuVisitResult[0] == ":4":
-                    print("There are no entries in the " + menuName + " menu. Cannot perform mapping.")
                     status = 4
                     doMapping = False
+                    print("There are no entries in the " + menuName + " menu. Cannot perform mapping.")
                 elif menuVisitResult[0] == ":2":
-                    print("Mapping aborted.")
                     status = 2
                     doMapping = False
+                    print("Mapping aborted.")
                 elif menuVisitResult[0] == ":1":
                     replacingDir = menuVisitResult[1] #input mirrored back, "normal" input interpreted as user entered path
                 else:
                     replacingDir = menuVisitResult[0] #path retrieved from menu
             elif replacingDir == "!":
-                os.system("clear")
-                print("Mapping aborted.")
                 status = 2
                 doMapping = False
+                os.system("clear")
+                print("Mapping aborted.")
             if doMapping == True:
                 with open(input_storage_file, "w") as inputStorage:
                     inputStorage.write(replacingDir)
@@ -196,11 +196,12 @@ def handleMissingDir(path, menu, previousDir):
                     with open(output_storage_file, "r") as outputStorage:
                         replacingDirPath = outputStorage.readline().strip('\n')
                         if replacingDirPath == ":4":
+                            status = 4
                             os.system("clear")
                             print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted or you might not have the required access level.")
                             print("Cannot perform mapping.")
-                            status = 4
                         else:
+                            prevDir = os.getcwd() # prev dir to be updated to current dir in case of successful mapping
                             mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
                             os.system("clear")
                             print("Missing directory: " + mappingResult[0])
@@ -208,13 +209,11 @@ def handleMissingDir(path, menu, previousDir):
                             print("")
                             print("Mapping performed successfully, navigating to replacing directory ...")
                             print("")
-                            prevDir = os.getcwd() # prev dir to be updated to current dir in case of successful mapping
                             goTo(mappingResult[1], prevDir)
-                            status = 0
         elif userChoice == "!":
+            status = 2
             os.system("clear")
             print("You exited the " + menuType +  " menu")
-            status = 2
         else:
             status = 1
     return (status, userChoice, prevDir)
