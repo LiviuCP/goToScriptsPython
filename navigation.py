@@ -41,9 +41,7 @@ def goTo(gtDirectory, prevDirectory):
                 addDelayAfterSuccessfulReopen = "else sleep $delayAfterReopen;" + "\n" + "fi" + "\n" + "fi" + "\n"
                 openTerminal = "open -a terminal;"
                 updateFinder = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
-#                print("The update Finder command is: ")
-#                print(updateFinder)
-#                os.system(updateFinder)
+                os.system(updateFinder)
         else:
             status = -1 # unsuccessful goTo, cannot change dir
             prevDir = prevDirectory # ensure the previously visited dir stays the same for consistency reasons (not actually used if the goTo execution is not successful)
