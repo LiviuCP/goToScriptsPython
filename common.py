@@ -71,14 +71,14 @@ def displayFormattedNavFileContent(fileContent, firstRowNr = 0, limit = -1):
     nrOfRows = len(fileContent)
     limit = nrOfRows if limit < 0 or limit > nrOfRows else limit
     if firstRowNr < limit and firstRowNr >= 0:
-        print('{0:<5s} {1:<30s} {2:<40s} {3:<100s}'.format('', '- PARENT DIR -', '- DIR NAME -', '- DIR PATH -'))
+        print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format('', '- PARENT DIR -', '- DIR NAME -', '- DIR PATH -'))
         for rowNr in range(firstRowNr, limit):
             dirPath = fileContent[rowNr].strip('\n')
             dirName = os.path.basename(dirPath) if dirPath != "/" else "*root"
             parentDir = os.path.basename(str(Path(dirPath).parent))
             if parentDir == "":
                 parentDir = "*root"
-            print('{0:<5s} {1:<30s} {2:<40s} {3:<100s}'.format(str(rowNr+1), parentDir, dirName, dirPath))
+            print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format(str(rowNr+1), parentDir, dirName, dirPath))
 
 def displayFormattedCmdFileContent(fileContent, firstRowNr = 0, limit = -1):
     nrOfRows = len(fileContent)
