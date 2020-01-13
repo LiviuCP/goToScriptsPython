@@ -19,22 +19,19 @@ def editAndExecPrevCmd(previousCommand = ""):
     def hook():
         readline.insert_text(previousCommand)
         readline.redisplay()
-
+    readline.parse_and_bind("tab: complete")
     status = 0 #normal execution, no user abort
     passedInput = ""
     passedOutput = ""
-
     if previousCommand == "":
         print("No shell command executed in this session. Enter a new command")
     else:
         print("Please edit the below command and hit ENTER to execute")
         readline.set_pre_input_hook(hook)
-
     print("(press \':\' + ENTER to quit):")
     commandToExecute = input()
     readline.set_pre_input_hook() # ensure any further input is no longer pre-filled
     os.system("clear")
-
     if commandToExecute == "" or commandToExecute[len(commandToExecute)-1] == ':':
         print("Command aborted. You returned to navigation menu.")
         status = 1
@@ -69,7 +66,7 @@ def visitCommandMenu(mode = ""):
         print("Enter command number.")
         print("Enter ! to quit.")
         print("")
-    # *** actual function ***
+    readline.parse_and_bind("tab: complete")
     status = 0 # default status (normal execution)
     passedInput = ""
     passedOutput = ""

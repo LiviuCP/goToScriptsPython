@@ -1,7 +1,8 @@
-import os
+import os, readline
 import display as out, navigation as nav, commands as cmd
 
 def execute():
+    readline.parse_and_bind("tab: complete")
     nav.initNavMenus()
     cmd.initCmdMenus()
     prevDir = os.getcwd()
