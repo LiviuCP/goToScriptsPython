@@ -22,27 +22,30 @@ It also performs history reporting and creating a list of favorite dirs. Both hi
 
 2. Supported systems
 
-Currently it is only supported on Linux. It is planned to add Mac OS support in the future.
+The script is supported both on Linux and MacOS.
 
-On the Linux version the "CLI-only" mode is supported. This means the script does not synchronize the current directory of the terminal with the one from the explorer window. The reason for this implementation is that there are several distributions of Linux and the explorer tool might be differ from one to another.
+1) On the Linux version the "CLI-only" mode is supported. This means the script does not synchronize the current directory of the terminal with the one from the explorer window. The reason for this implementation is that there are several distributions of Linux and the explorer tool might be differ from one to another.
 
 Unlike the BASH version of the script it is NOT possible to obtain synchronization between terminal and graphical explorer if the terminal is embedded in an explorer window (as on OpenSUSE). This is due to the fact that the script runs in a sub-shell of the terminal. If you require this synchronization please use the BASH scripts (see section 8. for more details)
 
+2) On the MacOS version the terminal is synchronized with the Finder window. This occurs as follows: when a valid path is entered in the terminal the Finder will close and the re-open in the directory for which the path has been entered. This occurs no matter if the path is the same with the old one or not and this behavior has been implemented as the user might sometimes need to refresh the Finder window. The possible reason for requiring Finder refresh is mentioned in section 4.
+
 3. INSTALLATION
 
-Clone from the repo, then follow these steps from either branch:
+Use the master or linuxScript branch to download the Linux version and macOsScript branch to download the OS-X version. Clone from the repo, switch to the chosen branch and follow these steps:
 
-a. Ensure you have Python 3 installed. Check if /usr/bin/python3 exists. Minimum required Python version is 3.4.
-b. Copy all Python files to the home directory. This looks pretty messy at the
-moment but I will correct it. The python script is still under construction.
-c. Create an alias for /usr/bin/python3 [absolute_path_of_cloned_repo]/goto_app.py in .bashrc
-d. Restart the terminal once ready and start using the functionality by executing the instruction mentioned at point c.
+a. Ensure you have Python 3 installed. Check if /usr/bin/python3 exists and if not install it. Minimum required version is 3.4.
+b. Create an alias for /usr/bin/python3 [absolute_path_of_cloned_repo]/goto_app.py in .bashrc
+c. Open a new terminal window/tab and start using the functionality by executing the instruction mentioned at point b.
+d. Before shutting down the machine, in order to prevent forceful terminal closure exit the script by entering the exit key (character '!') and pressing ENTER. Do not close by using CTRL+C as this will trigger a keyboard interrupt error.
 
 4. KNOWN ISSUES/BUGS
 
-1) In some Linux implementations the there might be empty lines between menu entries depending on terminal window size. This is planned to be fixed in the next version.
+1) Depending on terminal size there might be empty lines between navigation/command history or navigation favorites menu entries. To correct this you just need to resize the terminal until this spaces disappear. In OS-X it is possible to setup a pre-defined terminal size (number of lines/columns) from the Terminal settings.
 
 2) When having directories like ./abcd and ./abcdefgh there are issues when using wildcards. For example if using *ab to switch to either of these two an error will occur and the change dir command will not be executed. A workaround is to type a*d for switching to abcd or a*h for switching to abcdefgh. Also a good practice that I recommend is (as much as possible) not to create a folder that has its name included as first part of the string of another dir.
+
+3) Sometimes when having the Finder re-opened the window is in an inactive state and the user cannot move between directories by using the arrow keys. To correct this initiate a new re-opening in the current directory by entering '.' and pressing ENTER.
 
 If any other bugs are discovered please feel free to report them on my Github page: https://github.com/LiviuCP.
 
@@ -65,7 +68,9 @@ You can enter:
 - relative paths
 - paths with wildcards
 
-If no argument is entered the user home directory will be visited.
+Notes:
+1) If no argument is entered the user home directory will be visited.
+2) If the same directory as the current one is entered the previous dir will remain unchanged.
 
 5.2. The history and favorites menus
 
@@ -89,7 +94,7 @@ If you cannot find a entry simply enter the required path(s) to navigate to the 
 
 From the navigation menu enter the comma character (,) and press ENTER in order to achieve this. You can run this function as many times as you wish. The system will toggle between the two directories.
 
-Note: if previously entering argument '.' the goToPrevDir function will re-visit the current directory. This also happens if no directory had been visited since entering the navigation mode.
+Note: when first entering navigation mode the previous directory is the same with the current directory. This is the directory from which the Python script is being executed.
 
 5.4. Adding a directory to favorites
 
@@ -188,9 +193,20 @@ When this option is chosen the path is removed from all menus and files. The num
 
 7.2. Remapping
 
-If the user chooses to remap the path to an existing one, two options are available:
-- remap to a path that is not contained in favorites or consolidated history. In this case the path is replaced in the menus with the new path and the number of visits is kept.
-- remap to a path that already exists in the menus. In this situation, the no more existing path is removed from the menus. The number of visits of the replacing path is updated only if the removed path had a greater number. For example if the removed path had 5 visits and the replacing path has 2 visits then the number of visits of the replacing path will be updated to 5. If the situation is viceversa it would be as if just removing the no more existing path (section 7.1).
+The user might opt for replacing an invalid path from the navigation menus (history/favorites) with another path. The replacing path might be one that already exists in the menus, one that is contained in history but doesn't have enough visits (or hasn't been recently visited) to be contained in the consolidated history menu or a path that hasn't been visited since the last history reset.
+
+Depending on the above mentioned conditions following scenarios are available:
+- an unvisited path will replace the invalid path in the menu the latter one had been contained in and will take the number of visits of the replaced path
+- a path with not enough visits or not visited recently enough will show up in consolidated history with the same number of visits that the invalid path had
+- a replacing path that is already contained in one of the menus will keep its menu but the number of visits will be updated if the invalid path had more visits
+
+In either case the invalid path is completely removed from all menus.
+
+It is possible to easily choose the replacing path from history/favorites by entering '<' or '>' and hitting ENTER when the user is prompted to enter a replacing path. The user will be brought to the chosen menu from which he can choose one of the paths by entering its number and hitting ENTER. If no path is suitable then the user still has the possibility to enter another path without exiting the chosen menu.
+
+It is not possible to switch between history and favorites menus when choosing the replacing path. The user must first quit the re-mapping process by hitting '!' + ENTER and then restart re-mapping by choosing the invalid path from menus again.
+
+Also when choosing a valid replacing path the current directory will be switched to this path after remapping.
 
 8. MISCELLANEOUS
 

@@ -2,8 +2,6 @@ import sys, os
 
 max_nr_of_items = 50 #maximum number of files/dirs listed from current directory in navigation mode
 max_nr_of_chars = 25 #maximum number of characters to be displayed for each item from current directory in navigation mode
-begin_chars_to_display = max_nr_of_chars // 2 #first characters to be displayed for a filename exceeding max_nr_of_chars
-end_chars_to_display = begin_chars_to_display - max_nr_of_chars #last characters to be displayed for a filename exceeding max_nr_of_chars
 
 def displayGeneralOutput(prevDir, command = "", result = ""):
     previousDirectory = "none" if prevDir == "" else prevDir
@@ -43,6 +41,8 @@ def displayGeneralOutput(prevDir, command = "", result = ""):
     print("")
 
 def displayCurrentDirContent():
+    beginCharsToDisplay = max_nr_of_chars // 2 #first characters to be displayed for a filename exceeding max_nr_of_chars
+    endCharsToDisplay = beginCharsToDisplay - max_nr_of_chars #last characters to be displayed for a filename exceeding max_nr_of_chars
     dirContent = []
     printAllItems = True
     for dirItem in os.listdir("."):
@@ -50,9 +50,9 @@ def displayCurrentDirContent():
             if os.path.isdir(dirItem):
                 dirItem = dirItem + "/"
                 if len(dirItem)-1 > max_nr_of_chars:
-                    dirItem = dirItem[0:begin_chars_to_display] + "..." + dirItem[end_chars_to_display-1:]
+                    dirItem = dirItem[0:beginCharsToDisplay] + "..." + dirItem[endCharsToDisplay-1:]
             elif len(dirItem) > max_nr_of_chars:
-                dirItem = dirItem[0:begin_chars_to_display] + "..." + dirItem[end_chars_to_display:]
+                dirItem = dirItem[0:beginCharsToDisplay] + "..." + dirItem[endCharsToDisplay:]
             dirContent.append(dirItem)
     dirContent.sort(key=lambda v: v.upper())
     nrOfItems = len(dirContent)
