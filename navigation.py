@@ -108,7 +108,6 @@ def visitNavigationMenu(menuChoice, userInput = ""):
         print("Enter the number of the directory you want to navigate to.")
         print("Enter ! to quit.")
         print("")
-    readline.parse_and_bind("tab: complete")
     if menuChoice != "-f" and menuChoice != "-h":
         print("invalid argument provided, no menu selected")
         choiceResult = (":3", "", "")
@@ -131,7 +130,6 @@ The status returned by this method can have following values:
 4 - replacing directory to which mapping is requested does not exist
 """
 def handleMissingDir(path, menu, previousDir):
-    readline.parse_and_bind("tab: complete")
     status = 0 # default status, successful missing directory path mapping or removal
     prevDir = previousDir # keep actual previous dir information in case remove dir from menu is executed (otherwise it will be lost)
     # we need two arguments, one for missing directory path and second for menu type (history/favorites)
@@ -248,7 +246,6 @@ def removeDirFromFavorites():
         print("Enter the number of the directory to be removed from favorites.")
         print("Enter ! to quit this dialog.")
         print('')
-    readline.parse_and_bind("tab: complete")
     status = 0 # default status, successful removal or aborted by user
     userInput = ""
     if nav.isFavEmpty() == True:

@@ -19,7 +19,6 @@ def editAndExecPrevCmd(previousCommand = ""):
     def hook():
         readline.insert_text(previousCommand)
         readline.redisplay()
-    readline.parse_and_bind("tab: complete")
     status = 0 #normal execution, no user abort
     passedInput = ""
     passedOutput = ""
@@ -66,7 +65,6 @@ def visitCommandMenu(mode = ""):
         print("Enter command number.")
         print("Enter ! to quit.")
         print("")
-    readline.parse_and_bind("tab: complete")
     status = 0 # default status (normal execution)
     passedInput = ""
     passedOutput = ""
