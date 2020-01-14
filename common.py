@@ -1,6 +1,6 @@
 """ common code to be used by cmd_menus.update.py and nav_menus_update.py """
 
-import os
+import os, readline
 from os.path import expanduser
 from pathlib import Path
 
@@ -100,3 +100,6 @@ def displayFormattedCmdFileContent(fileContent, firstRowNr = 0, limit = -1):
         for rowNr in range(firstRowNr, limit):
             command = fileContent[rowNr].strip('\n')
             print('{0:<10s} {1:<140s}'.format(str(rowNr+1), command))
+
+def setPathAutoComplete():
+    readline.parse_and_bind("tab: complete")
