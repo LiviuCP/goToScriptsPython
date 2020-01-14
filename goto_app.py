@@ -1,4 +1,4 @@
-import os, readline
+import os
 import display as out, navigation as nav, commands as cmd, common
 
 def execute():

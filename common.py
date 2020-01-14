@@ -1,6 +1,6 @@
 """ common code to be used by cmd_menus.update.py and nav_menus_update.py """
 
-import os, readline
+import os, sys, readline
 from os.path import expanduser
 from pathlib import Path
 
@@ -102,4 +102,17 @@ def displayFormattedCmdFileContent(fileContent, firstRowNr = 0, limit = -1):
             print('{0:<10s} {1:<140s}'.format(str(rowNr+1), command))
 
 def setPathAutoComplete():
+    def getDirectoryContent(dirPath):
+        if dirPath.startswith(os.path.sep): # case 1: absolute path
+            dirName = os.path.dirname(dirPath)
+            dirContent = os.listdir(dirName)
+            dirContent = [os.path.join(dirName, name) for name in dirContent]
+        else: # case 2: relative path, current directory
+            dirContent = os.listdir(os.curdir)
+        return dirContent
+    def pathCompleter(inputText, state):
+        results = [path for path in getDirectoryContent(inputText) if path.startswith(inputText)]
+        return results[state]
+    readline.set_completer(pathCompleter)
     readline.parse_and_bind("tab: complete")
+    readline.set_completer_delims('`~!@#=+[{]}$%^&*()\\|;:\'",<>? \n\t')
