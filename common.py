@@ -107,7 +107,13 @@ def setPathAutoComplete():
             dirName = os.path.dirname(dirPath)
             dirContent = os.listdir(dirName)
             dirContent = [os.path.join(dirName, name) for name in dirContent]
-        else: # case 2: relative path, current directory
+        elif dirPath.startswith(".."): # case 2: relative path, parent directory
+            dirContent = os.listdir(os.pardir)
+            dirContent = [os.path.join(os.pardir, name) for name in dirContent]
+        elif dirPath.startswith("."): # case 3: relative path, current directory, dot
+            dirContent = os.listdir(os.curdir)
+            dirContent = [os.path.join(os.curdir, name) for name in dirContent]
+        else: # case 4: relative path, current directory, no dot
             dirContent = os.listdir(os.curdir)
         return dirContent
     def pathCompleter(inputText, state):
