@@ -47,7 +47,7 @@ def applyData():
             sourceDir = clipboardContent[1].strip("\n")
             destDir = os.getcwd()
             keyword = clipboardContent[2].strip("\n")
-            action = "move" if operation == "mv -iv" else "copy" if "cp -irv" else ""
+            action = "move" if operation == "mv -iv" else "copy" if operation == "cp -irv" else ""
             clipboardStorage.close()
             if action == "":
                 with open(clipboard_storage_file, "w") as clipboardStorage:
