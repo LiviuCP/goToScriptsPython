@@ -1,7 +1,8 @@
 import os
-import display as out, navigation as nav, commands as cmd
+import display as out, navigation as nav, commands as cmd, common
 
 def execute():
+    common.setPathAutoComplete()
     nav.initNavMenus()
     cmd.initCmdMenus()
     prevDir = os.getcwd()
@@ -84,6 +85,9 @@ def handleUserInput(userInput, prevDir, prevCommand):
     elif userInput == ":<>":
         nav.clearVisitedDirsMenu()
         shouldForwardData = False
+    elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
+        shouldForwardData = False
+        print("Input cancelled, no action performed!")
     elif userInput == "!":
         shouldForwardData = False
         print("You exited navigation mode.")

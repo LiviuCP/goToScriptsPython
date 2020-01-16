@@ -1,6 +1,6 @@
 """ common code to be used by cmd_menus.update.py and nav_menus_update.py """
 
-import os
+import os, sys, readline
 from os.path import expanduser
 from pathlib import Path
 
@@ -100,3 +100,25 @@ def displayFormattedCmdFileContent(fileContent, firstRowNr = 0, limit = -1):
         for rowNr in range(firstRowNr, limit):
             command = fileContent[rowNr].strip('\n')
             print('{0:<10s} {1:<140s}'.format(str(rowNr+1), command))
+
+def setPathAutoComplete():
+    def getDirectoryContent(dirPath):
+        if dirPath.startswith(os.path.sep): # case 1: absolute path
+            dirName = os.path.dirname(dirPath)
+            dirContent = os.listdir(dirName)
+            dirContent = [os.path.join(dirName, name) for name in dirContent]
+        elif dirPath.startswith(".."): # case 2: relative path, parent directory
+            dirContent = os.listdir(os.pardir)
+            dirContent = [os.path.join(os.pardir, name) for name in dirContent]
+        elif dirPath.startswith("."): # case 3: relative path, current directory, dot
+            dirContent = os.listdir(os.curdir)
+            dirContent = [os.path.join(os.curdir, name) for name in dirContent]
+        else: # case 4: relative path, current directory, no dot
+            dirContent = os.listdir(os.curdir)
+        return dirContent
+    def pathCompleter(inputText, state):
+        results = [path for path in getDirectoryContent(inputText) if path.startswith(inputText)]
+        return results[state]
+    readline.set_completer(pathCompleter)
+    readline.parse_and_bind("tab: complete")
+    readline.set_completer_delims('`~!@#=+[{]}$%^&*()\\|;:\'",<>? \n\t')

@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, readline
 import common, navigation_backend as nav
 from os.path import expanduser, isdir
 
@@ -126,7 +126,7 @@ def visitNavigationMenu(menuChoice, userInput = ""):
             os.system("clear")
             if not nav.isMenuEmpty(menuChoice) == True:
                 displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
-                userInput = input() # to update: enable path autocomplete
+                userInput = input()
                 os.system("clear")
         choiceResult = nav.choosePath(menuChoice, userInput)
     return choiceResult
@@ -256,7 +256,6 @@ def removeDirFromFavorites():
         print("Enter the number of the directory to be removed from favorites.")
         print("Enter ! to quit this dialog.")
         print('')
-    # *** actual function ***
     status = 0 # default status, successful removal or aborted by user
     userInput = ""
     if nav.isFavEmpty() == True:

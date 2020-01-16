@@ -86,6 +86,8 @@ def displayHelp():
     print("For executing any shell command please enter : followed by the command string.")
     print("For example enter :ls -l to list the contents of the current directory in detail.")
     print("")
+    print("To cancel the user input without erasing the characters enter : as last character and press ENTER.")
+    print("This also applies when editing a previously entered command.")
     print("")
     print("Other useful navigation options:")
     print("")
