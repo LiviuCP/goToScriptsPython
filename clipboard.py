@@ -85,6 +85,7 @@ def applyData():
                     else:
                         print("The " + action + " operation finished with errors or user chose to override only part of the content.")
                         print("Please check the source and destination directories.")
+                        status = 6
                     if action == "move":
                         with open(clipboard_storage_file, "w") as clipboardStorage:
                             print("Clipboard erased.")
