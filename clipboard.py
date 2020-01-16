@@ -39,6 +39,7 @@ def applyData():
     with open(clipboard_storage_file, "r") as clipboardStorage:
         status = 0 # default status, normal execution
         clipboardContent = clipboardStorage.readlines()
+        clipboardStorage.close()
         if len(clipboardContent) < 3:
             print("Error! Incomplete or empty clipboard.")
             status = 1
@@ -48,23 +49,16 @@ def applyData():
             destDir = os.getcwd()
             keyword = clipboardContent[2].strip("\n")
             action = "move" if operation == "mv -iv" else "copy" if operation == "cp -irv" else ""
-            clipboardStorage.close()
             if action == "":
-                with open(clipboard_storage_file, "w") as clipboardStorage:
-                    status = 2
-                    print("Error! The clipboard is corrupt, no valid action contained.")
-                    print("Clipboard erased.")
+                status = 2
+                print("Error! The clipboard is corrupt, no valid action contained.")
             elif not os.path.isdir(sourceDir):
-                with open(clipboard_storage_file, "w") as clipboardStorage:
-                    status = 3
-                    print("Invalid source directory: " + sourceDir)
-                    print("It might have been deleted, renamed or moved.")
-                    print("Clipboard erased.")
+                status = 3
+                print("Invalid source directory: " + sourceDir)
+                print("It might have been deleted, renamed or moved.")
             elif keyword == "":
-                with open(clipboard_storage_file, "w") as clipboardStorage:
-                    status = 4
-                    print("Error! No keyword found.")
-                    print("Clipboard erased.")
+                status = 4
+                print("Error! No keyword found.")
             elif sourceDir == destDir:
                 print("Cannot " + action + ". Source and destination directory are the same.")
                 status = 5
@@ -87,10 +81,11 @@ def applyData():
                         print("Please check the source and destination directories.")
                         status = 6
                     if action == "move":
-                        with open(clipboard_storage_file, "w") as clipboardStorage:
-                            print("Clipboard erased.")
-                            print("For a new operation please add items to clipboard.")
-                    else:
+                        print("For a new operation please add items to clipboard.")
+                    elif status == 0:
                         print("The copy operation can be repeated in the same or in a different directory.")
                         print("Clipboard NOT erased.")
+        if status in [1, 2, 3, 4, 6] or action == "move":
+            with open(clipboard_storage_file, "w") as clipboardStorage:
+                print("Clipboard erased.")
         return status
