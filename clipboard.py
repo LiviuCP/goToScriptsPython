@@ -52,17 +52,19 @@ def applyData():
             if action == "":
                 with open(clipboard_storage_file, "w") as clipboardStorage:
                     status = 2
-                    print("Error! The clipboard is corrupt. It has been erased.")
+                    print("Error! The clipboard is corrupt, no valid action contained.")
+                    print("Clipboard erased.")
             elif not os.path.isdir(sourceDir):
                 with open(clipboard_storage_file, "w") as clipboardStorage:
                     status = 3
-                    print("Invalid source directory " + sourceDir)
-                    print("It might have been deleted, renamed or moved")
+                    print("Invalid source directory: " + sourceDir)
+                    print("It might have been deleted, renamed or moved.")
                     print("Clipboard erased.")
             elif keyword == "":
                 with open(clipboard_storage_file, "w") as clipboardStorage:
                     status = 4
-                    print("Error! No keyword found. Clipboard erased.")
+                    print("Error! No keyword found.")
+                    print("Clipboard erased.")
             elif sourceDir == destDir:
                 print("Cannot " + action + ". Source and destination directory are the same.")
                 status = 5
@@ -86,8 +88,8 @@ def applyData():
                     if action == "move":
                         with open(clipboard_storage_file, "w") as clipboardStorage:
                             print("Clipboard erased.")
-                            print("For a new operation please run the clipboard function.")
+                            print("For a new operation please add items to clipboard.")
                     else:
-                        print("Clipboard NOT erased.")
                         print("The copy operation can be repeated in the same or in a different directory.")
+                        print("Clipboard NOT erased.")
         return status
