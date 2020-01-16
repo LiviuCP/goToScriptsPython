@@ -5,7 +5,7 @@ home_dir = expanduser("~") + "/"
 clipboard_storage_file = home_dir + ".store_clipboard"
 output_storage_file = home_dir + ".store_output"
 
-def add(copy = True):
+def createAction(copy = True):
     status = 0 #default status, successful execution
     operation = "cp -irv" if copy == True else "mv -iv"
     operationLabel = "copy" if copy == True else "move"
@@ -35,7 +35,7 @@ def add(copy = True):
             print("Please choose the destination directory and paste when ready.")
     return status
 
-def applyData():
+def applyAction():
     with open(clipboard_storage_file, "r") as clipboardStorage:
         status = 0 # default status, normal execution
         clipboardContent = clipboardStorage.readlines()

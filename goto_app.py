@@ -86,13 +86,13 @@ def handleUserInput(userInput, prevDir, prevCommand):
         nav.clearVisitedDirsMenu()
         shouldForwardData = False
     elif userInput == ":c":
-        clipboard.add()
+        clipboard.createAction()
         shouldForwardData = False
     elif userInput == ":m":
-        clipboard.add(False)
+        clipboard.createAction(False)
         shouldForwardData = False
     elif userInput == ":y":
-        clipboard.applyData()
+        clipboard.applyAction()
         shouldForwardData = False
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         shouldForwardData = False
