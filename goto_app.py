@@ -1,5 +1,5 @@
 import os
-import display as out, navigation as nav, commands as cmd, common
+import display as out, navigation as nav, commands as cmd, common, clipboard
 
 def execute():
     common.setPathAutoComplete()
@@ -84,6 +84,15 @@ def handleUserInput(userInput, prevDir, prevCommand):
         handleOutput = 1 if result[0] == 1 else handleOutput
     elif userInput == ":<>":
         nav.clearVisitedDirsMenu()
+        shouldForwardData = False
+    elif userInput == ":c":
+        clipboard.createAction()
+        shouldForwardData = False
+    elif userInput == ":m":
+        clipboard.createAction(False)
+        shouldForwardData = False
+    elif userInput == ":y":
+        clipboard.applyAction()
         shouldForwardData = False
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         shouldForwardData = False

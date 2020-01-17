@@ -122,7 +122,22 @@ To erase the command history enter ::<> and press ENTER. You will not be able to
 
 Important note: in navigation mode make sure you launch time consuming commands in the background by using the ampersand (&) unless you need to visualize the output of the executed command on the screen.
 
-5.7. Getting help
+5.7. The clipboard functionality
+
+It is possible to move or copy files and/or directories from a directory (source) to another (destination) by using this functionality. This is similar to using cut/copy paste in a GUI environment. In order to do this you need to perform following steps:
+- from source directory enter :m (for moving) or :c (for copying) and hit ENTER
+- enter a keyword that describes the items to be moved or copied. Press ENTER once done. The keyword should be entered exactly the same as when executing a BASH mv or cp command
+- go to the destination directory
+- enter :y (yank) and hit ENTER for having the items moved or copied into the directory
+
+Notes:
+1) The source and destination directories should be different.
+2) A keyword that doesn't describe any item will cause a BASH error which will trigger a clipboard erase.
+3) If items are successfully copied, the clipboard is kept intact, meaning that these can be copied again into another folder. This is different from moving, when the clipboard is being erased after executing the move action (:y), whether successful or not.
+4) The clipboard is persistent. This means you can execute the move/copy operation (:y) even if the computer has been rebooted or the terminal has been restarted. This might change in the future updates.
+5) Any newly initiated move (:m) or copy(:c) operation overrides the clipboard.
+
+5.8. Getting help
 
 All possible navigation options can be viewed by entering the ? character followed by ENTER in navigation mode.
 
