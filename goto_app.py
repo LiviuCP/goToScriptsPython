@@ -11,7 +11,7 @@ def execute():
     userInput = ""
     forwardUserInput = False
     os.system("clear")
-    print("Welcome to navigation mode!")
+    print("Welcome to navigation app!")
     while True == True:
         if userInput != "?":
             out.displayGeneralOutput(prevDir) if prevCommand == "" else out.displayGeneralOutput(prevDir, prevCommand, commandResult)
@@ -99,7 +99,8 @@ def handleUserInput(userInput, prevDir, prevCommand):
         print("Input cancelled, no action performed!")
     elif userInput == "!":
         shouldForwardData = False
-        print("You exited navigation mode.")
+        print("You exited navigation app.")
+        print("Last visited directory: " + os.getcwd())
     else:
         if userInput != "" and userInput[0] == ":":
             result = cmd.executeCommand(userInput[1:])
