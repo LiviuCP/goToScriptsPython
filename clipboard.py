@@ -86,6 +86,9 @@ def applyAction():
                         print("The copy operation can be repeated in the same or in a different directory.")
                         print("Clipboard NOT erased.")
         if status in [1, 2, 3, 4, 6] or action == "move":
-            with open(clipboard_storage_file, "w") as clipboardStorage:
-                print("Clipboard erased.")
+            erase()
         return status
+
+def erase():
+    with open(clipboard_storage_file, "w") as clipboardStorage:
+        print("Clipboard erased.")
