@@ -136,6 +136,7 @@ Notes:
 3) If items are successfully copied, the clipboard is kept intact, meaning that these can be copied again into another folder. This is different from moving, when the clipboard is being erased after executing the move action (:y), whether successful or not.
 4) The clipboard is persistent. This means you can execute the move/copy operation (:y) even if the computer has been rebooted or the terminal has been restarted. This might change in the future updates.
 5) Any newly initiated move (:m) or copy(:c) operation overrides the clipboard.
+6) Use :dc to display the clipboard content and :ec to erase clipboard.
 
 5.8. Getting help
 
