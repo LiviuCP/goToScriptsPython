@@ -11,7 +11,7 @@ def execute():
     userInput = ""
     forwardUserInput = False
     os.system("clear")
-    print("Welcome to navigation mode!")
+    print("Welcome to navigation app!")
     while True == True:
         if userInput != "?":
             out.displayGeneralOutput(prevDir) if prevCommand == "" else out.displayGeneralOutput(prevDir, prevCommand, commandResult)
@@ -94,12 +94,19 @@ def handleUserInput(userInput, prevDir, prevCommand):
     elif userInput == ":y":
         clipboard.applyAction()
         shouldForwardData = False
+    elif userInput == ":ec":
+        clipboard.erase()
+        shouldForwardData = False
+    elif userInput == ":dc":
+        clipboard.display()
+        shouldForwardData = False
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         shouldForwardData = False
         print("Input cancelled, no action performed!")
     elif userInput == "!":
         shouldForwardData = False
-        print("You exited navigation mode.")
+        print("You exited navigation app.")
+        print("Last visited directory: " + os.getcwd())
     else:
         if userInput != "" and userInput[0] == ":":
             result = cmd.executeCommand(userInput[1:])

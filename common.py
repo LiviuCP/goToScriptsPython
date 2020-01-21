@@ -103,6 +103,7 @@ def displayFormattedCmdFileContent(fileContent, firstRowNr = 0, limit = -1):
 
 def setPathAutoComplete():
     def getDirectoryContent(dirPath):
+        dirPathLength = len(dirPath)
         if dirPath.startswith(os.path.sep): # case 1: absolute path
             dirName = os.path.dirname(dirPath)
             dirContent = os.listdir(dirName)
@@ -110,10 +111,10 @@ def setPathAutoComplete():
         elif dirPath.startswith(".."): # case 2: relative path, parent directory
             dirContent = os.listdir(os.pardir)
             dirContent = [os.path.join(os.pardir, name) for name in dirContent]
-        elif dirPath.startswith("."): # case 3: relative path, current directory, dot
+        elif dirPath.startswith(".") and (dirPathLength == 1 or (dirPathLength > 1 and dirPath[1] == "/")): # case 3: relative path, current directory, dot followed by no character or slash
             dirContent = os.listdir(os.curdir)
             dirContent = [os.path.join(os.curdir, name) for name in dirContent]
-        else: # case 4: relative path, current directory, no dot
+        else: # case 4: relative path, current directory, no dot followed by slash
             dirContent = os.listdir(os.curdir)
         return dirContent
     def pathCompleter(inputText, state):

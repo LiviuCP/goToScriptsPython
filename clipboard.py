@@ -54,11 +54,12 @@ def applyAction():
                 print("Error! The clipboard is corrupt, no valid action contained.")
             elif not os.path.isdir(sourceDir):
                 status = 3
-                print("Invalid source directory: " + sourceDir)
+                print("The source directory contained in clipboard is invalid.")
                 print("It might have been deleted, renamed or moved.")
+                print("Directory path: " + sourceDir)
             elif keyword == "":
                 status = 4
-                print("Error! No keyword found.")
+                print("Error! No keyword found in clipboard.")
             elif sourceDir == destDir:
                 print("Cannot " + action + ". Source and destination directory are the same.")
                 status = 5
@@ -86,6 +87,38 @@ def applyAction():
                         print("The copy operation can be repeated in the same or in a different directory.")
                         print("Clipboard NOT erased.")
         if status in [1, 2, 3, 4, 6] or action == "move":
-            with open(clipboard_storage_file, "w") as clipboardStorage:
-                print("Clipboard erased.")
+            erase()
         return status
+
+def erase():
+    with open(clipboard_storage_file, "w") as clipboardStorage:
+        print("Clipboard erased.")
+
+def display():
+    with open(clipboard_storage_file, "r") as clipboardStorage:
+        clipboardContent = clipboardStorage.readlines()
+        if len(clipboardContent) == 0:
+            print("The clipboard is empty!")
+        elif len(clipboardContent) < 3:
+            print("The clipboard is corrupt. Please erase it or initiate a new move/copy operation.")
+        else:
+            operation = clipboardContent[0].strip("\n")
+            sourceDir = clipboardContent[1].strip("\n")
+            keyword = clipboardContent[2].strip("\n")
+            action = "move" if operation == "mv -iv" else "copy" if operation == "cp -irv" else ""
+            if action == "":
+                print("Error! The clipboard is corrupt, no valid action contained.")
+            elif not os.path.isdir(sourceDir):
+                print("The source directory contained in clipboard is invalid.")
+                print("It might have been deleted, renamed or moved.")
+                print("Directory path: " + sourceDir)
+            elif keyword == "":
+                print("Error! No keyword found in clipboard.")
+            else:
+                print("The clipboard has following status: ")
+                print()
+                print("Action: " + action)
+                print("Source directory: " + sourceDir)
+                print("Keyword: " + keyword)
+                print("Can apply to current directory: ", end='')
+                print("NO") if sourceDir == os.getcwd() else print("YES")
