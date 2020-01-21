@@ -99,6 +99,7 @@ def displayHelp():
     print(":c    -  add files and/or directories to clipboard for copying to another directory")
     print(":y    -  execute move/copy action from clipboard")
     print(":ec   -  erase the clipboard")
+    print(":dc   -  display the clipboard")
     print(":-    -  repeat last executed shell command (if any)")
     print(":     -  enter a shell command based on previous command")
     print(":<    -  enter command history menu")

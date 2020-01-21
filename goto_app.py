@@ -97,6 +97,9 @@ def handleUserInput(userInput, prevDir, prevCommand):
     elif userInput == ":ec":
         clipboard.erase()
         shouldForwardData = False
+    elif userInput == ":dc":
+        clipboard.display()
+        shouldForwardData = False
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         shouldForwardData = False
         print("Input cancelled, no action performed!")
