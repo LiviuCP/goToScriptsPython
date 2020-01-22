@@ -100,6 +100,9 @@ def handleUserInput(userInput, prevDir, prevCommand):
     elif userInput == ":dc":
         clipboard.display()
         shouldForwardData = False
+    elif userInput == ":td":
+        clipboard.setTargetDir()
+        shouldForwardData = False
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         shouldForwardData = False
         print("Input cancelled, no action performed!")
