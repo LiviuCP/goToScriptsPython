@@ -156,3 +156,14 @@ def setTargetDir(directory = ""):
         print(" - insufficient access rights")
         print(" - other error")
         print("Please try again!")
+
+def displayTargetDir():
+    with open(target_dir_file, "r") as target:
+        targetDir = target.readline().strip("\n")
+        if targetDir == "":
+            print("No target directory has been setup.")
+        elif not os.path.isdir(targetDir):
+            print("Invalid target directory: " + targetDir)
+            print("Please setup a valid target directory!")
+        else:
+            print("The target directory path for recursive move/copy is: " + targetDir)
