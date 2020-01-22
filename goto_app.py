@@ -103,6 +103,9 @@ def handleUserInput(userInput, prevDir, prevCommand):
     elif userInput == ":td":
         clipboard.setTargetDir()
         shouldForwardData = False
+    elif userInput == ":etd":
+        clipboard.eraseTargetDir()
+        shouldForwardData = False
     elif userInput == ":dtd":
         clipboard.displayTargetDir()
         shouldForwardData = False

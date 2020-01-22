@@ -157,6 +157,10 @@ def setTargetDir(directory = ""):
         print(" - other error")
         print("Please try again!")
 
+def eraseTargetDir():
+    with open(target_dir_file, "w") as target:
+        print("The target directory has been erased.")
+
 def displayTargetDir():
     with open(target_dir_file, "r") as target:
         targetDir = target.readline().strip("\n")
