@@ -103,9 +103,9 @@ def handleUserInput(userInput, prevDir, prevCommand):
     elif userInput == ":td":
         clipboard.setTargetDir()
     elif userInput == ":M":
-        clipboard.transferItemsToTargetDir("move")
+        clipboard.transferItemsToTargetDir(False)
     elif userInput == ":C":
-        clipboard.transferItemsToTargetDir("copy")
+        clipboard.transferItemsToTargetDir()
     elif userInput == ":etd":
         clipboard.eraseTargetDir()
     elif userInput == ":dtd":
