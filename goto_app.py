@@ -103,6 +103,12 @@ def handleUserInput(userInput, prevDir, prevCommand):
     elif userInput == ":td":
         clipboard.setTargetDir()
         shouldForwardData = False
+    elif userInput == ":M":
+        clipboard.transferItemsToTargetDir("move")
+        shouldForwardData = False
+    elif userInput == ":C":
+        clipboard.transferItemsToTargetDir("copy")
+        shouldForwardData = False
     elif userInput == ":etd":
         clipboard.eraseTargetDir()
         shouldForwardData = False

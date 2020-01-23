@@ -157,6 +157,55 @@ def setTargetDir(directory = ""):
         print(" - other error")
         print("Please try again!")
 
+def transferItemsToTargetDir(action):
+    status = 0 # default status, normal execution
+    if action != "move" and action != "copy":
+        print("Invalid target directory action!")
+        status = 1
+    else:
+        with open(target_dir_file, "r") as target:
+            targetDir = target.readline().strip("\n")
+            if targetDir == "":
+                print("No target directory has been setup.")
+            elif not os.path.isdir(targetDir):
+                print("Invalid target directory: " + targetDir)
+                print("Please setup a valid target directory!")
+            else:
+                os.system("clear")
+                print("Recursive " + action + " mode enabled")
+                print()
+                print("*********************************************************************************************************************************************************")
+                print()
+                transferOperation = "mv -iv" if action == "move" else "cp -irv"
+                keyword = ""
+                while True == True:
+                    print("1. Current directory:")
+                    print(os.getcwd())
+                    print()
+                    print("2. Items contained (hidden ones are excluded):")
+                    print()
+                    out.displayCurrentDirContent()
+                    print()
+                    print("3. Recursive clipboard operation: ", end='')
+                    print(action)
+                    print()
+                    print("4. Destination directory: " + targetDir)
+                    print()
+                    print("5. Previously used keyword: ", end='')
+                    print(keyword) if keyword != "" else print("none")
+                    print()
+                    keyword = input("Enter keyword: ")
+                    os.system("clear")
+                    if keyword == "":
+                        print("Recursive " + action + " mode disabled")
+                        break
+                    else:
+                        command = transferOperation + " " + keyword + ' \"' + targetDir + '\";'
+                        os.system(command)
+                        print()
+                        print("*********************************************************************************************************************************************************")
+                        print()
+
 def eraseTargetDir():
     with open(target_dir_file, "w") as target:
         print("The target directory has been erased.")
