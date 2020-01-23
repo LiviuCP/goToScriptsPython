@@ -1,5 +1,5 @@
 import os
-import display as out, navigation as nav, commands as cmd, common, clipboard
+import display as out, navigation as nav, commands as cmd, common, clipboard, recursive_transfer as rt
 
 def execute():
     common.setPathAutoComplete()
@@ -101,15 +101,15 @@ def handleUserInput(userInput, prevDir, prevCommand):
     elif userInput == ":dc":
         clipboard.display()
     elif userInput == ":td":
-        clipboard.setTargetDir()
+        rt.setTargetDir()
     elif userInput == ":M":
-        clipboard.transferItemsToTargetDir(False)
+        rt.transferItemsToTargetDir(False)
     elif userInput == ":C":
-        clipboard.transferItemsToTargetDir()
+        rt.transferItemsToTargetDir()
     elif userInput == ":etd":
-        clipboard.eraseTargetDir()
+        rt.eraseTargetDir()
     elif userInput == ":dtd":
-        clipboard.displayTargetDir()
+        rt.displayTargetDir()
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         print("Input cancelled, no action performed!")
     elif userInput == "!":
