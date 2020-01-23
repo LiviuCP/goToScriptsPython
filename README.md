@@ -157,7 +157,7 @@ Notes:
 
 5.9. Getting help
 
-All possible navigation options can be viewed by entering the ? character followed by ENTER in navigation mode.
+All possible navigation options can be viewed by entering the ? character followed by ENTER in navigation mode. The application remains in "default mode" meaning the user can continue to use the navigation and commands functionality without the need to exit the help menu. This is slightly different from the BASH version where the user had to quit the help dialog to be able to continue to use the application.
 
 6. THE HISTORY FUNCTIONALITY
 
