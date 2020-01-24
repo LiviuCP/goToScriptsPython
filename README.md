@@ -138,9 +138,26 @@ Notes:
 5) Any newly initiated move (:m) or copy(:c) operation overrides the clipboard.
 6) Use :dc to display the clipboard content and :ec to erase clipboard.
 
-5.8. Getting help
+5.8. Recursive move/copy
 
-All possible navigation options can be viewed by entering the ? character followed by ENTER in navigation mode.
+It is also possible to move or copy files recursively from one/more source folder to a setup destination (target) directory. In order to do this following steps are necessary:
+- Go to the destination directory, enter :td and hit ENTER to have it setup as target.
+- Go to the directory you need to move/copy files from and hit :M or :C to enter the recursive move/copy mode.
+- For each item or group of items you require to transfer enter an appropriate keyword and hit ENTER. After transfer is done a new keyword will be required for the next item or group.
+- After entering all keywords and transfering all required items instead of entering a new keyword just hit ENTER to exit the recursive mode.
+- If other files from another folder need to be transferred to the target directory go to the next source directory and re-enter the recursive move/copy mode.
+- Repeat the above steps until all required files from all source directories are transferred to the destination (target) directory.
+
+Notes:
+1) To switch from recursive move mode to recursive copy mode (or vice-versa) you need to exit the current mode (hit ENTER without keyword) and enter the other one by using the appropriate option (:C or :M).
+2) The target directory is persistent. This means you can resume the recursive mode if the computer has been rebooted or the terminal has been restarted. This might change in the future updates.
+3) To reset the target directory just enter :etd and hit ENTER. Setting up a new dir will then be required for initiating new recursive operations.
+4) To display the target directory (if any) enter :dtd and hit ENTER. If the directory is invalid (e.g. has been erased/moved in the meantime) you will be prompted to set a new one.
+5) To set a new target directory just (re-)enter :td and hit ENTER. If a target dir is already in place it will get overridden by the new target folder.
+
+5.9. Getting help
+
+All possible navigation options can be viewed by entering the ? character followed by ENTER in navigation mode. The application remains in "default mode" meaning the user can continue to use the navigation and commands functionality without the need to exit the help menu. This is slightly different from the BASH version where the user had to quit the help dialog to be able to continue to use the application.
 
 6. THE HISTORY FUNCTIONALITY
 
