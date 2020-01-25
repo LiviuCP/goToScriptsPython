@@ -33,7 +33,7 @@ def goTo(gtDirectory, prevDirectory):
                     print("Current directory remains unchanged: " + currentDir)
                     prevDir = prevDirectory
                 # update current directory in Finder
-                setDelays = "delayBeforeClose=0.1;" + "\n" + "delayBeforeReopen=0.2" + "\n" + "delayAfterReopen=0.4;" + "\n" + "delayErrorReopen=1.8;" + "\n"
+                setDelays = "delayBeforeClose=0.1;" + "\n" + "delayBeforeReopen=0.2" + "\n" + "delayAfterReopen=0.5;" + "\n" + "delayErrorReopen=1.8;" + "\n"
                 closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
                 handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n"
                 reopenFinder = "else sleep $delayBeforeReopen; open . 2> /dev/null;" + "\n"
