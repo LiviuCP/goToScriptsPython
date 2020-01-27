@@ -73,13 +73,19 @@ def executeGoToFromMenu(menuChoice, previousDir, userInput = ""):
         print("You exited the " + menuName + " menu!")
     elif dirPath != ":3":
         if not os.path.isdir(dirPath):
-            handleResult = handleMissingDir(dirPath, menuChoice, previousDir)
-            if handleResult[0] == 1:
-                status = 1 #forward user input
-                passedInput = handleResult[1]
-                passedOutput = handleResult[2]
-            elif handleResult[0] == 0:
-                passedOutput = handleResult[2] # previous directory in case mapping was successful
+            if menuVisitResult[1] == ":parent":
+                print("Invalid parent directory path: " + dirPath)
+                print("The directory might have been moved, renamed or deleted.")
+                print()
+                print("Please remove or map the directory and/or child directories within history and/or favorites menus.")
+            else:
+                handleResult = handleMissingDir(dirPath, menuChoice, previousDir)
+                if handleResult[0] == 1:
+                    status = 1 #forward user input
+                    passedInput = handleResult[1]
+                    passedOutput = handleResult[2]
+                elif handleResult[0] == 0:
+                    passedOutput = handleResult[2] # previous directory in case mapping was successful
         else:
             goToResult = goTo(dirPath, previousDir)
             status = goToResult[0]
@@ -106,6 +112,7 @@ def visitNavigationMenu(menuChoice, userInput = ""):
         print("Current directory: " + os.getcwd())
         print("")
         print("Enter the number of the directory you want to navigate to.")
+        print("To access the parent directory enter character ',' before the number.")
         print("Enter ! to quit.")
         print("")
     def displayFavoritesMenu():
@@ -116,6 +123,7 @@ def visitNavigationMenu(menuChoice, userInput = ""):
         print("Current directory: " + os.getcwd())
         print("")
         print("Enter the number of the directory you want to navigate to.")
+        print("To access the parent directory enter character ',' before the number.")
         print("Enter ! to quit.")
         print("")
     if menuChoice != "-f" and menuChoice != "-h":
@@ -150,7 +158,7 @@ def handleMissingDir(path, menu, previousDir):
         missingDirPath = path
         menuType = "history" if menu == "-h" else "favorites"
         os.system("clear")
-        print("Invalid path " + missingDirPath)
+        print("Invalid directory path: " + missingDirPath)
         print("The directory might have been moved, renamed or deleted.")
         print("")
         print("Please choose the required action: ")
