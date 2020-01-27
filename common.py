@@ -43,6 +43,10 @@ def getMenuEntry(userInput, content):
     if isInputValid(userInput, content):
         userInput = int(userInput) - 1
         output = content[userInput]
+    # access parent dir of menu entry
+    elif len(userInput) > 1 and userInput[0] == "," and isInputValid(userInput[1:], content):
+        output = str(Path(content[int(userInput[1:])-1].strip("\n")).parent)
+        userInput = ":parent" # used for further differentiation between entry directory and parent in case the returned path is invalid
     else:
         output = ":4" if len(content) == 0 else ":2" if userInput == '!' else ":1"
     return (output.strip("\n"), userInput, "")

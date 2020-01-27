@@ -82,7 +82,7 @@ The history menu keeps track of the:
 
 The favorites menu contains the directories the user previously added to the list of preferred folders. It is not limited in number of entries, however it's recommended to use it for storing the so called entry-point directories (like Desktop, Pictures, Documents, etc). It can also be used for storing paths to temporarily mounted filesystems (like SD cards). If accessing a temporary filesystem make sure it is mounted before doing any access attempt.
 
-When choosing an entry (enter the number and press ENTER) from one of the two menus the chosen directory is automatically visited.
+When choosing an entry (enter the number and press ENTER) from one of the two menus the chosen directory is automatically visited. If entering ',' before the number the parent directory of the folder contained within the entry is visited.
 
 The menus are sorted alphabetically for easy identification of the required entry. 
 
@@ -219,6 +219,8 @@ It can happen that for an entry chosen from one of the 2 above mentioned menus t
 In this case the user has two options:
 - remove the entry from the menus
 - remap the path to an existing one (for example when the directory has been renamed) to preserve the number of visits
+
+Note: this functionality is NOT available when choosing the parent dir from the entry. In this case only a warning message will be displayed that the parent dir path is not valid and that the dir and its children could be removed or mapped. The actual removal/mapping can be done by individually selecting each directory (not parent) from the navigation menu (history/favorites). This might also include the parent directory if it is contained within menu in a separate entry.
 
 7.1. Removing the path
 
