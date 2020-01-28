@@ -1,5 +1,5 @@
 import os
-import display as out, navigation as nav, commands as cmd, common, clipboard, recursive_transfer as rt
+import display as out, navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt
 
 def execute():
     common.setPathAutoComplete()
@@ -10,6 +10,7 @@ def execute():
     commandResult = ""
     userInput = ""
     forwardUserInput = False
+    clipboard = clip.Clipboard()
     os.system("clear")
     print("Welcome to navigation app!")
     while True == True:
@@ -18,7 +19,7 @@ def execute():
         userInput = input()
         while True == True:
             os.system("clear")
-            result = handleUserInput(userInput, prevDir, prevCommand)
+            result = handleUserInput(userInput, prevDir, prevCommand, clipboard)
             if result[0] == 1:
                 userInput = result[1]
                 forwardUserInput = True
@@ -35,7 +36,7 @@ def execute():
             break
 
 """ return codes: -1 - goTo not successfully executed, 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd """
-def handleUserInput(userInput, prevDir, prevCommand):
+def handleUserInput(userInput, prevDir, prevCommand, clipboard):
     handleOutput = 0
     passedInput = ""
     passedOutput = ""
@@ -97,7 +98,7 @@ def handleUserInput(userInput, prevDir, prevCommand):
     elif userInput == ":y":
         clipboard.applyAction()
     elif userInput == ":ec":
-        clipboard.erase()
+        clipboard.erase(True)
     elif userInput == ":dc":
         clipboard.display()
     elif userInput == ":td":
