@@ -36,9 +36,9 @@ class RecursiveTransfer:
             executeCommandWithStatus = getDir + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeCurrentDir
             os.system(executeCommandWithStatus)
             # read command exit code and create the status message
-            with open(outPath, "r") as outputStorage:
+            with open(self.outPath, "r") as outputStorage:
                 if outputStorage.readline().strip('\n') == "0":
-                    with open(inPath, "r") as inputStorage:
+                    with open(self.inPath, "r") as inputStorage:
                         self.targetDir = inputStorage.readline().strip('\n')
                         isValidDir = True
         if isValidDir == True:

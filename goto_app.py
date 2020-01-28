@@ -66,12 +66,16 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         cmd.clearCommandHistory()
     elif userInput == "<":
         result = nav.executeGoToFromMenu("-h", prevDir)
-        handleOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+        handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
+        if result[0] == -1:
+            recursiveTransfer.setTargetDir(result[1])
     elif userInput == ">":
         result = nav.executeGoToFromMenu("-f", prevDir)
-        handleOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+        handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
+        if result[0] == -1:
+            recursiveTransfer.setTargetDir(result[1])
     elif len(userInput) > 1 and userInput[0] == "<":
         result = nav.executeGoToFromMenu("-h", prevDir, userInput[1:])
         handleOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else handleOutput #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
