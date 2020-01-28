@@ -11,6 +11,7 @@ def execute():
     userInput = ""
     forwardUserInput = False
     clipboard = clip.Clipboard()
+    recursiveTransfer = rt.RecursiveTransfer()
     os.system("clear")
     print("Welcome to navigation app!")
     while True == True:
@@ -19,7 +20,7 @@ def execute():
         userInput = input()
         while True == True:
             os.system("clear")
-            result = handleUserInput(userInput, prevDir, prevCommand, clipboard)
+            result = handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfer)
             if result[0] == 1:
                 userInput = result[1]
                 forwardUserInput = True
@@ -36,7 +37,7 @@ def execute():
             break
 
 """ return codes: -1 - goTo not successfully executed, 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd """
-def handleUserInput(userInput, prevDir, prevCommand, clipboard):
+def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfer):
     handleOutput = 0
     passedInput = ""
     passedOutput = ""
@@ -102,15 +103,15 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard):
     elif userInput == ":dc":
         clipboard.display()
     elif userInput == ":td":
-        rt.setTargetDir()
+        recursiveTransfer.setTargetDir()
     elif userInput == ":M":
-        rt.transferItemsToTargetDir(False)
+        recursiveTransfer.transferItemsToTargetDir(False)
     elif userInput == ":C":
-        rt.transferItemsToTargetDir()
+        recursiveTransfer.transferItemsToTargetDir()
     elif userInput == ":etd":
-        rt.eraseTargetDir()
+        recursiveTransfer.eraseTargetDir(True)
     elif userInput == ":dtd":
-        rt.displayTargetDir()
+        recursiveTransfer.displayTargetDir()
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         print("Input cancelled, no action performed!")
     elif userInput == "!":
