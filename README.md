@@ -134,7 +134,7 @@ Notes:
 1) The source and destination directories should be different.
 2) A keyword that doesn't describe any item will cause a BASH error which will trigger a clipboard erase.
 3) If items are successfully copied, the clipboard is kept intact, meaning that these can be copied again into another folder. This is different from moving, when the clipboard is being erased after executing the move action (:y), whether successful or not.
-4) The clipboard is persistent. This means you can execute the move/copy operation (:y) even if the computer has been rebooted or the terminal has been restarted. This might change in the future updates.
+4) The clipboard is not persistent. It is erased at script exit or computer reboot.
 5) Any newly initiated move (:m) or copy(:c) operation overrides the clipboard.
 6) Use :dc to display the clipboard content and :ec to erase clipboard.
 
@@ -150,7 +150,7 @@ It is also possible to move or copy files recursively from one/more source folde
 
 Notes:
 1) To switch from recursive move mode to recursive copy mode (or vice-versa) you need to exit the current mode (hit ENTER without keyword) and enter the other one by using the appropriate option (:C or :M).
-2) The target directory is persistent. This means you can resume the recursive mode if the computer has been rebooted or the terminal has been restarted. This might change in the future updates.
+2) The target directory is not persistent. It is reset at script exit or computer reboot.
 3) To reset the target directory just enter :etd and hit ENTER. Setting up a new dir will then be required for initiating new recursive operations.
 4) To display the target directory (if any) enter :dtd and hit ENTER. If the directory is invalid (e.g. has been erased/moved in the meantime) you will be prompted to set a new one.
 5) To set a new target directory just (re-)enter :td and hit ENTER. If a target dir is already in place it will get overridden by the new target folder.
