@@ -141,7 +141,9 @@ Notes:
 5.8. Recursive move/copy
 
 It is also possible to move or copy files recursively from one/more source folder to a setup destination (target) directory. In order to do this following steps are necessary:
-- Go to the destination directory, enter :td and hit ENTER to have it setup as target.
+- Go to the destination directory, enter :td and hit ENTER to have it setup as target. Alternatively you can enter the navigation history or favorites menus and set:
+  - entry dir as target dir by preceding the entry number with character '+' and hitting ENTER
+  - parent dir of entry dir as target by preceding the entry number with character '-' and hitting ENTER
 - Go to the directory you need to move/copy files from and hit :M or :C to enter the recursive move/copy mode.
 - For each item or group of items you require to transfer enter an appropriate keyword and hit ENTER. After transfer is done a new keyword will be required for the next item or group.
 - After entering all keywords and transfering all required items instead of entering a new keyword just hit ENTER to exit the recursive mode.
@@ -154,6 +156,9 @@ Notes:
 3) To reset the target directory just enter :etd and hit ENTER. Setting up a new dir will then be required for initiating new recursive operations.
 4) To display the target directory (if any) enter :dtd and hit ENTER. If the directory is invalid (e.g. has been erased/moved in the meantime) you will be prompted to set a new one.
 5) To set a new target directory just (re-)enter :td and hit ENTER. If a target dir is already in place it will get overridden by the new target folder.
+6) If the target directory is setup from the navigation menu the missing directory case is handled as follows:
+   - for the missing directory of the entry the same steps are requires as when visiting the directory through the menu. For more details regarding missing directories from menu check section 7.
+   - for the missing parent directory of the entry a warning message will be shown, no further actions enforced from menu.
 
 5.9. Getting help
 
