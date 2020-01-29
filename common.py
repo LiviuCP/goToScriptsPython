@@ -47,6 +47,14 @@ def getMenuEntry(userInput, content):
     elif len(userInput) > 1 and userInput[0] == "," and isInputValid(userInput[1:], content):
         output = str(Path(content[int(userInput[1:])-1].strip("\n")).parent)
         userInput = ":parent" # used for further differentiation between entry directory and parent in case the returned path is invalid
+    # retrieved path to be used for setting target dir from menu
+    elif len(userInput) > 1 and userInput[0] == "+" and isInputValid(userInput[1:], content):
+        output = str(Path(content[int(userInput[1:])-1].strip("\n")))
+        userInput = ":preceding+" # used for further differentiation between entry directory and parent for setting target dir
+    # retrieved parent path to be used for setting target dir from menu
+    elif len(userInput) > 1 and userInput[0] == "-" and isInputValid(userInput[1:], content):
+        output = str(Path(content[int(userInput[1:])-1].strip("\n")).parent)
+        userInput = ":preceding-" # used for further differentiation between entry directory and parent for setting target dir
     else:
         output = ":4" if len(content) == 0 else ":2" if userInput == '!' else ":1"
     return (output.strip("\n"), userInput, "")

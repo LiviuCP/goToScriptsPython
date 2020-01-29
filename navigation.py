@@ -56,6 +56,7 @@ def goTo(gtDirectory, prevDirectory):
 def initNavMenus():
     nav.initNavMenus()
 
+# negative statuses are special statuses and will be retrieved in conjunction with special characters preceding valid entry numbers (like + -> status -1); path is forwarded as input and used by main app
 def executeGoToFromMenu(menuChoice, previousDir, userInput = ""):
     menuVisitResult = visitNavigationMenu(menuChoice, userInput)
     status = 0 # default status, normal execution or missing dir successful removal/mapping
@@ -73,7 +74,7 @@ def executeGoToFromMenu(menuChoice, previousDir, userInput = ""):
         print("You exited the " + menuName + " menu!")
     elif dirPath != ":3":
         if not os.path.isdir(dirPath):
-            if menuVisitResult[1] == ":parent":
+            if menuVisitResult[1] == ":parent" or menuVisitResult[1] == ":preceding-":
                 print("Invalid parent directory path: " + dirPath)
                 print("The directory might have been moved, renamed or deleted.")
                 print()
@@ -86,6 +87,9 @@ def executeGoToFromMenu(menuChoice, previousDir, userInput = ""):
                     passedOutput = handleResult[2]
                 elif handleResult[0] == 0:
                     passedOutput = handleResult[2] # previous directory in case mapping was successful
+        elif menuVisitResult[1] == ":preceding+" or menuVisitResult[1] == ":preceding-":
+            status = -1
+            passedInput = dirPath
         else:
             goToResult = goTo(dirPath, previousDir)
             status = goToResult[0]
@@ -98,6 +102,18 @@ def executeGoToFromMenu(menuChoice, previousDir, userInput = ""):
     return (status, passedInput, passedOutput)
 
 def visitNavigationMenu(menuChoice, userInput = ""):
+    def displayCommonMenuPart():
+        print("")
+        print("Current directory: " + os.getcwd())
+        print("")
+        print("Enter the number of the directory you want to navigate to.")
+        print("To navigate to parent directory enter character ',' before the number.")
+        print("")
+        print("To set the directory as target dir enter '+' before the number.")
+        print("To set its parent as target enter '-'.")
+        print("")
+        print("Enter ! to quit.")
+        print("")
     def displayHistMenu():
         print("VISITED DIRECTORIES")
         print("")
@@ -108,24 +124,12 @@ def visitNavigationMenu(menuChoice, userInput = ""):
         print("-- MOST VISITED --")
         print("")
         nav.displayFormattedPersistentHistContent()
-        print("")
-        print("Current directory: " + os.getcwd())
-        print("")
-        print("Enter the number of the directory you want to navigate to.")
-        print("To access the parent directory enter character ',' before the number.")
-        print("Enter ! to quit.")
-        print("")
+        displayCommonMenuPart()
     def displayFavoritesMenu():
         print("FAVORITE DIRECTORIES")
         print("")
         nav.displayFormattedFavoritesContent()
-        print("")
-        print("Current directory: " + os.getcwd())
-        print("")
-        print("Enter the number of the directory you want to navigate to.")
-        print("To access the parent directory enter character ',' before the number.")
-        print("Enter ! to quit.")
-        print("")
+        displayCommonMenuPart()
     if menuChoice != "-f" and menuChoice != "-h":
         print("invalid argument provided, no menu selected")
         choiceResult = (":3", "", "")

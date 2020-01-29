@@ -1,5 +1,5 @@
 import os
-import display as out, navigation as nav, commands as cmd, common, clipboard, recursive_transfer as rt
+import display as out, navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt
 
 def execute():
     common.setPathAutoComplete()
@@ -10,6 +10,8 @@ def execute():
     commandResult = ""
     userInput = ""
     forwardUserInput = False
+    clipboard = clip.Clipboard()
+    recursiveTransfer = rt.RecursiveTransfer()
     os.system("clear")
     print("Welcome to navigation app!")
     while True == True:
@@ -18,7 +20,7 @@ def execute():
         userInput = input()
         while True == True:
             os.system("clear")
-            result = handleUserInput(userInput, prevDir, prevCommand)
+            result = handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfer)
             if result[0] == 1:
                 userInput = result[1]
                 forwardUserInput = True
@@ -35,7 +37,7 @@ def execute():
             break
 
 """ return codes: -1 - goTo not successfully executed, 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd """
-def handleUserInput(userInput, prevDir, prevCommand):
+def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfer):
     handleOutput = 0
     passedInput = ""
     passedOutput = ""
@@ -64,12 +66,16 @@ def handleUserInput(userInput, prevDir, prevCommand):
         cmd.clearCommandHistory()
     elif userInput == "<":
         result = nav.executeGoToFromMenu("-h", prevDir)
-        handleOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+        handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
+        if result[0] == -1:
+            recursiveTransfer.setTargetDir(result[1])
     elif userInput == ">":
         result = nav.executeGoToFromMenu("-f", prevDir)
-        handleOutput = 4 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+        handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
+        if result[0] == -1:
+            recursiveTransfer.setTargetDir(result[1])
     elif len(userInput) > 1 and userInput[0] == "<":
         result = nav.executeGoToFromMenu("-h", prevDir, userInput[1:])
         handleOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else handleOutput #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
@@ -97,19 +103,19 @@ def handleUserInput(userInput, prevDir, prevCommand):
     elif userInput == ":y":
         clipboard.applyAction()
     elif userInput == ":ec":
-        clipboard.erase()
+        clipboard.erase(True)
     elif userInput == ":dc":
         clipboard.display()
     elif userInput == ":td":
-        rt.setTargetDir()
+        recursiveTransfer.setTargetDir()
     elif userInput == ":M":
-        rt.transferItemsToTargetDir(False)
+        recursiveTransfer.transferItemsToTargetDir(False)
     elif userInput == ":C":
-        rt.transferItemsToTargetDir()
+        recursiveTransfer.transferItemsToTargetDir()
     elif userInput == ":etd":
-        rt.eraseTargetDir()
+        recursiveTransfer.eraseTargetDir(True)
     elif userInput == ":dtd":
-        rt.displayTargetDir()
+        recursiveTransfer.displayTargetDir()
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         print("Input cancelled, no action performed!")
     elif userInput == "!":
