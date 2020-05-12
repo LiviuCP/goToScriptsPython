@@ -78,25 +78,20 @@ def updateHistory(visitedDirPath):
             lHist.close()
             # only update persistent or excluded history file if the visited path is not being contained in the visit log for the current day
             if visitedDirPath not in lHistContent:
-                pHistUpdateDict = {}
-                if (canUpdateVisitsInHistoryFile(p_hist_file, pHistUpdateDict, visitedDirPath) == True):
-                    with open(p_hist_file, "w") as pHist:
-                        for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                            pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
-                else:
-                    eHistUpdateDict = {}
+                with open(l_hist_file, "a") as lHist:
+                    lHist.write(visitedDirPath + "\n")
                     if (canUpdateVisitsInHistoryFile(e_hist_file, eHistUpdateDict, visitedDirPath) == True):
+                        eHistUpdateDict = {}
                         with open(e_hist_file, "w") as eHist:
                             for entry in eHistUpdateDict.items():
                                 eHist.write(entry[0] + ";" + str(entry[1]) + '\n')
                     else:
-                        pHistUpdateDict[visitedDirPath] = 1
-                        with open(p_hist_file, "w") as pHist:
-                            for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                                pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
-                # update log file for the current day
-                with open(l_hist_file, "a") as lHist:
-                    lHist.write(visitedDirPath + "\n")
+                        pHistUpdateDict = {}
+                        if not (canUpdateVisitsInHistoryFile(p_hist_file, pHistUpdateDict, visitedDirPath) == True):
+                            pHistUpdateDict[visitedDirPath] = 1
+                            with open(p_hist_file, "w") as eHist:
+                                for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                                    pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
 
 def consolidateHistory():
     with open(r_hist_file, 'r') as rHist, open(p_hist_file, 'r') as pHist, open(hist_file, 'w') as hist:
