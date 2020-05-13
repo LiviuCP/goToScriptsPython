@@ -78,16 +78,17 @@ def executeCommand(commandToExecute):
                 for entry in clHist.readlines():
                     clHistContent.append(entry.strip('\n'))
                 clHist.close()
+                # only update persistent command history files if the executed command is not being contained in the visit log for the current day
                 if command not in clHistContent:
-                    # update log file for the current day and persistent command history
-                    with open(c_l_hist_file, "a") as clHist, open(c_p_str_hist_file, "w") as cpStrHist, open(c_p_num_hist_file, "w") as cpNumHist:
+                    with open(c_l_hist_file, "a") as clHist:
                         clHist.write(command + "\n")
                         cpHistUpdateDict = {}
                         if not updateIfAlreadyExecuted(cpHistUpdateDict, command):
                             cpHistUpdateDict[command] = 1
-                        for cmd, count in sorted(cpHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                            cpStrHist.write(cmd + '\n')
-                            cpNumHist.write(str(count) + '\n')
+                        with open(c_p_str_hist_file, "w") as cpStrHist, open(c_p_num_hist_file, "w") as cpNumHist:
+                            for cmd, count in sorted(cpHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                                cpStrHist.write(cmd + '\n')
+                                cpNumHist.write(str(count) + '\n')
 
     if len(commandToExecute) >= min_nr_of_cmd_chars:
         updateIndividualCommandHistoryFiles(commandToExecute)
