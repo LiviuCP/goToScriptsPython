@@ -1,7 +1,10 @@
 import os
 import display as out, navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt
 
+syncWithFinder = False
+
 def execute():
+    global syncWithFinder
     common.setPathAutoComplete()
     nav.initNavMenus()
     cmd.initCmdMenus()
@@ -16,7 +19,7 @@ def execute():
     print("Welcome to navigation app!")
     while True == True:
         if userInput != "?":
-            out.displayGeneralOutput(prevDir) if prevCommand == "" else out.displayGeneralOutput(prevDir, prevCommand, commandResult)
+            out.displayGeneralOutput(prevDir, syncWithFinder) if prevCommand == "" else out.displayGeneralOutput(prevDir, syncWithFinder, prevCommand, commandResult)
         userInput = input()
         while True == True:
             os.system("clear")
@@ -38,6 +41,7 @@ def execute():
 
 """ return codes: -1 - goTo not successfully executed, 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd """
 def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfer):
+    global syncWithFinder
     handleOutput = 0
     passedInput = ""
     passedOutput = ""
@@ -65,27 +69,27 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
     elif userInput == "::<>":
         cmd.clearCommandHistory()
     elif userInput == "<":
-        result = nav.executeGoToFromMenu("-h", prevDir)
+        result = nav.executeGoToFromMenu("-h", prevDir, syncWithFinder)
         handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
         if result[0] == -1:
             recursiveTransfer.setTargetDir(result[1])
     elif userInput == ">":
-        result = nav.executeGoToFromMenu("-f", prevDir)
+        result = nav.executeGoToFromMenu("-f", prevDir, syncWithFinder)
         handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
         if result[0] == -1:
             recursiveTransfer.setTargetDir(result[1])
     elif len(userInput) > 1 and userInput[0] == "<":
-        result = nav.executeGoToFromMenu("-h", prevDir, userInput[1:])
+        result = nav.executeGoToFromMenu("-h", prevDir, syncWithFinder, userInput[1:])
         handleOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else handleOutput #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
         shouldForwardData = True
     elif len(userInput) > 1 and userInput[0] == ">":
-        result = nav.executeGoToFromMenu("-f", prevDir, userInput[1:])
+        result = nav.executeGoToFromMenu("-f", prevDir, syncWithFinder, userInput[1:])
         handleOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else handleOutput #forward user input if favorites menu is empty and the user enters >[entry_nr] (result == 4)
         shouldForwardData = True
     elif userInput == ",":
-        result = nav.goTo(prevDir, os.getcwd())
+        result = nav.goTo(prevDir, os.getcwd(), syncWithFinder)
         handleOutput = 4 if result[0] == 0 else handleOutput
         shouldForwardData = True
     elif userInput == "+>":
@@ -118,6 +122,9 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         recursiveTransfer.displayTargetDir()
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         print("Input cancelled, no action performed!")
+    elif userInput == ":s":
+        print("Finder synchronization enabled") if syncWithFinder == False else print("Finder synchronization disabled")
+        syncWithFinder = not syncWithFinder
     elif userInput == "!":
         print("You exited navigation app.")
         print("Last visited directory: " + os.getcwd())
@@ -126,7 +133,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
             result = cmd.executeCommand(userInput[1:])
             handleOutput = 2
         else:
-            result = nav.goTo(userInput, prevDir)
+            result = nav.goTo(userInput, prevDir, syncWithFinder)
             handleOutput = 4 if result[0] == 0 else handleOutput
         shouldForwardData = True
     if shouldForwardData == True:

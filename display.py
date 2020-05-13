@@ -3,7 +3,7 @@ import sys, os
 max_nr_of_items = 50 #maximum number of files/dirs listed from current directory in navigation mode
 max_nr_of_chars = 25 #maximum number of characters to be displayed for each item from current directory in navigation mode
 
-def displayGeneralOutput(prevDir, command = "", result = ""):
+def displayGeneralOutput(prevDir, syncWithFinder, command = "", result = ""):
     previousDirectory = "none" if prevDir == "" else prevDir
     commandResult = ""
     if command == "" and result == "":
@@ -33,6 +33,11 @@ def displayGeneralOutput(prevDir, command = "", result = ""):
     else:
         print(":")
     print(lastCommand)
+    print("")
+    print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+    print("")
+    print("Sync with Finder enabled: ", end='')
+    print("yes") if syncWithFinder == True else print("no")
     print("")
     print("*********************************************************************************************************************************************************")
     print("")
@@ -119,6 +124,7 @@ def displayHelp():
     print("+>    -  add current directory to favorites")
     print("->    -  remove a directory from favorites")
     print(":<>   -  clear navigation history")
+    print(":s    -  toggle Finder sync on/off (for Mac OS only)")
     print("")
     print("For direct navigation to a history or favorites menu entry please enter < or > followed by a number.")
     print("Please do not put any spaces between operator and number.")

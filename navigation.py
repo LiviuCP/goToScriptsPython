@@ -7,7 +7,7 @@ input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 
 """ core function for visiting directories """
-def goTo(gtDirectory, prevDirectory):
+def goTo(gtDirectory, prevDirectory, syncWithFinder):
     status = 0 #default status, successful execution
     prevDir = os.getcwd()
     directory = home_dir if gtDirectory == "" else gtDirectory
@@ -32,16 +32,17 @@ def goTo(gtDirectory, prevDirectory):
                 else:
                     print("Current directory remains unchanged: " + currentDir)
                     prevDir = prevDirectory
-                # update current directory in Finder
-                setDelays = "delayBeforeClose=0.1;" + "\n" + "delayBeforeReopen=0.2" + "\n" + "delayAfterReopen=0.5;" + "\n" + "delayErrorReopen=1.8;" + "\n"
-                closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
-                handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n"
-                reopenFinder = "else sleep $delayBeforeReopen; open . 2> /dev/null;" + "\n"
-                handleReopeningError = "if [[ $? != 0 ]]; then sleep $delayErrorReopen; echo \'An error occured when opening the new directory in Finder\'; " + "\n"
-                addDelayAfterSuccessfulReopen = "else sleep $delayAfterReopen;" + "\n" + "fi" + "\n" + "fi" + "\n"
-                openTerminal = "open -a terminal;"
-                updateFinder = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
-                os.system(updateFinder)
+                # update current directory in Finder if sync enabled
+                if syncWithFinder == True:
+                    setDelays = "delayBeforeClose=0.1;" + "\n" + "delayBeforeReopen=0.2" + "\n" + "delayAfterReopen=0.5;" + "\n" + "delayErrorReopen=1.8;" + "\n"
+                    closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
+                    handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n"
+                    reopenFinder = "else sleep $delayBeforeReopen; open . 2> /dev/null;" + "\n"
+                    handleReopeningError = "if [[ $? != 0 ]]; then sleep $delayErrorReopen; echo \'An error occured when opening the new directory in Finder\'; " + "\n"
+                    addDelayAfterSuccessfulReopen = "else sleep $delayAfterReopen;" + "\n" + "fi" + "\n" + "fi" + "\n"
+                    openTerminal = "open -a terminal;"
+                    updateFinder = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
+                    os.system(updateFinder)
         else:
             status = -1 # unsuccessful goTo, cannot change dir
             prevDir = prevDirectory # ensure the previously visited dir stays the same for consistency reasons (not actually used if the goTo execution is not successful)
@@ -57,7 +58,7 @@ def initNavMenus():
     nav.initNavMenus()
 
 # negative statuses are special statuses and will be retrieved in conjunction with special characters preceding valid entry numbers (like + -> status -1); path is forwarded as input and used by main app
-def executeGoToFromMenu(menuChoice, previousDir, userInput = ""):
+def executeGoToFromMenu(menuChoice, previousDir, syncWithFinder, userInput = ""):
     menuVisitResult = visitNavigationMenu(menuChoice, userInput)
     status = 0 # default status, normal execution or missing dir successful removal/mapping
     passedInput = ""
@@ -80,7 +81,7 @@ def executeGoToFromMenu(menuChoice, previousDir, userInput = ""):
                 print()
                 print("Please remove or map the directory and/or child directories within history and/or favorites menus.")
             else:
-                handleResult = handleMissingDir(dirPath, menuChoice, previousDir)
+                handleResult = handleMissingDir(dirPath, menuChoice, previousDir, syncWithFinder)
                 if handleResult[0] == 1:
                     status = 1 #forward user input
                     passedInput = handleResult[1]
@@ -91,7 +92,7 @@ def executeGoToFromMenu(menuChoice, previousDir, userInput = ""):
             status = -1
             passedInput = dirPath
         else:
-            goToResult = goTo(dirPath, previousDir)
+            goToResult = goTo(dirPath, previousDir, syncWithFinder)
             status = goToResult[0]
             passedInput = goToResult[1]
             passedOutput = goToResult[2]
@@ -150,7 +151,7 @@ The status returned by this method can have following values:
 3 - invalid or missing arguments
 4 - replacing directory to which mapping is requested does not exist
 """
-def handleMissingDir(path, menu, previousDir):
+def handleMissingDir(path, menu, previousDir, syncWithFinder):
     status = 0 # default status, successful missing directory path mapping or removal
     prevDir = previousDir # keep actual previous dir information in case remove dir from menu is executed (otherwise it will be lost)
     # we need two arguments, one for missing directory path and second for menu type (history/favorites)
@@ -230,7 +231,7 @@ def handleMissingDir(path, menu, previousDir):
                             print("")
                             print("Mapping performed successfully, navigating to replacing directory ...")
                             print("")
-                            goTo(mappingResult[1], prevDir)
+                            goTo(mappingResult[1], prevDir, syncWithFinder)
         elif userChoice == "!":
             status = 2
             os.system("clear")
