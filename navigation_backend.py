@@ -80,8 +80,8 @@ def updateHistory(visitedDirPath):
             if visitedDirPath not in lHistContent:
                 with open(l_hist_file, "a") as lHist:
                     lHist.write(visitedDirPath + "\n")
+                    eHistUpdateDict = {}
                     if (canUpdateVisitsInHistoryFile(e_hist_file, eHistUpdateDict, visitedDirPath) == True):
-                        eHistUpdateDict = {}
                         with open(e_hist_file, "w") as eHist:
                             for entry in eHistUpdateDict.items():
                                 eHist.write(entry[0] + ";" + str(entry[1]) + '\n')
