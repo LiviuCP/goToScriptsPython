@@ -89,9 +89,9 @@ def updateHistory(visitedDirPath):
                         pHistUpdateDict = {}
                         if not (canUpdateVisitsInHistoryFile(p_hist_file, pHistUpdateDict, visitedDirPath) == True):
                             pHistUpdateDict[visitedDirPath] = 1
-                            with open(p_hist_file, "w") as eHist:
-                                for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                                    pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
+                        with open(p_hist_file, "w") as pHist:
+                            for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                                pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
 
 def consolidateHistory():
     with open(r_hist_file, 'r') as rHist, open(p_hist_file, 'r') as pHist, open(hist_file, 'w') as hist:

@@ -28,7 +28,7 @@ The script is supported both on Linux and MacOS.
 
 Unlike the BASH version of the script it is NOT possible to obtain synchronization between terminal and graphical explorer if the terminal is embedded in an explorer window (as on OpenSUSE). This is due to the fact that the script runs in a sub-shell of the terminal. If you require this synchronization please use the BASH scripts (see section 8. for more details)
 
-2) On the MacOS version the terminal is synchronized with the Finder window. This occurs as follows: when a valid path is entered in the terminal the Finder will close and the re-open in the directory for which the path has been entered. This occurs no matter if the path is the same with the old one or not and this behavior has been implemented as the user might sometimes need to refresh the Finder window. The possible reason for requiring Finder refresh is mentioned in section 4.
+2) On the MacOS version the terminal can be synchronized with the Finder window. This occurs as follows: when a valid path is entered in the terminal the Finder will close and the re-open in the directory for which the path has been entered. This occurs no matter if the path is the same with the old one or not and this behavior has been implemented as the user might sometimes need to refresh the Finder window. The possible reason for requiring Finder refresh is mentioned in section 4. By default the sync feature is disabled but it can be enabled by entering :s (+hit ENTER) in the navigation menu. To disable it enter :s again and hit the RETURN key.
 
 3. INSTALLATION
 
@@ -118,8 +118,6 @@ It is also possible to enter the command history menu by typing :< and pressing 
 
 The command history can also be accessed in edit mode by entering :: and pressing ENTER. In edit mode when the number of a command is entered the string of the command is displayed for editing. After editing and pressing ENTER the new command will be executed. The command execution can be aborted by entering : at the end of the string and pressing ENTER.
 
-To erase the command history enter ::<> and press ENTER. You will not be able to enter the command history menu if no entry is available.
-
 Important note: in navigation mode make sure you launch time consuming commands in the background by using the ampersand (&) unless you need to visualize the output of the executed command on the screen.
 
 5.7. The clipboard functionality
@@ -166,20 +164,18 @@ All possible navigation options can be viewed by entering the ? character follow
 
 6. THE HISTORY FUNCTIONALITY
 
-Each time a directory is visited, the event is tracked in a history file. There are five files where this tracking is done:
-- the recent history file
-- the persistent history file
-- the consolidated history file
-- the excluded history file
-- the daily log history file
+Each time a directory is visited or a command is executed, the event is tracked in a history file. There are three different history sections available:
+- recent history
+- persistent history
+- excluded history (only for navigating to directories)
 
-In addition to these a command history menu is available, that tracks the most recently executed shell commands in navigation mode. This is different from the standard BASH history as it only tracks the commands initiated in navigation mode, namely the ones preceded by the : character. Currently 2 files are being used for doing this tracking:
-- the recent command history file
-- the command history file (same as the recent command history file but sorted)
+The command history only tracks the commands initiated in navigation mode, namely the ones preceded by the : character. It is completely separate from standard BASH history, which tracks commands executed when navigation mode is disabled.
 
 6.1. Recent history
 
-Most recently visited directory paths are mentioned here.
+Most recently visited directory paths or executed commands are mentioned here. It has a limited number of entries (which is specified by a global variable) and older content is overridden.
+
+The entries are stored "in order" but duplicates are not allowed. If the maximum number of entries has been reached the least recently visited path/executed command is taken out. The entries are displayed to the user in a sorted fashion so they can easily be found and visited/executed.
 
 6.2. Persistent history
 
@@ -188,6 +184,10 @@ All paths except the ones from excluded history are mentioned here along with th
 Also if the previous directory is the same with the visited directory the persistent history is not updated.
 
 The file is sorted each time it is updated and the most visited paths are added to a consolidated history file.
+
+The same behavior is implemented for executed commands except there is no excluded history to be taken into account.
+
+The persistent history holds an unlimited number of entries. However only a limited number (specified by a global variable) is displayed in the unified menu (consolidated history), namely the ones that have been visited/executed the highest number of times.
 
 6.3. Consolidated history
 
@@ -201,13 +201,11 @@ When the directory is removed from favorites the entry is moved back to persiste
 
 If the directory hadn't been visited prior to adding to favorites (e.g. if adding it by calling the addToFavorites function with the directory path as argument when in another directory) an entry with 0 visits is created in the excluded history file. If the directory is removed from favorites before visiting it the entry is removed both from favorites file and excluded history and nothing is added to persistent history.
 
-6.5. Command history
+There is no excluded history for commands. For "favorite commands" using of standard aliases is recommended.
 
-As the user executes commands in navigation mode each command is tracked in a dedicated history file. Up to a specific number of commands can be stored. This is determined by the cHistMaxRows variable.
+6.5. Commands filtering
 
-The commands are stored "in order" but duplicates are not allowed. If the maximum number of entries has been reached the least recent command is taken out. The entries are displayed to the user in a sorted fashion so they can easily be found and executed. This occurs in a similar fashion to creating the recent history sub-menu.
-
-It is possible to setup the minimum number of characters a command should contain in order to be stored in the command history file. This is done by setting up the minNrOfCmdChars variable. For example by setting minNrOfCmdChars=10 each command with less than 10 characters will be prevented from being included into the command history. The characters include the spaces but not the : character used for entering the command in navigation mode. This rule can be bypassed if more spaces are being included in the command (if the command has a single word the spaces shluld be added before the word).
+It is possible to setup the minimum number of characters a command should contain in order to be stored into the command history file. This is done by setting up the minNrOfCmdChars variable. For example by setting minNrOfCmdChars=10 each command with less than 10 characters will be prevented from being included into the command history. The characters include the spaces but not the : character used for entering the command in navigation mode. This rule can be bypassed if more spaces are being included in the command (if the command has a single word the spaces should be added before the word). An alternative is to set the minimum number of characters to 0.
 
 For example:
 :echo abcd #will not be included in command history (less than 10 characters - a total of 9, including space, excluding : )
@@ -250,6 +248,6 @@ Also when choosing a valid replacing path the current directory will be switched
 
 8. MISCELLANEOUS
 
-1) It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :<> in either history or favorites menus and hit ENTER in order to clear all history.
+1) It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the navigation favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :<> and hit ENTER in order to clear the navigation history. For command history type ::<> and hit ENTER.
 
 2) Unlike the equivalent BASH scripts (that can be downloaded from the goToScripts repo: https://github.com/LiviuCP/gotoScripts.git), when exiting the Python script (either by entering ! or CTRL+C) the current directory is not retained but the terminal will revert to the original directory that was current when launching the goto_app.py. Also when executing CTRL+C for script exit a Python error will occur due to keyboard interrupt. This is not something to worry about but the more elegant exit solution is by using the '!' key followed by ENTER.
