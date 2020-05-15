@@ -28,6 +28,9 @@ def chooseCommand(userInput):
     with open(c_hist_file, "r") as cHist:
         return common.getMenuEntry(userInput, cHist.readlines())
 
+def chooseFilteredCommand(userInput, filteredContent):
+    return common.getMenuEntry(userInput, filteredContent)
+
 def isCommandMenuEmpty():
     return os.path.getsize(c_hist_file) == 0
 
@@ -38,6 +41,9 @@ def displayFormattedRecentCmdHistContent():
 def displayFormattedPersistentCmdHistContent():
     with open(c_hist_file, "r") as cHist, open(c_r_hist_file, "r") as crHist:
         common.displayFormattedCmdFileContent(cHist.readlines(), len(crHist.readlines()))
+
+def displayFormattedFilteredCmdHistContent(filteredContent):
+    common.displayFormattedCmdFileContent(filteredContent, 0)
 
 """ command history update functions """
 def updateCommandHistory(command):
@@ -86,6 +92,13 @@ def updateCommandHistory(command):
                         for cmd, count in sorted(cpHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
                             cpStrHist.write(cmd + '\n')
                             cpNumHist.write(str(count) + '\n')
+
+def buildFilteredCommandHistory(filteredContent, filterKey):
+    assert len(filterKey) > 0, "Invalid filter key found"
+    with open(c_p_str_hist_file, 'r') as cpStrHist:
+        for entry in cpStrHist.readlines():
+            if filterKey in entry:
+                filteredContent.append(entry.strip('\n'))
 
 def clearCommandHistory():
     with open(c_r_hist_file, "w"), open(c_hist_file, "w"), open(c_p_str_hist_file, "w"), open(c_p_num_hist_file, "w"):

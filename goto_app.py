@@ -54,16 +54,24 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
         handleOutput = 2 if result[0] == 0 else handleOutput
         shouldForwardData = True
+    elif userInput == "::<>":
+        cmd.clearCommandHistory()
     elif userInput == ":<":
         result = cmd.visitCommandMenu("--execute")
+        handleOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+        shouldForwardData = True
+    elif len(userInput) > 2 and userInput[0:2] == ":<":
+        result = cmd.visitCommandMenu("--execute", userInput[2:])
         handleOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
     elif userInput == "::":
         result = cmd.visitCommandMenu("--edit")
         handleOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
-    elif userInput == "::<>":
-        cmd.clearCommandHistory()
+    elif len(userInput) > 2 and userInput[0:2] == "::":
+        result = cmd.visitCommandMenu("--edit", userInput[2:])
+        handleOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+        shouldForwardData = True
     elif userInput == "<":
         result = nav.executeGoToFromMenu("-h", prevDir)
         handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput

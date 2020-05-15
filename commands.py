@@ -71,14 +71,18 @@ def editAndExecPrevCmd(previousCommand = ""):
 def initCmdMenus():
     cmd.initCmdMenus()
 
-def visitCommandMenu(mode = ""):
+def visitCommandMenu(mode, filterKey = ""):
+    def displayCommandMenuFooter():
+        print("")
+        print("Current directory: " + os.getcwd())
+        print("")
+        print("Enter command number.")
+        print("Enter ! to quit.")
+        print("")
     def displayCmdHistMenu(mode):
         print("COMMANDS LIST")
         print("")
-        if mode == "--execute":
-            print("**** EXECUTE MODE ****")
-        else:
-            print("**** EDIT MODE ****")
+        print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
         print("")
         print("-- RECENTLY EXECUTED --")
         print("")
@@ -87,12 +91,14 @@ def visitCommandMenu(mode = ""):
         print("-- MOST EXECUTED --")
         print("")
         cmd.displayFormattedPersistentCmdHistContent()
+        displayCommandMenuFooter()
+    def displayFilteredCmdHistMenu(content, mode):
+        print("FILTERED COMMANDS LIST")
         print("")
-        print("Current directory: " + os.getcwd())
+        print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
         print("")
-        print("Enter command number.")
-        print("Enter ! to quit.")
-        print("")
+        cmd.displayFormattedFilteredCmdHistContent(content)
+        displayCommandMenuFooter()
     status = 0 # default status (normal execution)
     passedInput = ""
     passedOutput = ""
@@ -101,14 +107,25 @@ def visitCommandMenu(mode = ""):
         status = 3
     else:
         os.system("clear")
+        filteredHistEntries = []
         if cmd.isCommandMenuEmpty():
             print("There are no entries in the command history menu.")
             userInput = ""
-        else:
+        elif len(filterKey) == 0:
             displayCmdHistMenu(mode)
-            userInput = input() # to update: enable path autocomplete
+            userInput = input()
             os.system("clear")
-        choiceResult = cmd.chooseCommand(userInput)
+        else:
+            cmd.buildFilteredCommandHistory(filteredHistEntries, filterKey)
+            if len(filteredHistEntries) == 0:
+                print("There are no entries in the filtered command history menu.")
+                userInput = ""
+            else:
+                displayFilteredCmdHistMenu(filteredHistEntries, mode)
+                userInput = input()
+                os.system("clear")
+        # process user choice
+        choiceResult = cmd.chooseCommand(userInput) if len(filterKey) == 0 else cmd.chooseFilteredCommand(userInput, filteredHistEntries)
         commandHistoryEntry = choiceResult[0]
         if commandHistoryEntry == ":1" or commandHistoryEntry == ":2":
             status = int(commandHistoryEntry[1])
