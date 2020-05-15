@@ -6,7 +6,7 @@ home_dir = expanduser("~") + "/"
 input_storage_file = home_dir + ".store_input"
 output_storage_file = home_dir + ".store_output"
 
-""" core function for visiting directories """
+""" core functions for visiting directories and Finder synchronization """
 def goTo(gtDirectory, prevDirectory, syncWithFinder):
     status = 0 #default status, successful execution
     prevDir = os.getcwd()
@@ -34,15 +34,7 @@ def goTo(gtDirectory, prevDirectory, syncWithFinder):
                     prevDir = prevDirectory
                 # update current directory in Finder if sync enabled
                 if syncWithFinder == True:
-                    setDelays = "delayBeforeClose=0.1;" + "\n" + "delayBeforeReopen=0.2" + "\n" + "delayAfterReopen=0.5;" + "\n" + "delayErrorReopen=1.8;" + "\n"
-                    closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
-                    handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n"
-                    reopenFinder = "else sleep $delayBeforeReopen; open . 2> /dev/null;" + "\n"
-                    handleReopeningError = "if [[ $? != 0 ]]; then sleep $delayErrorReopen; echo \'An error occured when opening the new directory in Finder\'; " + "\n"
-                    addDelayAfterSuccessfulReopen = "else sleep $delayAfterReopen;" + "\n" + "fi" + "\n" + "fi" + "\n"
-                    openTerminal = "open -a terminal;"
-                    updateFinder = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
-                    os.system(updateFinder)
+                    doFinderSync()
         else:
             status = -1 # unsuccessful goTo, cannot change dir
             prevDir = prevDirectory # ensure the previously visited dir stays the same for consistency reasons (not actually used if the goTo execution is not successful)
@@ -52,6 +44,24 @@ def goTo(gtDirectory, prevDirectory, syncWithFinder):
             print(" - insufficient access rights")
             print("Please try again!")
         return(status, "", prevDir)
+
+def doFinderSync():
+    setDelays = "delayBeforeClose=0.1;" + "\n" + "delayBeforeReopen=0.2" + "\n" + "delayAfterReopen=0.5;" + "\n" + "delayErrorReopen=1.8;" + "\n"
+    closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
+    handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n"
+    reopenFinder = "else sleep $delayBeforeReopen; open . 2> /dev/null;" + "\n"
+    handleReopeningError = "if [[ $? != 0 ]]; then sleep $delayErrorReopen; echo \'An error occured when opening the new directory in Finder\'; " + "\n"
+    addDelayAfterSuccessfulReopen = "else sleep $delayAfterReopen;" + "\n" + "fi" + "\n" + "fi" + "\n"
+    openTerminal = "open -a terminal;"
+    updateFinder = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
+    os.system(updateFinder)
+
+def doCloseFinder():
+    setDelays = "delayBeforeClose=0.1;" + "\n"
+    closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
+    handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n" + "fi"
+    updateFinder = setDelays + closeFinder + handleClosingError
+    os.system(updateFinder)
 
 """ navigation menu functions """
 def initNavMenus():

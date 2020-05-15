@@ -2,6 +2,7 @@ import os
 import display as out, navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt
 
 syncWithFinder = False
+closeFinder = True # set this variable to False if Finder should stay open when sync is toggled to off via :s command
 
 def execute():
     global syncWithFinder
@@ -125,6 +126,10 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
     elif userInput == ":s":
         print("Finder synchronization enabled") if syncWithFinder == False else print("Finder synchronization disabled")
         syncWithFinder = not syncWithFinder
+        if syncWithFinder == True:
+            nav.doFinderSync()
+        elif closeFinder == True:
+            nav.doCloseFinder()
     elif userInput == "!":
         print("You exited navigation app.")
         print("Last visited directory: " + os.getcwd())
