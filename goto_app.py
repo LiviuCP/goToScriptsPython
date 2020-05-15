@@ -48,7 +48,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         if prevCommand == "":
             print("No shell command previously executed")
         else:
-            result = cmd.executeCommand(prevCommand, True)
+            result = cmd.executeCommandWithStatus(prevCommand, True)
             shouldForwardData = True
     elif userInput == ":":
         result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
@@ -123,7 +123,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         print("Last visited directory: " + os.getcwd())
     else:
         if userInput != "" and userInput[0] == ":":
-            result = cmd.executeCommand(userInput[1:])
+            result = cmd.executeCommandWithStatus(userInput[1:])
             handleOutput = 2
         else:
             result = nav.goTo(userInput, prevDir)
