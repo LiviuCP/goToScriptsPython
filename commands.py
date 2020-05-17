@@ -9,18 +9,18 @@ min_nr_of_cmd_chars = 10
 """ core command execution function """
 def executeCommand(command):
     assert len(command) > 0, "Empty command has been provided"
-    if len(command) >= min_nr_of_cmd_chars:
-        cmd.updateCommandHistory(command)
-        cmd.consolidateCommandHistory()
     # build and execute BASH command
     sourceConfigFileCmd = "source ~/.bashrc;" #include .bashrc to ensure the aliases and scripts work
     getExitCodeCmd = "echo $? > " + output_storage_file #exit code (used by Python to determine if the command finished successfully or not)
     bashCommandToExecute = sourceConfigFileCmd + "\n" + command + "\n" + getExitCodeCmd
     os.system(bashCommandToExecute)
-    # read command status code and create the status message
+    # read command status code, create the status message and update the command history files
     with open(output_storage_file, "r") as output:
         status = output.readline().strip('\n')
         printedStatus = "with errors" if status != "0" else "successfully"
+        if len(command) >= min_nr_of_cmd_chars:
+            cmd.updateCommandHistory(command)
+            cmd.consolidateCommandHistory()
         return (0, command, printedStatus)
 
 """ core command execution function wrappers """
