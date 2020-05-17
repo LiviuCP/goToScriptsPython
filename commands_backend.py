@@ -7,12 +7,10 @@ c_hist_file = home_dir + ".command_history"
 c_r_hist_file = home_dir + ".recent_command_history"
 c_p_str_hist_file = home_dir + ".persistent_command_history_strings" # actual commands
 c_p_num_hist_file = home_dir + ".persistent_command_history_numbers" # number of times each command was executed (each row should match a row from the c_p_str_hist_file)
-output_storage_file = home_dir + ".store_output"
 c_r_hist_max_entries = 10
 c_p_hist_max_entries = 15
 c_log_dir = home_dir + ".goToCmdLogs/"
 c_l_hist_file = c_log_dir + datetime.datetime.now().strftime("%Y%m%d")
-min_nr_of_cmd_chars = 10
 
 """ command history menu init/access functions """
 def initCmdMenus():
@@ -30,6 +28,9 @@ def chooseCommand(userInput):
     with open(c_hist_file, "r") as cHist:
         return common.getMenuEntry(userInput, cHist.readlines())
 
+def chooseFilteredCommand(userInput, filteredContent):
+    return common.getMenuEntry(userInput, filteredContent)
+
 def isCommandMenuEmpty():
     return os.path.getsize(c_hist_file) == 0
 
@@ -41,8 +42,11 @@ def displayFormattedPersistentCmdHistContent():
     with open(c_hist_file, "r") as cHist, open(c_r_hist_file, "r") as crHist:
         common.displayFormattedCmdFileContent(cHist.readlines(), len(crHist.readlines()))
 
-""" command execution functions """
-def executeCommand(commandToExecute):
+def displayFormattedFilteredCmdHistContent(filteredContent):
+    common.displayFormattedCmdFileContent(filteredContent, 0)
+
+""" command history update functions """
+def updateCommandHistory(command):
     def updateIfAlreadyExecuted(updateDict, executedCommand):
         with open(c_p_str_hist_file, "r") as cpStrHist, open (c_p_num_hist_file, "r") as cpNumHist:
             entryContainedInFile = False
@@ -58,55 +62,46 @@ def executeCommand(commandToExecute):
                 else:
                     updateDict[command] = int(count);
             return entryContainedInFile
-    def updateIndividualCommandHistoryFiles(command):
-        with open(c_l_hist_file, "a") as clHist, open(c_r_hist_file, "r") as crHist:
-            crHistContent = []
-            crHistEntries = 0
-            for entry in crHist.readlines():
-                crHistContent.append(entry.strip('\n'))
-                crHistEntries = crHistEntries + 1
-            if command in crHistContent:
-                crHistContent.remove(command)
-            elif crHistEntries == c_r_hist_max_entries:
-                crHistContent.remove(crHistContent[crHistEntries-1])
-            crHistContent = [command] + crHistContent
-            crHist.close()
-            with open(c_r_hist_file, "w") as crHist, open(c_l_hist_file, "r") as clHist:
-                for entry in crHistContent:
-                    crHist.write(entry+'\n')
-                clHistContent = []
-                for entry in clHist.readlines():
-                    clHistContent.append(entry.strip('\n'))
-                clHist.close()
-                # only update persistent command history files if the executed command is not being contained in the visit log for the current day
-                if command not in clHistContent:
-                    with open(c_l_hist_file, "a") as clHist:
-                        clHist.write(command + "\n")
-                        cpHistUpdateDict = {}
-                        if not updateIfAlreadyExecuted(cpHistUpdateDict, command):
-                            cpHistUpdateDict[command] = 1
-                        with open(c_p_str_hist_file, "w") as cpStrHist, open(c_p_num_hist_file, "w") as cpNumHist:
-                            for cmd, count in sorted(cpHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                                cpStrHist.write(cmd + '\n')
-                                cpNumHist.write(str(count) + '\n')
+    with open(c_l_hist_file, "a") as clHist, open(c_r_hist_file, "r") as crHist:
+        crHistContent = []
+        crHistEntries = 0
+        for entry in crHist.readlines():
+            crHistContent.append(entry.strip('\n'))
+            crHistEntries = crHistEntries + 1
+        if command in crHistContent:
+            crHistContent.remove(command)
+        elif crHistEntries == c_r_hist_max_entries:
+            crHistContent.remove(crHistContent[crHistEntries-1])
+        crHistContent = [command] + crHistContent
+        crHist.close()
+        with open(c_r_hist_file, "w") as crHist, open(c_l_hist_file, "r") as clHist:
+            for entry in crHistContent:
+                crHist.write(entry+'\n')
+            clHistContent = []
+            for entry in clHist.readlines():
+                clHistContent.append(entry.strip('\n'))
+            clHist.close()
+            # only update persistent command history files if the executed command is not being contained in the visit log for the current day
+            if command not in clHistContent:
+                with open(c_l_hist_file, "a") as clHist:
+                    clHist.write(command + "\n")
+                    cpHistUpdateDict = {}
+                    if not updateIfAlreadyExecuted(cpHistUpdateDict, command):
+                        cpHistUpdateDict[command] = 1
+                    with open(c_p_str_hist_file, "w") as cpStrHist, open(c_p_num_hist_file, "w") as cpNumHist:
+                        for cmd, count in sorted(cpHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                            cpStrHist.write(cmd + '\n')
+                            cpNumHist.write(str(count) + '\n')
 
-    if len(commandToExecute) >= min_nr_of_cmd_chars:
-        updateIndividualCommandHistoryFiles(commandToExecute)
-        consolidateCommandHistory()
-    # build and execute command
-    sourceCommand = "source ~/.bashrc;" #include .bashrc to ensure the aliases and scripts work
-    executionStatus = "echo $? > " + output_storage_file
-    executeCommandWithStatus = sourceCommand + "\n" + commandToExecute + "\n" + executionStatus
-    os.system(executeCommandWithStatus)
-    # read command status code and create the status message
-    with open(output_storage_file, "r") as output:
-        status = output.readline().strip('\n')
-        printedStatus = "with errors" if status != "0" else "successfully"
-        return (0, commandToExecute, printedStatus)
+def buildFilteredCommandHistory(filteredContent, filterKey):
+    assert len(filterKey) > 0, "Invalid filter key found"
+    with open(c_p_str_hist_file, 'r') as cpStrHist:
+        for entry in cpStrHist.readlines():
+            if filterKey in entry:
+                filteredContent.append(entry.strip('\n'))
 
-""" command history update functions """
 def clearCommandHistory():
-    with open(c_r_hist_file, "w"), open(c_hist_file, "w"):
+    with open(c_r_hist_file, "w"), open(c_hist_file, "w"), open(c_p_str_hist_file, "w"), open(c_p_num_hist_file, "w"):
         print("", end='')
 
 def consolidateCommandHistory():

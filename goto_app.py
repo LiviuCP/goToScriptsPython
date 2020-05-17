@@ -53,22 +53,30 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         if prevCommand == "":
             print("No shell command previously executed")
         else:
-            result = cmd.executeCommand(prevCommand, True)
+            result = cmd.executeCommandWithStatus(prevCommand, True)
             shouldForwardData = True
     elif userInput == ":":
         result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
         handleOutput = 2 if result[0] == 0 else handleOutput
         shouldForwardData = True
+    elif userInput == "::<>":
+        cmd.clearCommandHistory()
     elif userInput == ":<":
         result = cmd.visitCommandMenu("--execute")
+        handleOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+        shouldForwardData = True
+    elif len(userInput) > 2 and userInput[0:2] == ":<":
+        result = cmd.visitCommandMenu("--execute", userInput[2:])
         handleOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
     elif userInput == "::":
         result = cmd.visitCommandMenu("--edit")
         handleOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
-    elif userInput == "::<>":
-        cmd.clearCommandHistory()
+    elif len(userInput) > 2 and userInput[0:2] == "::":
+        result = cmd.visitCommandMenu("--edit", userInput[2:])
+        handleOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
+        shouldForwardData = True
     elif userInput == "<":
         result = nav.executeGoToFromMenu("-h", prevDir, syncWithFinder)
         handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
@@ -135,7 +143,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         print("Last visited directory: " + os.getcwd())
     else:
         if userInput != "" and userInput[0] == ":":
-            result = cmd.executeCommand(userInput[1:])
+            result = cmd.executeCommandWithStatus(userInput[1:])
             handleOutput = 2
         else:
             result = nav.goTo(userInput, prevDir, syncWithFinder)
