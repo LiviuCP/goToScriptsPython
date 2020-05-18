@@ -9,6 +9,7 @@ c_p_str_hist_file = home_dir + ".persistent_command_history_strings" # actual co
 c_p_num_hist_file = home_dir + ".persistent_command_history_numbers" # number of times each command was executed (each row should match a row from the c_p_str_hist_file)
 c_r_hist_max_entries = 10
 c_p_hist_max_entries = 15
+max_filtered_c_hist_entries = 5
 c_log_dir = home_dir + ".goToCmdLogs/"
 c_l_hist_file = c_log_dir + datetime.datetime.now().strftime("%Y%m%d")
 
@@ -42,8 +43,13 @@ def displayFormattedPersistentCmdHistContent():
     with open(c_hist_file, "r") as cHist, open(c_r_hist_file, "r") as crHist:
         common.displayFormattedCmdFileContent(cHist.readlines(), len(crHist.readlines()))
 
-def displayFormattedFilteredCmdHistContent(filteredContent):
+def displayFormattedFilteredCmdHistContent(filteredContent, totalNrOfMatches):
     common.displayFormattedCmdFileContent(filteredContent, 0)
+    print("")
+    print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
+    if totalNrOfMatches > len(filteredContent):
+        print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
+
 
 """ command history update functions """
 def updateCommandHistory(command):
@@ -95,10 +101,17 @@ def updateCommandHistory(command):
 
 def buildFilteredCommandHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Invalid filter key found"
+    nrOfMatches = 0
     with open(c_p_str_hist_file, 'r') as cpStrHist:
+        result = []
         for entry in cpStrHist.readlines():
-            if filterKey in entry:
-                filteredContent.append(entry.strip('\n'))
+            if filterKey.lower() in entry.lower():
+                result.append(entry.strip('\n'))
+                nrOfMatches = nrOfMatches + 1
+        nrOfExposedEntries = nrOfMatches if nrOfMatches < max_filtered_c_hist_entries else max_filtered_c_hist_entries
+        for index in range(0, nrOfExposedEntries):
+            filteredContent.append(result[index])
+    return nrOfMatches
 
 def clearCommandHistory():
     with open(c_r_hist_file, "w"), open(c_hist_file, "w"), open(c_p_str_hist_file, "w"), open(c_p_num_hist_file, "w"):

@@ -92,12 +92,12 @@ def visitCommandMenu(mode, filterKey = ""):
         print("")
         cmd.displayFormattedPersistentCmdHistContent()
         displayCommandMenuFooter()
-    def displayFilteredCmdHistMenu(content, mode):
+    def displayFilteredCmdHistMenu(content, mode, totalNrOfMatches):
         print("FILTERED COMMANDS LIST")
         print("")
         print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
         print("")
-        cmd.displayFormattedFilteredCmdHistContent(content)
+        cmd.displayFormattedFilteredCmdHistContent(content, totalNrOfMatches)
         displayCommandMenuFooter()
     status = 0 # default status (normal execution)
     passedInput = ""
@@ -116,12 +116,12 @@ def visitCommandMenu(mode, filterKey = ""):
             userInput = input()
             os.system("clear")
         else:
-            cmd.buildFilteredCommandHistory(filteredHistEntries, filterKey)
+            totalNrOfMatches = cmd.buildFilteredCommandHistory(filteredHistEntries, filterKey)
             if len(filteredHistEntries) == 0:
                 print("There are no entries in the filtered command history menu.")
                 userInput = ""
             else:
-                displayFilteredCmdHistMenu(filteredHistEntries, mode)
+                displayFilteredCmdHistMenu(filteredHistEntries, mode, totalNrOfMatches)
                 userInput = input()
                 os.system("clear")
         # process user choice
