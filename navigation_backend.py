@@ -132,7 +132,7 @@ def buildFilteredHistory(filteredContent, filterKey):
         for entry in pHist.readlines():
             splitEntry = entry.split(";")
             print(splitEntry[0])
-            if filterKey in splitEntry[0]:
+            if filterKey.lower() in splitEntry[0].lower():
                 result.append(splitEntry[0])
                 nrOfMatches = nrOfMatches + 1
         nrOfExposedEntries = nrOfMatches if nrOfMatches < max_filtered_hist_entries else max_filtered_hist_entries
