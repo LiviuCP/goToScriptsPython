@@ -116,10 +116,10 @@ def visitNavigationMenu(menuChoice, userInput = ""):
         print("")
         nav.displayFormattedPersistentHistContent()
         displayCommonMenuPart()
-    def displayFilteredHistMenu(content):
+    def displayFilteredHistMenu(content, totalNrOfMatches):
         print("FILTERED VISITED DIRECTORIES")
         print("")
-        nav.displayFormattedFilteredHistContent(content)
+        nav.displayFormattedFilteredHistContent(content, totalNrOfMatches)
         displayCommonMenuPart()
     def displayFavoritesMenu():
         print("FAVORITE DIRECTORIES")
@@ -133,11 +133,11 @@ def visitNavigationMenu(menuChoice, userInput = ""):
         filteredHistEntries = []
         if menuChoice == "-fh":
             assert len(userInput) > 0, "No filter has been provided for filtered navigation history"
-            nav.buildFilteredHistory(filteredHistEntries, userInput)
+            totalNrOfMatches = nav.buildFilteredHistory(filteredHistEntries, userInput)
             userInput = "" #input should be reset to correctly account for the case when the resulting filtered history menu is empty
             os.system("clear")
             if len(filteredHistEntries) > 0:
-                displayFilteredHistMenu(filteredHistEntries)
+                displayFilteredHistMenu(filteredHistEntries, totalNrOfMatches)
                 userInput = input()
                 os.system("clear")
         elif userInput == "":

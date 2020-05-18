@@ -4,6 +4,7 @@ from os.path import expanduser
 
 r_hist_max_entries = 10
 p_hist_max_entries = 15
+max_filtered_hist_entries = 5
 home_dir = expanduser("~") + "/"
 r_hist_file = home_dir + ".recent_history"
 p_hist_file = home_dir + ".persistent_history"
@@ -44,8 +45,12 @@ def displayFormattedPersistentHistContent():
     with open(hist_file, "r") as hist, open(r_hist_file, "r") as rHist:
         common.displayFormattedNavFileContent(hist.readlines(), len(rHist.readlines()))
 
-def displayFormattedFilteredHistContent(filteredContent):
+def displayFormattedFilteredHistContent(filteredContent, totalNrOfMatches):
     common.displayFormattedNavFileContent(filteredContent, 0)
+    print("")
+    print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
+    if totalNrOfMatches > len(filteredContent):
+        print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
 
 def isMenuEmpty(menuChoice):
     return os.path.getsize(fav_file if menuChoice == "-f" else hist_file) == 0
@@ -121,12 +126,19 @@ def consolidateHistory():
 
 def buildFilteredHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Invalid filter key found"
+    nrOfMatches = 0
     with open(p_hist_file, 'r') as pHist:
+        result = []
         for entry in pHist.readlines():
             splitEntry = entry.split(";")
             print(splitEntry[0])
             if filterKey in splitEntry[0]:
-                filteredContent.append(splitEntry[0])
+                result.append(splitEntry[0])
+                nrOfMatches = nrOfMatches + 1
+        nrOfExposedEntries = nrOfMatches if nrOfMatches < max_filtered_hist_entries else max_filtered_hist_entries
+        for index in range(0, nrOfExposedEntries):
+            filteredContent.append(result[index])
+    return nrOfMatches
 
 def clearHist():
     with open(r_hist_file, "w"), open(p_hist_file, "w"), open(hist_file, "w"), open(l_hist_file, "w"), open(e_hist_file, "w") as eHist, open(fav_file, "r") as fav:
