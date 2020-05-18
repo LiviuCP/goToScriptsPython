@@ -17,7 +17,7 @@ def executeCommand(command):
     printedStatus = "with errors"
     # read command status code, create the status message and update the command history files
     with open(output_storage_file, "r") as output:
-        if output.readline().strip('\n') == 0:
+        if int(output.readline().strip('\n')) == 0:
             printedStatus = "successfully"
         if len(command) >= min_nr_of_cmd_chars:
             cmd.updateCommandHistory(command)
