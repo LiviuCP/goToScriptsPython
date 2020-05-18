@@ -131,7 +131,6 @@ def buildFilteredHistory(filteredContent, filterKey):
         result = []
         for entry in pHist.readlines():
             splitEntry = entry.split(";")
-            print(splitEntry[0])
             if filterKey.lower() in splitEntry[0].lower():
                 result.append(splitEntry[0])
                 nrOfMatches = nrOfMatches + 1
