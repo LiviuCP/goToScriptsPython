@@ -84,13 +84,16 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         shouldForwardData = True
         if result[0] == -1:
             recursiveTransfer.setTargetDir(result[1])
-    elif len(userInput) > 2 and userInput[0:2] == "<<":
-        result = nav.executeGoToFromMenu("-fh", prevDir, userInput[2:])
-        handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
-        shouldForwardData = True
-        if result[0] == -1:
-            recursiveTransfer.setTargetDir(result[1])
-    elif len(userInput) > 1 and userInput[0] == "<" and userInput[1] != "<":
+    elif len(userInput) >= 2 and userInput[0:2] == "<<":
+        if (len(userInput) == 2):
+            print("No filter keyword entered. Cannot filter navigation history.")
+        else:
+            result = nav.executeGoToFromMenu("-fh", prevDir, userInput[2:])
+            handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
+            shouldForwardData = True
+            if result[0] == -1:
+                recursiveTransfer.setTargetDir(result[1])
+    elif len(userInput) > 1 and userInput[0] == "<":
         result = nav.executeGoToFromMenu("-h", prevDir, userInput[1:])
         handleOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else handleOutput #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
         shouldForwardData = True
