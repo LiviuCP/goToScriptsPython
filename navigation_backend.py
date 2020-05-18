@@ -27,9 +27,14 @@ def initNavMenus():
         pHist.close() # close, in use by consolidateHistory()
         consolidateHistory()
 
-def choosePath(menuChoice, userInput):
-    with open(fav_file if menuChoice == "-f" else hist_file, "r") as fPath:
-        return common.getMenuEntry(userInput, fPath.readlines())
+def choosePath(menuChoice, userInput, filteredContent):
+    result = (":3", "", "")
+    if menuChoice == "-fh":
+        result = common.getMenuEntry(userInput, filteredContent)
+    else:
+        with open(fav_file if menuChoice == "-f" else hist_file, "r") as fPath:
+            result = common.getMenuEntry(userInput, fPath.readlines())
+    return result
 
 def displayFormattedRecentHistContent():
     with open(hist_file, "r") as hist, open(r_hist_file, "r") as rHist:
@@ -38,6 +43,9 @@ def displayFormattedRecentHistContent():
 def displayFormattedPersistentHistContent():
     with open(hist_file, "r") as hist, open(r_hist_file, "r") as rHist:
         common.displayFormattedNavFileContent(hist.readlines(), len(rHist.readlines()))
+
+def displayFormattedFilteredHistContent(filteredContent):
+    common.displayFormattedNavFileContent(filteredContent, 0)
 
 def isMenuEmpty(menuChoice):
     return os.path.getsize(fav_file if menuChoice == "-f" else hist_file) == 0
@@ -110,6 +118,15 @@ def consolidateHistory():
             hist.write(entry[0] + '\n')
         for entry in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
             hist.write(entry[0] + '\n')
+
+def buildFilteredHistory(filteredContent, filterKey):
+    assert len(filterKey) > 0, "Invalid filter key found"
+    with open(p_hist_file, 'r') as pHist:
+        for entry in pHist.readlines():
+            splitEntry = entry.split(";")
+            print(splitEntry[0])
+            if filterKey in splitEntry[0]:
+                filteredContent.append(splitEntry[0])
 
 def clearHist():
     with open(r_hist_file, "w"), open(p_hist_file, "w"), open(hist_file, "w"), open(l_hist_file, "w"), open(e_hist_file, "w") as eHist, open(fav_file, "r") as fav:
