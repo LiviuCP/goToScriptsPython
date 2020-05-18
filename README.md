@@ -47,6 +47,8 @@ d. Before shutting down the machine, in order to prevent forceful terminal closu
 
 3) Sometimes when having the Finder re-opened the window is in an inactive state and the user cannot move between directories by using the arrow keys. To correct this initiate a new re-opening in the current directory by entering '.' and pressing ENTER.
 
+4) On some Linux systems sometimes the persistent command history section vanishes from the command history menu after executing a command. Unfortunately I haven't managed to find the root cause of this bug and I suspect it might be related to the Python library version used on that system (it occurred on OpenSUSE 15.1 so far). If this happens please exit and re-enter the app.
+
 If any other bugs are discovered please feel free to report them on my Github page: https://github.com/LiviuCP.
 
 5. FUNCTIONALITY
@@ -203,7 +205,24 @@ If the directory hadn't been visited prior to adding to favorites (e.g. if addin
 
 There is no excluded history for commands. For "favorite commands" using of standard aliases is recommended.
 
-6.5. Commands filtering
+6.5. Filtered history
+
+Both for visited directories and commands there is also the possibility to filter the persistent history (whole file) based on a search keyword, namely a sub-string contained in a path/command. The search will find all matches but only display a limited number on screen. This limitation is implemented for usability reasons. By modifying a variable in the navigation_backend.py or commands_backend.py it is possible to modify this limit (however I recommend keeping it low). When the search is complete please select the number of the required entry from the menu so it is executed/visited. The filtered history menus behave the same as the consolidated menus regarding usage.
+
+To filter visited paths enter << followed by the search keywoard and hit ENTER in navigation mode. For example enter <<abcd to find the directory /home/user_a/abcdefgh.
+To filter executed commands enter:
+- :< followed by keyword to display filtered entries so one is selected for executing (same behavior as when entering :< to display the consolidated command history). Example: type :<abc to search for echo zabcd (exec)
+- :: followed by keyword to display filtered entries so one is selected for editing (same behavior as when entering :: to display the consolidated command history). Example: type ::adg to search for echo zadgb (edit and exec)
+
+Notes:
+- all persistent history file entries (including the ones not displayed in consolidated menu) are being searched for the given keyword. This gives the user a chance to reuse the less visited/executed paths/commands as well.
+- the search is case-insensitive, meaning you can enter <<abcd for /home/aBcd retrieval
+- the number of spaces from search keyword is relevant and should be the right one for identifying the substring in the command/path. For example you should enter :<cho ab and not :<cho  ab to find the echo abdcgijk command. This might change in the future updates.
+- if the number of found entries is higher than the displayed ones try to narrow down the search if the required path/command is not visible
+- also if no match was found try to refine the search keyword until getting the desired result. If the result is not obtained it is likely that the required entry is not in the persistent history file (maybe it had been deleted at the last history reset)
+- the excluded history is not contained in the paths used as navigation history filtering base. The search is performed only in the persistent history files.
+
+6.6. Adding commands to history based on command string size
 
 It is possible to setup the minimum number of characters a command should contain in order to be stored into the command history file. This is done by setting up the minNrOfCmdChars variable. For example by setting minNrOfCmdChars=10 each command with less than 10 characters will be prevented from being included into the command history. The characters include the spaces but not the : character used for entering the command in navigation mode. This rule can be bypassed if more spaces are being included in the command (if the command has a single word the spaces should be added before the word). An alternative is to set the minimum number of characters to 0.
 
