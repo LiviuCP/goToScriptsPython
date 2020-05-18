@@ -53,13 +53,14 @@ def displayFormattedFilteredHistContent(filteredContent, totalNrOfMatches):
         print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
 
 def isMenuEmpty(menuChoice):
+    assert menuChoice in ["-h", "-f"], "Invalid menu option argument detected"
     return os.path.getsize(fav_file if menuChoice == "-f" else hist_file) == 0
 
 """ navigation history update functions """
 def updateHistory(visitedDirPath):
     def canUpdateVisitsInHistoryFile(histFile, updateDict, visitedPath):
+        entryContainedInFile = False
         with open(histFile, "r") as hist:
-            entryContainedInFile = False
             for entry in hist.readlines():
                 splitEntry = entry.strip('\n').split(';')
                 path = splitEntry[0]
@@ -68,7 +69,8 @@ def updateHistory(visitedDirPath):
                     entryContainedInFile = True
                 else:
                     updateDict[splitEntry[0]] = int(splitEntry[1])
-            return entryContainedInFile
+        return entryContainedInFile
+    assert len(visitedDirPath) > 0, "Empty path argument detected"
     with open(l_hist_file, "a") as lHist, open(r_hist_file, "r") as rHist:
         rHistContent = []
         rHistEntries = 0
@@ -148,16 +150,18 @@ def clearHist():
 
 """ add/remove from favorites functions """
 def isContainedInFavorites(pathToAdd):
+    assert len(pathToAdd) > 0, "Empty path argument detected"
+    alreadyAddedToFavorites = False
     with open(fav_file, "r") as fav:
-        alreadyAddedToFavorites = False
         favContent = fav.readlines()
         for entry in favContent:
             if entry.strip('\n') == pathToAdd:
                 alreadyAddedToFavorites = True
                 break
-        return alreadyAddedToFavorites
+    return alreadyAddedToFavorites
 
 def addPathToFavorites(pathToAdd):
+    assert len(pathToAdd) > 0, "Empty path argument detected"
     # move entry from persistent (if there) to excluded history
     with open(p_hist_file, "r") as pHist:
         pHistUpdateDict = {}
@@ -222,6 +226,7 @@ def removePathFromFavorites(userInput):
                                 pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
                             pHist.close()
                             consolidateHistory()
+    pathToRemove = ""
     # remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once
     with open(fav_file, "r") as fav:
         favFileContent = fav.readlines()
@@ -235,7 +240,7 @@ def removePathFromFavorites(userInput):
             ns.sortFavorites(fav_file)
             pathToRemove = pathToRemove.strip('\n')
             removeFromExcludedHistory(pathToRemove)
-            return pathToRemove
+    return pathToRemove
 
 def isValidInput(userInput):
     isValid = True
@@ -270,6 +275,7 @@ def removeMissingDir(pathToRemove):
                 with open(histFile, "w") as hist:
                     for entry in histContent:
                         hist.write(entry)
+    assert len(pathToRemove) > 0, "Empty path argument detected"
     with open(fav_file, "r") as fav:
         ns.removePathFromTempHistoryFile(l_hist_file, pathToRemove)
         removedFromPHist = False
@@ -291,7 +297,7 @@ def removeMissingDir(pathToRemove):
             removedFromPHist = removePathFromPermHistoryFile(p_hist_file, pathToRemove)
         if removedFromRHist == True or removedFromPHist == True:
             consolidateHistory()
-        return pathToRemove
+    return pathToRemove
 
 def mapMissingDir(pathToReplace, replacingPath):
     def buildHistDict(histDict, histFile):
@@ -322,6 +328,8 @@ def mapMissingDir(pathToReplace, replacingPath):
         with open(fav_file, "w") as fav:
             for entry in favContent:
                 fav.write(entry + '\n')
+    assert len(pathToReplace) > 0, "Empty argument for 'path to replace' detected"
+    assert len(replacingPath) > 0, "Empty argument for 'replacing path' detected"
     favContent = []
     pHistDict = {}
     eHistDict = {}

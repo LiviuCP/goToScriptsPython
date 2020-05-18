@@ -26,8 +26,10 @@ def initCmdMenus():
         consolidateCommandHistory()
 
 def chooseCommand(userInput):
+    result = (":3", "", "")
     with open(c_hist_file, "r") as cHist:
-        return common.getMenuEntry(userInput, cHist.readlines())
+        result = common.getMenuEntry(userInput, cHist.readlines())
+    return result
 
 def chooseFilteredCommand(userInput, filteredContent):
     return common.getMenuEntry(userInput, filteredContent)
@@ -54,8 +56,9 @@ def displayFormattedFilteredCmdHistContent(filteredContent, totalNrOfMatches):
 """ command history update functions """
 def updateCommandHistory(command):
     def updateIfAlreadyExecuted(updateDict, executedCommand):
+        assert len(executedCommand) > 0, "Empty command argument detected"
+        entryContainedInFile = False
         with open(c_p_str_hist_file, "r") as cpStrHist, open (c_p_num_hist_file, "r") as cpNumHist:
-            entryContainedInFile = False
             cpStrHistList = cpStrHist.readlines()
             cpNumHistList = cpNumHist.readlines()
             assert len(cpStrHistList) == len(cpNumHistList), "The number of elements in c_p_str_hist_file is different from the number contained in c_p_num_hist_file"
@@ -67,7 +70,8 @@ def updateCommandHistory(command):
                     entryContainedInFile = True
                 else:
                     updateDict[command] = int(count);
-            return entryContainedInFile
+        return entryContainedInFile
+    assert len(command) > 0, "Empty command argument detected"
     with open(c_l_hist_file, "a") as clHist, open(c_r_hist_file, "r") as crHist:
         crHistContent = []
         crHistEntries = 0

@@ -14,27 +14,25 @@ def executeCommand(command):
     getExitCodeCmd = "echo $? > " + output_storage_file #exit code (used by Python to determine if the command finished successfully or not)
     bashCommandToExecute = sourceConfigFileCmd + "\n" + command + "\n" + getExitCodeCmd
     os.system(bashCommandToExecute)
+    printedStatus = "with errors"
     # read command status code, create the status message and update the command history files
     with open(output_storage_file, "r") as output:
-        status = output.readline().strip('\n')
-        printedStatus = "with errors" if status != "0" else "successfully"
+        if output.readline().strip('\n') == 0:
+            printedStatus = "successfully"
         if len(command) >= min_nr_of_cmd_chars:
             cmd.updateCommandHistory(command)
             cmd.consolidateCommandHistory()
-        return (0, command, printedStatus)
+    return (0, command, printedStatus)
 
 """ core command execution function wrappers """
 def executeCommandWithStatus(command = "", repeatPrev = False):
-    if command == "":
-        print("No argument provided")
-        result = (3, "", "")
-    else:
-        commandType = "Repeated" if repeatPrev == True else "Entered"
-        print(commandType + " command is being executed: " + command)
-        print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-        result = executeCommand(command)
-        print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-        print(commandType + " command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
+    assert len(command) > 0, "Empty argument detected for 'command'"
+    commandType = "Repeated" if repeatPrev == True else "Entered"
+    print(commandType + " command is being executed: " + command)
+    print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+    result = executeCommand(command)
+    print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+    print(commandType + " command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
     return result
 
 def editAndExecPrevCmd(previousCommand = ""):
@@ -102,50 +100,47 @@ def visitCommandMenu(mode, filterKey = ""):
     status = 0 # default status (normal execution)
     passedInput = ""
     passedOutput = ""
-    if mode != "--edit" and mode != "--execute":
-        print("Invalid argument provided")
-        status = 3
-    else:
+    assert mode in ["--edit", "--execute"], "Invalid mode argument provided"
+    os.system("clear")
+    filteredHistEntries = []
+    if cmd.isCommandMenuEmpty():
+        print("There are no entries in the command history menu.")
+        userInput = ""
+    elif len(filterKey) == 0:
+        displayCmdHistMenu(mode)
+        userInput = input()
         os.system("clear")
-        filteredHistEntries = []
-        if cmd.isCommandMenuEmpty():
-            print("There are no entries in the command history menu.")
+    else:
+        totalNrOfMatches = cmd.buildFilteredCommandHistory(filteredHistEntries, filterKey)
+        if len(filteredHistEntries) == 0:
+            print("There are no entries in the filtered command history menu.")
             userInput = ""
-        elif len(filterKey) == 0:
-            displayCmdHistMenu(mode)
+        else:
+            displayFilteredCmdHistMenu(filteredHistEntries, mode, totalNrOfMatches)
             userInput = input()
             os.system("clear")
+    # process user choice
+    choiceResult = cmd.chooseCommand(userInput) if len(filterKey) == 0 else cmd.chooseFilteredCommand(userInput, filteredHistEntries)
+    commandHistoryEntry = choiceResult[0]
+    if commandHistoryEntry == ":1" or commandHistoryEntry == ":2":
+        status = int(commandHistoryEntry[1])
+        passedInput = choiceResult[1]
+        if status == 2:
+            print("You exited the command menu!")
+    elif commandHistoryEntry != ":3" and commandHistoryEntry != ":4":
+        if mode == "--execute":
+            commandToExecute = commandHistoryEntry
+            print("Repeated command is being executed: " + commandToExecute)
+            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+            result = executeCommand(commandToExecute)
+            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+            print("Repeated command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
         else:
-            totalNrOfMatches = cmd.buildFilteredCommandHistory(filteredHistEntries, filterKey)
-            if len(filteredHistEntries) == 0:
-                print("There are no entries in the filtered command history menu.")
-                userInput = ""
-            else:
-                displayFilteredCmdHistMenu(filteredHistEntries, mode, totalNrOfMatches)
-                userInput = input()
-                os.system("clear")
-        # process user choice
-        choiceResult = cmd.chooseCommand(userInput) if len(filterKey) == 0 else cmd.chooseFilteredCommand(userInput, filteredHistEntries)
-        commandHistoryEntry = choiceResult[0]
-        if commandHistoryEntry == ":1" or commandHistoryEntry == ":2":
-            status = int(commandHistoryEntry[1])
-            passedInput = choiceResult[1]
-            if status == 2:
-                print("You exited the command menu!")
-        elif commandHistoryEntry != ":3" and commandHistoryEntry != ":4":
-            if mode == "--execute":
-                commandToExecute = commandHistoryEntry
-                print("Repeated command is being executed: " + commandToExecute)
-                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                result = executeCommand(commandToExecute)
-                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                print("Repeated command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
-            else:
-                result = editAndExecPrevCmd(commandHistoryEntry)
-                if result[0] != 0:
-                    status = 2 #aborted by user
-            passedInput = result[1]
-            passedOutput = result[2]
+            result = editAndExecPrevCmd(commandHistoryEntry)
+            if result[0] != 0:
+                status = 2 #aborted by user
+        passedInput = result[1]
+        passedOutput = result[2]
     return (status, passedInput, passedOutput)
 
 def clearCommandHistory():
