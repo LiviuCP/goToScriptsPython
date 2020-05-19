@@ -275,6 +275,7 @@ def removeMissingDir(pathToRemove):
                 with open(histFile, "w") as hist:
                     for entry in histContent:
                         hist.write(entry)
+        return itemContainedInHistFile
     assert len(pathToRemove) > 0, "Empty path argument detected"
     with open(fav_file, "r") as fav:
         ns.removePathFromTempHistoryFile(l_hist_file, pathToRemove)
