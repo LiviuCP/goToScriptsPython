@@ -4,6 +4,7 @@ from os.path import expanduser
 
 r_hist_max_entries = 10
 p_hist_max_entries = 15
+max_filtered_hist_entries = 5
 home_dir = expanduser("~") + "/"
 r_hist_file = home_dir + ".recent_history"
 p_hist_file = home_dir + ".persistent_history"
@@ -27,9 +28,14 @@ def initNavMenus():
         pHist.close() # close, in use by consolidateHistory()
         consolidateHistory()
 
-def choosePath(menuChoice, userInput):
-    with open(fav_file if menuChoice == "-f" else hist_file, "r") as fPath:
-        return common.getMenuEntry(userInput, fPath.readlines())
+def choosePath(menuChoice, userInput, filteredContent):
+    result = (":3", "", "")
+    if menuChoice == "-fh":
+        result = common.getMenuEntry(userInput, filteredContent)
+    else:
+        with open(fav_file if menuChoice == "-f" else hist_file, "r") as fPath:
+            result = common.getMenuEntry(userInput, fPath.readlines())
+    return result
 
 def displayFormattedRecentHistContent():
     with open(hist_file, "r") as hist, open(r_hist_file, "r") as rHist:
@@ -39,14 +45,22 @@ def displayFormattedPersistentHistContent():
     with open(hist_file, "r") as hist, open(r_hist_file, "r") as rHist:
         common.displayFormattedNavFileContent(hist.readlines(), len(rHist.readlines()))
 
+def displayFormattedFilteredHistContent(filteredContent, totalNrOfMatches):
+    common.displayFormattedNavFileContent(filteredContent, 0)
+    print("")
+    print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
+    if totalNrOfMatches > len(filteredContent):
+        print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
+
 def isMenuEmpty(menuChoice):
+    assert menuChoice in ["-h", "-f"], "Invalid menu option argument detected"
     return os.path.getsize(fav_file if menuChoice == "-f" else hist_file) == 0
 
 """ navigation history update functions """
 def updateHistory(visitedDirPath):
     def canUpdateVisitsInHistoryFile(histFile, updateDict, visitedPath):
+        entryContainedInFile = False
         with open(histFile, "r") as hist:
-            entryContainedInFile = False
             for entry in hist.readlines():
                 splitEntry = entry.strip('\n').split(';')
                 path = splitEntry[0]
@@ -55,7 +69,8 @@ def updateHistory(visitedDirPath):
                     entryContainedInFile = True
                 else:
                     updateDict[splitEntry[0]] = int(splitEntry[1])
-            return entryContainedInFile
+        return entryContainedInFile
+    assert len(visitedDirPath) > 0, "Empty path argument detected"
     with open(l_hist_file, "a") as lHist, open(r_hist_file, "r") as rHist:
         rHistContent = []
         rHistEntries = 0
@@ -111,6 +126,21 @@ def consolidateHistory():
         for entry in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
             hist.write(entry[0] + '\n')
 
+def buildFilteredHistory(filteredContent, filterKey):
+    assert len(filterKey) > 0, "Invalid filter key found"
+    nrOfMatches = 0
+    with open(p_hist_file, 'r') as pHist:
+        result = []
+        for entry in pHist.readlines():
+            splitEntry = entry.split(";")
+            if filterKey.lower() in splitEntry[0].lower():
+                result.append(splitEntry[0])
+                nrOfMatches = nrOfMatches + 1
+        nrOfExposedEntries = nrOfMatches if nrOfMatches < max_filtered_hist_entries else max_filtered_hist_entries
+        for index in range(0, nrOfExposedEntries):
+            filteredContent.append(result[index])
+    return nrOfMatches
+
 def clearHist():
     with open(r_hist_file, "w"), open(p_hist_file, "w"), open(hist_file, "w"), open(l_hist_file, "w"), open(e_hist_file, "w") as eHist, open(fav_file, "r") as fav:
         #re-create excluded history with 0 number of visits for each entry
@@ -120,16 +150,18 @@ def clearHist():
 
 """ add/remove from favorites functions """
 def isContainedInFavorites(pathToAdd):
+    assert len(pathToAdd) > 0, "Empty path argument detected"
+    alreadyAddedToFavorites = False
     with open(fav_file, "r") as fav:
-        alreadyAddedToFavorites = False
         favContent = fav.readlines()
         for entry in favContent:
             if entry.strip('\n') == pathToAdd:
                 alreadyAddedToFavorites = True
                 break
-        return alreadyAddedToFavorites
+    return alreadyAddedToFavorites
 
 def addPathToFavorites(pathToAdd):
+    assert len(pathToAdd) > 0, "Empty path argument detected"
     # move entry from persistent (if there) to excluded history
     with open(p_hist_file, "r") as pHist:
         pHistUpdateDict = {}
@@ -194,6 +226,7 @@ def removePathFromFavorites(userInput):
                                 pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
                             pHist.close()
                             consolidateHistory()
+    pathToRemove = ""
     # remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once
     with open(fav_file, "r") as fav:
         favFileContent = fav.readlines()
@@ -207,7 +240,7 @@ def removePathFromFavorites(userInput):
             ns.sortFavorites(fav_file)
             pathToRemove = pathToRemove.strip('\n')
             removeFromExcludedHistory(pathToRemove)
-            return pathToRemove
+    return pathToRemove
 
 def isValidInput(userInput):
     isValid = True
@@ -242,6 +275,7 @@ def removeMissingDir(pathToRemove):
                 with open(histFile, "w") as hist:
                     for entry in histContent:
                         hist.write(entry)
+    assert len(pathToRemove) > 0, "Empty path argument detected"
     with open(fav_file, "r") as fav:
         ns.removePathFromTempHistoryFile(l_hist_file, pathToRemove)
         removedFromPHist = False
@@ -263,7 +297,7 @@ def removeMissingDir(pathToRemove):
             removedFromPHist = removePathFromPermHistoryFile(p_hist_file, pathToRemove)
         if removedFromRHist == True or removedFromPHist == True:
             consolidateHistory()
-        return pathToRemove
+    return pathToRemove
 
 def mapMissingDir(pathToReplace, replacingPath):
     def buildHistDict(histDict, histFile):
@@ -294,6 +328,8 @@ def mapMissingDir(pathToReplace, replacingPath):
         with open(fav_file, "w") as fav:
             for entry in favContent:
                 fav.write(entry + '\n')
+    assert len(pathToReplace) > 0, "Empty argument for 'path to replace' detected"
+    assert len(replacingPath) > 0, "Empty argument for 'replacing path' detected"
     favContent = []
     pHistDict = {}
     eHistDict = {}

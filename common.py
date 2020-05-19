@@ -12,6 +12,7 @@ max_nr_of_dir_name_chars = 25
 max_nr_of_path_chars = 75
 
 def limitEntriesNr(filePath, maxEntries):
+    assert len(filePath) > 0, "Empty path argument detected"
     with open(filePath, "r") as f:
         fileContent = f.readlines()
         fileEntries = 0
@@ -79,8 +80,11 @@ def getAbsoluteDirPath(dirPath):
     return pathToAdd
 
 def getNumberOfLines(filePath):
+    assert len(filePath) > 0, "Empty file path argument detected"
+    nrOfLines = 0
     with open(filePath, "r") as fPath:
-        return len(fPath.readlines())
+        nrOfLines = len(fPath.readlines())
+    return nrOfLines
 
 def displayFormattedNavFileContent(fileContent, firstRowNr = 0, limit = -1):
     beginCharsToDisplayForDirName = max_nr_of_dir_name_chars // 2 #first characters to be displayed for a directory name exceeding the maximum number of chars to be displayed

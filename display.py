@@ -127,6 +127,7 @@ def displayHelp():
     print(":s    -  toggle Finder sync on/off (for Mac OS only)")
     print("")
     print("For direct navigation to a history or favorites menu entry please enter < or > followed by a number.")
+    print("For filtering navigation history (excluding favorites) please enter << followed by a search keyword.")
     print("Please do not put any spaces between operator and number.")
     print("")
     print("Current directory: "+os.getcwd())

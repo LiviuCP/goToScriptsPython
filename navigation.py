@@ -43,7 +43,7 @@ def goTo(gtDirectory, prevDirectory, syncWithFinder):
             print(" - chosen path is not a directory")
             print(" - insufficient access rights")
             print("Please try again!")
-        return(status, "", prevDir)
+    return(status, "", prevDir)
 
 def doFinderSync():
     setDelays = "delayBeforeClose=0.1;" + "\n" + "delayBeforeReopen=0.2" + "\n" + "delayAfterReopen=0.5;" + "\n" + "delayErrorReopen=1.8;" + "\n"
@@ -69,12 +69,13 @@ def initNavMenus():
 
 # negative statuses are special statuses and will be retrieved in conjunction with special characters preceding valid entry numbers (like + -> status -1); path is forwarded as input and used by main app
 def executeGoToFromMenu(menuChoice, previousDir, syncWithFinder, userInput = ""):
+    assert menuChoice in ["-f", "-h", "-fh"], "Invalid menuChoice argument"
     menuVisitResult = visitNavigationMenu(menuChoice, userInput)
     status = 0 # default status, normal execution or missing dir successful removal/mapping
     passedInput = ""
     passedOutput = previousDir
     dirPath = menuVisitResult[0]
-    menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "invalid"
+    menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "filtered history"
     if dirPath == ":1" or dirPath == ":4":
         status = int(dirPath[1])
         passedInput = menuVisitResult[1]
@@ -92,6 +93,8 @@ def executeGoToFromMenu(menuChoice, previousDir, syncWithFinder, userInput = "")
                 print("Please remove or map the directory and/or child directories within history and/or favorites menus.")
             else:
                 handleResult = handleMissingDir(dirPath, menuChoice, previousDir, syncWithFinder)
+                if menuChoice == "-fh": #entries from filtered history are actually part of persistent history so they should be handled as a missing persistent history entry case
+                    menuChoice = "-h"
                 if handleResult[0] == 1:
                     status = 1 #forward user input
                     passedInput = handleResult[1]
@@ -135,22 +138,34 @@ def visitNavigationMenu(menuChoice, userInput = ""):
         print("")
         nav.displayFormattedPersistentHistContent()
         displayCommonMenuPart()
+    def displayFilteredHistMenu(content, totalNrOfMatches):
+        print("FILTERED VISITED DIRECTORIES")
+        print("")
+        nav.displayFormattedFilteredHistContent(content, totalNrOfMatches)
+        displayCommonMenuPart()
     def displayFavoritesMenu():
         print("FAVORITE DIRECTORIES")
         print("")
         nav.displayFormattedFavoritesContent()
         displayCommonMenuPart()
-    if menuChoice != "-f" and menuChoice != "-h":
-        print("invalid argument provided, no menu selected")
-        choiceResult = (":3", "", "")
-    else:
-        if userInput == "":
+    assert menuChoice in ["-f", "-h", "-fh"], "Wrong menu option provided"
+    filteredHistEntries = []
+    if menuChoice == "-fh":
+        assert len(userInput) > 0, "No filter has been provided for filtered navigation history"
+        totalNrOfMatches = nav.buildFilteredHistory(filteredHistEntries, userInput)
+        userInput = "" #input should be reset to correctly account for the case when the resulting filtered history menu is empty
+        os.system("clear")
+        if len(filteredHistEntries) > 0:
+            displayFilteredHistMenu(filteredHistEntries, totalNrOfMatches)
+            userInput = input()
             os.system("clear")
-            if not nav.isMenuEmpty(menuChoice) == True:
-                displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
-                userInput = input()
-                os.system("clear")
-        choiceResult = nav.choosePath(menuChoice, userInput)
+    elif userInput == "":
+        os.system("clear")
+        if not nav.isMenuEmpty(menuChoice) == True:
+            displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
+            userInput = input()
+            os.system("clear")
+    choiceResult = nav.choosePath(menuChoice, userInput, filteredHistEntries)
     return choiceResult
 
 """
@@ -162,92 +177,89 @@ The status returned by this method can have following values:
 4 - replacing directory to which mapping is requested does not exist
 """
 def handleMissingDir(path, menu, previousDir, syncWithFinder):
+    assert len(path) > 0, "Empty 'missing path' argument detected"
+    assert menu in ["-h", "-f"], "Invalid menu type option passed as argument"
     status = 0 # default status, successful missing directory path mapping or removal
     prevDir = previousDir # keep actual previous dir information in case remove dir from menu is executed (otherwise it will be lost)
-    # we need two arguments, one for missing directory path and second for menu type (history/favorites)
-    if path == "" or menu not in ["-h", "-f"]:
-        status = 3
-        print("handleMissingDir: invalid arguments")
-    else:
-        missingDirPath = path
-        menuType = "history" if menu == "-h" else "favorites"
+    missingDirPath = path
+    menuType = "history" if menu == "-h" else "favorites"
+    os.system("clear")
+    print("Invalid directory path: " + missingDirPath)
+    print("The directory might have been moved, renamed or deleted.")
+    print("")
+    print("Please choose the required action: ")
+    print("!r to remove the directory from the menus")
+    print("!m to map to an existing directory")
+    print("! to quit")
+    print("")
+    userChoice = input()
+    # remove directory from history, don't map to anything
+    if userChoice == "!r":
+        removedPath = nav.removeMissingDir(missingDirPath)
         os.system("clear")
-        print("Invalid directory path: " + missingDirPath)
-        print("The directory might have been moved, renamed or deleted.")
+        print("Entry " + removedPath + " has been removed from the menus.")
+    # map missing directory to a valid replacing dir
+    elif userChoice == "!m":
+        doMapping = True
+        os.system("clear")
+        print("Missing directory: " + missingDirPath)
         print("")
-        print("Please choose the required action: ")
-        print("!r to remove the directory from the menus")
-        print("!m to map to an existing directory")
-        print("! to quit")
-        print("")
-        userChoice = input()
-        # remove directory from history, don't map to anything
-        if userChoice == "!r":
-            removedPath = nav.removeMissingDir(missingDirPath)
-            os.system("clear")
-            print("Entry " + removedPath + " has been removed from the menus.")
-        # map missing directory to a valid replacing dir
-        elif userChoice == "!m":
-            doMapping = True
-            os.system("clear")
-            print("Missing directory: " + missingDirPath)
-            print("")
-            print("Enter the name and/or path of the replacing directory.")
-            print("Enter < for mapping from history menu and > for mapping from favorites.")
-            print("Enter ! to quit mapping.")
-            replacingDir = input()
-            if replacingDir == "<" or replacingDir == ">":
-                menuName = "history" if replacingDir == "<" else "favorites"
-                menuVisitResult = visitNavigationMenu("-h" if replacingDir == "<" else "-f")
-                if menuVisitResult[0] == ":4":
-                    status = 4
-                    doMapping = False
-                    print("There are no entries in the " + menuName + " menu. Cannot perform mapping.")
-                elif menuVisitResult[0] == ":2":
-                    status = 2
-                    doMapping = False
-                    print("Mapping aborted.")
-                elif menuVisitResult[0] == ":1":
-                    replacingDir = menuVisitResult[1] #input mirrored back, "normal" input interpreted as user entered path
-                else:
-                    replacingDir = menuVisitResult[0] #path retrieved from menu
-            elif replacingDir == "!":
+        print("Enter the name and/or path of the replacing directory.")
+        print("Enter < for mapping from history menu and > for mapping from favorites.")
+        print("Enter ! to quit mapping.")
+        replacingDir = input()
+        if replacingDir == "<" or replacingDir == ">":
+            menuName = "history" if replacingDir == "<" else "favorites"
+            menuVisitResult = visitNavigationMenu("-h" if replacingDir == "<" else "-f")
+            if menuVisitResult[0] == ":4":
+                status = 4
+                doMapping = False
+                print("There are no entries in the " + menuName + " menu. Cannot perform mapping.")
+            elif menuVisitResult[0] == ":2":
                 status = 2
                 doMapping = False
-                os.system("clear")
                 print("Mapping aborted.")
-            if doMapping == True:
-                with open(input_storage_file, "w") as inputStorage:
-                    inputStorage.write(replacingDir)
-                    inputStorage.close() # file needs to be closed otherwise the below executed BASH command might return unexpected results
-                    # build BASH command for retrieving the absolute path of the replacing dir (if exists)
-                    command = "input=`head -1 " + input_storage_file + "`; "
-                    command = command + "output=" + output_storage_file + "; "
-                    command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
-                    os.system(command)
-                    with open(output_storage_file, "r") as outputStorage:
-                        replacingDirPath = outputStorage.readline().strip('\n')
-                        if replacingDirPath == ":4":
-                            status = 4
-                            os.system("clear")
-                            print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted or you might not have the required access level.")
-                            print("Cannot perform mapping.")
-                        else:
-                            prevDir = os.getcwd() # prev dir to be updated to current dir in case of successful mapping
-                            mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
-                            os.system("clear")
-                            print("Missing directory: " + mappingResult[0])
-                            print("Replacing directory: " + mappingResult[1])
-                            print("")
-                            print("Mapping performed successfully, navigating to replacing directory ...")
-                            print("")
-                            goTo(mappingResult[1], prevDir, syncWithFinder)
-        elif userChoice == "!":
+            elif menuVisitResult[0] == ":1":
+                replacingDir = menuVisitResult[1] #input mirrored back, "normal" input interpreted as user entered path
+            else:
+                replacingDir = menuVisitResult[0] #path retrieved from menu
+        elif replacingDir == "!":
             status = 2
+            doMapping = False
             os.system("clear")
-            print("You exited the " + menuType +  " menu")
-        else:
-            status = 1
+            print("Mapping aborted.")
+        if doMapping == True:
+            with open(input_storage_file, "w") as inputStorage:
+                inputStorage.write(replacingDir)
+                inputStorage.close() # file needs to be closed otherwise the below executed BASH command might return unexpected results
+                # build BASH command for retrieving the absolute path of the replacing dir (if exists)
+                command = "input=`head -1 " + input_storage_file + "`; "
+                command = command + "output=" + output_storage_file + "; "
+                command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
+                os.system(command)
+                with open(output_storage_file, "r") as outputStorage:
+                    replacingDirPath = outputStorage.readline().strip('\n')
+                    if replacingDirPath == ":4":
+                        status = 4
+                        os.system("clear")
+                        print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted or you might not have the required access level.")
+                        print("Cannot perform mapping.")
+                    else:
+                        prevDir = os.getcwd() # prev dir to be updated to current dir in case of successful mapping
+                        mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
+                        os.system("clear")
+                        print("Missing directory: " + mappingResult[0])
+                        print("Replacing directory: " + mappingResult[1])
+                        print("")
+                        print("Mapping performed successfully, navigating to replacing directory ...")
+                        print("")
+                        goTo(mappingResult[1], prevDir, syncWithFinder)
+    elif userChoice == "!":
+        status = 2
+        os.system("clear")
+        print("You exited the " + menuType +  " menu")
+    else:
+        status = 1
     return (status, userChoice, prevDir)
 
 def clearVisitedDirsMenu():
@@ -256,7 +268,7 @@ def clearVisitedDirsMenu():
 
 def addDirToFavorites(dirPath = ""):
     pathToAdd = common.getAbsoluteDirPath(dirPath)
-    if pathToAdd != "":
+    if len(pathToAdd) > 0:
         if nav.isContainedInFavorites(pathToAdd) == False:
             nav.addPathToFavorites(pathToAdd)
             print("Directory " + pathToAdd + " added to favorites.")
