@@ -119,23 +119,30 @@ def displayFormattedCmdFileContent(fileContent, firstRowNr = 0, limit = -1):
 
 def setPathAutoComplete():
     def getDirectoryContent(dirPath):
-        dirPathLength = len(dirPath)
-        if dirPath.startswith(os.path.sep): # case 1: absolute path
-            dirName = os.path.dirname(dirPath)
+        dirName = os.path.dirname(dirPath)
+        if dirPath.startswith(os.path.sep):
             dirContent = os.listdir(dirName)
+        elif dirPath.startswith("~"):
+            dirContent = [dirPath] if len(dirPath) == 1 else os.listdir(expanduser('~') + dirName[1:])
+        elif dirPath.startswith(".."):
+            dirContent = [dirPath] if len(dirPath) == 2 else os.listdir(dirName)
+        elif dirPath.startswith("."):
+            dirContent = [dirPath] if len(dirPath) == 1 else os.listdir(dirName)
+        else:
+            dirContent = os.listdir(os.curdir) if len(dirName) == 0 else os.listdir(dirName)
+        # general auto-completion if no corner cases occur
+        if len(dirContent) > 1 or dirContent[0] != dirPath:
             dirContent = [os.path.join(dirName, name) for name in dirContent]
-        elif dirPath.startswith(".."): # case 2: relative path, parent directory
-            dirContent = os.listdir(os.pardir)
-            dirContent = [os.path.join(os.pardir, name) for name in dirContent]
-        elif dirPath.startswith(".") and (dirPathLength == 1 or (dirPathLength > 1 and dirPath[1] == "/")): # case 3: relative path, current directory, dot followed by no character or slash
-            dirContent = os.listdir(os.curdir)
-            dirContent = [os.path.join(os.curdir, name) for name in dirContent]
-        else: # case 4: relative path, current directory, no dot followed by slash
-            dirContent = os.listdir(os.curdir)
+        # terminate path with slash for directory to enable further auto-completion
+        if dirContent[0] == "~" or os.path.isdir(dirContent[0]):
+            dirContent[0] += os.path.sep
+        for index in range(1, len(dirContent)):
+            if os.path.isdir(dirContent[index]):
+                dirContent[index] += os.path.sep
         return dirContent
     def pathCompleter(inputText, state):
         results = [path for path in getDirectoryContent(inputText) if path.startswith(inputText)]
         return results[state]
     readline.set_completer(pathCompleter)
     readline.parse_and_bind("tab: complete")
-    readline.set_completer_delims('`~!@#=+[{]}$%^&*()\\|;:\'",<>? \n\t')
+    readline.set_completer_delims('`!@#=+[{]}$%^&*()\\|;:\'",<>? \n\t')
