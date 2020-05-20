@@ -23,10 +23,46 @@ def initNavMenus():
         os.makedirs(log_dir)
     with open(r_hist_file, "a") as rHist, open(p_hist_file, "a") as pHist, open(e_hist_file, "a"), open(l_hist_file, "a"), \
          open (fav_file, "a"), open(input_storage_file, "a"), open(output_storage_file, "a"):
-        rHist.close() # close, in use by limitEntriesNr()
+        rHist.close() # close, in use by next functions
+        pHist.close() # close, in use by next functions
+        doHistoryCleanup() #clean all invalid paths from history (except the most visited ones from persistent history)
         common.limitEntriesNr(r_hist_file, r_hist_max_entries) # limit the number of entries from recent navigation history files to the maximum allowed and get unified (recent + persistent) history
-        pHist.close() # close, in use by consolidateHistory()
         consolidateHistory()
+
+def doHistoryCleanup():
+    pHistCleanedUp = 0
+    rHistCleanedUp = 0
+    with open(p_hist_file, "r") as pHist, open(r_hist_file, "r") as rHist:
+        # clean up persistent history (except the most visited paths)
+        pHistEntriesInitial = pHist.readlines()
+        pHistEntriesUpdated = pHistEntriesInitial[0:p_hist_max_entries].copy()
+        if len(pHistEntriesInitial) > p_hist_max_entries:
+            for index in range(p_hist_max_entries, len(pHistEntriesInitial)):
+                entry = pHistEntriesInitial[index].split(";")
+                if os.path.exists(entry[0]):
+                    pHistEntriesUpdated.append(pHistEntriesInitial[index])
+                else:
+                    pHistCleanedUp += 1
+        # clean up recent history
+        rHistEntriesUpdated = []
+        for entry in rHist.readlines():
+            if os.path.exists(entry.strip('\n')):
+                rHistEntriesUpdated.append(entry)
+            else:
+                rHistCleanedUp += 1
+        # write back if entries have been cleaned up
+        if pHistCleanedUp > 0:
+            pHist.close()
+            with open(p_hist_file, "w") as pHist:
+                for entry in pHistEntriesUpdated:
+                    pHist.write(entry)
+        if rHistCleanedUp > 0:
+            rHist.close()
+            with open(r_hist_file, "w") as rHist:
+                for entry in rHistEntriesUpdated:
+                    rHist.write(entry)
+    #print("Cleaned up persistent history entries: " + str(pHistCleanedUp))
+    #print("Cleaned up recent history entries: " + str(rHistCleanedUp))
 
 def choosePath(menuChoice, userInput, filteredContent):
     result = (":3", "", "")
@@ -275,6 +311,7 @@ def removeMissingDir(pathToRemove):
                 with open(histFile, "w") as hist:
                     for entry in histContent:
                         hist.write(entry)
+        return itemContainedInHistFile
     assert len(pathToRemove) > 0, "Empty path argument detected"
     with open(fav_file, "r") as fav:
         ns.removePathFromTempHistoryFile(l_hist_file, pathToRemove)
