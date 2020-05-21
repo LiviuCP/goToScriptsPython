@@ -134,10 +134,8 @@ def setPathAutoComplete():
         if len(dirContent) > 1 or dirContent[0] != dirPath:
             dirContent = [os.path.join(dirName, name) for name in dirContent]
         # terminate path with slash for directory to enable further auto-completion
-        if dirContent[0] == "~" or os.path.isdir(dirContent[0]):
-            dirContent[0] += os.path.sep
-        for index in range(1, len(dirContent)):
-            if os.path.isdir(dirContent[index]):
+        for index in range(0, len(dirContent)):
+            if (dirContent[index].startswith('~') and os.path.isdir(expanduser('~') + dirContent[index][1:])) or os.path.isdir(dirContent[index]):
                 dirContent[index] += os.path.sep
         return dirContent
     def pathCompleter(inputText, state):
