@@ -1,5 +1,5 @@
 import os
-import display as out, navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt
+import display as out, navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt, rename as rn
 
 def execute():
     common.setPathAutoComplete()
@@ -133,6 +133,8 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         recursiveTransfer.eraseTargetDir(True)
     elif userInput == ":dtd":
         recursiveTransfer.displayTargetDir()
+    elif userInput == ":rn":
+        rn.rename()
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         print("Input cancelled, no action performed!")
     elif userInput == "!":

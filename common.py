@@ -144,3 +144,33 @@ def setPathAutoComplete():
     readline.set_completer(pathCompleter)
     readline.parse_and_bind("tab: complete")
     readline.set_completer_delims('`!@#=+[{]}$%^&*()\\|;:\'",<>? \n\t')
+
+# request user input: for required numeric input a condition must be fulfilled (empty input allowance should be stipulated in errorCondition)
+def getInputWithNumCondition(requestMessage, isNumValRequired, errorCondition, errorMessage):
+    resultingInput = ""
+    isValidInput = False
+    while not isValidInput:
+        userInput = input(requestMessage)
+        if isNumValRequired and ((len(userInput) > 0 and not userInput.isdigit()) or errorCondition(userInput)):
+            print(errorMessage)
+        elif len(userInput) == 0:
+            break
+        else:
+            resultingInput = userInput
+            isValidInput = True
+    return resultingInput
+
+# request user input: any text input allowed, however an error condition may restrict this to some specific values (empty input allowance should also be stipulated in errorCondition)
+def getInputWithTextCondition(requestMessage, errorCondition, errorMessage):
+    resultingInput = ""
+    isValidInput = False
+    while not isValidInput:
+        userInput = input(requestMessage)
+        if errorCondition(userInput):
+            print(errorMessage)
+        elif len(userInput) == 0:
+            break
+        else:
+            resultingInput = userInput
+            isValidInput = True
+    return resultingInput

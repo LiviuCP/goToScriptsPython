@@ -108,6 +108,7 @@ def displayHelp():
     print(":td   -  setup current directory for recursive move/copy")
     print(":etd  -  erase setup target directory")
     print(":dtd  -  display setup target directory (if any)")
+    print(":rn   -  rename a batch of items contained in current directory")
     print(":-    -  repeat last executed shell command (if any)")
     print(":     -  enter a shell command based on previous command")
     print(":<    -  enter command history menu (add keyword to get filtered entries)")
