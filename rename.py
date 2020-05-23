@@ -53,14 +53,16 @@ def rename():
     def doRenameItems(renamingMap):
         assert len(renamingMap) > 0, "Empty renaming map detected"
         renamingDone = True #just to make sure the loop is executed at least once
+        sortAscending = True #alternative sorting will be performed so a bi-directional passing of the dict keys is performed
         while renamingDone:
             renamingDone = False
-            for entry in sorted(renamingMap.keys(), key = lambda k: k.lower()):
+            for entry in sorted(renamingMap.keys(), key = lambda k: k.lower(), reverse = not sortAscending):
                 # we MUST ensure no map value is an existing current dir item, otherwise the it will get OVERWRITTEN (severe issue)
                 if len(renamingMap[entry]) > 0 and not os.path.exists(renamingMap[entry]):
                     os.rename(entry, renamingMap[entry])
                     renamingMap[entry] = ""
                     renamingDone = True
+            sortAscending = not sortAscending #change direction
     isOptionValid = False
     choice = ""
     while isOptionValid == False:
