@@ -1,4 +1,4 @@
-import os, common, rename_backend as rn
+import os, datetime, common, rename_backend as rn
 
 available_options = {'a', 'A', 'p', 'P', 'i', 'I', 'd', 'r', 'R'}
 simulation_limit = 5 #number of files for which the renaming would be simulated
@@ -57,11 +57,21 @@ def rename():
         while renamingDone:
             renamingDone = False
             for entry in sorted(renamingMap.keys(), key = lambda k: k.lower(), reverse = not sortAscending):
-                # we MUST ensure no map value is an existing current dir item, otherwise the it will get OVERWRITTEN (severe issue)
-                if len(renamingMap[entry]) > 0 and not os.path.exists(renamingMap[entry]):
-                    os.rename(entry, renamingMap[entry])
-                    renamingMap[entry] = ""
-                    renamingDone = True
+                # we MUST ensure no renaming occurs if the map value is an existing current dir item, otherwise the it will get OVERWRITTEN and DATA IS LOST
+                if len(renamingMap[entry]) > 0:
+                    if not os.path.exists(renamingMap[entry]):
+                        os.rename(entry, renamingMap[entry])
+                        renamingMap[entry] = ""
+                        renamingDone = True
+                    # handle any possible (although with very low probability) swap of two item names ('A' gets renamed to 'B' and vice-versa) which might cause an infinite loop
+                    elif renamingMap[renamingMap[entry]] == entry:
+                        tempItemName = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                        os.rename(entry, tempItemName)
+                        os.rename(renamingMap[entry], entry)
+                        os.rename(tempItemName, renamingMap[entry])
+                        renamingMap[renamingMap[entry]] = ""
+                        renamingMap[entry] = ""
+                        renamingDone = True
             sortAscending = not sortAscending #change direction
     isOptionValid = False
     choice = ""
