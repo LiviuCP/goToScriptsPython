@@ -55,11 +55,12 @@ def rename():
         renamingDone = True #just to make sure the loop is executed at least once
         while renamingDone:
             renamingDone = False
-            for entry in sorted(renamingMap.items(), key = lambda k:(k[1], k[0].lower())):
-                if len(entry[1]) > 0 and not os.path.exists(entry[1]):
-                    os.rename(entry[0], entry[1])
+            for entry in sorted(renamingMap.keys(), key = lambda k: k.lower()):
+                # we MUST ensure no map value is an existing current dir item, otherwise the it will get OVERWRITTEN (severe issue)
+                if len(renamingMap[entry]) > 0 and not os.path.exists(renamingMap[entry]):
+                    os.rename(entry, renamingMap[entry])
+                    renamingMap[entry] = ""
                     renamingDone = True
-                    renamingMap[entry[0]] = ""
     isOptionValid = False
     choice = ""
     while isOptionValid == False:
