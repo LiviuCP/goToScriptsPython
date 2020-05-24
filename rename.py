@@ -2,6 +2,12 @@ import os, datetime, common, rename_backend as rn
 
 available_options = {'a', 'A', 'p', 'P', 'i', 'I', 'd', 'r', 'R'}
 simulation_limit = 5 #number of files for which the renaming would be simulated
+statusMessages = [
+    "Success",
+    "Some items could not be renamed due to insufficient string size",
+    "Duplicate items would result from renaming"
+]
+
 
 def rename():
     """
@@ -69,59 +75,59 @@ def rename():
                         os.rename(entry, tempItemName)
                         os.rename(renamingMap[entry], entry)
                         os.rename(tempItemName, renamingMap[entry])
+                        print("Items " + entry + " and " + renamingMap[entry] + " swapped!") # these rare (if ever existing) situations need to be captured
                         renamingMap[renamingMap[entry]] = ""
                         renamingMap[entry] = ""
                         renamingDone = True
             sortAscending = not sortAscending #change direction
-    isOptionValid = False
-    choice = ""
-    while isOptionValid == False:
-        print("Following options are available for batch renaming:")
-        print("")
-        print("a - append string to each filename")
-        print("A - append incrementing number to each filename")
-        print("p - prepend string to each filename")
-        print("P - prepend incrementing number to each filename")
-        print("i - insert string into each filename")
-        print("I - insert incrementing number into each filename")
-        print("d - delete a substring from each filename")
-        print("r - replace a substring from each filename with a substring")
-        print("R - replace a substring from each filename with an incrementing number")
-        print("At any time in the dialog press ENTER to quit")
-        print("")
-        choice = input("Enter the required option: ")
-        os.system("clear")
-        if len(choice) > 0 and choice not in available_options:
-            print("Invalid option selected")
+    if rn.areRenameableItemsInCurrentDir():
+        isOptionValid = False
+        choice = ""
+        while isOptionValid == False:
+            print("Following options are available for batch renaming:")
             print("")
-        else:
-            isOptionValid = True
-    shouldRename = False
-    errorOccurred = False
-    if len(choice) > 0:
-        renamingParams = promptForRenameParameters(choice)
-        assert len(renamingParams) == 4, "Incorrect number of tuple values"
-        os.system("clear")
-        if not renamingParams[0]:
-            buildParams = (renamingParams[1], renamingParams[2], renamingParams[3])
-            renamingMap = dict()
-            rn.buildRenamingMap(choice, buildParams, renamingMap)
-            if not rn.isRenamingMapValid(renamingMap):
-                errorOccurred = True
+            print("a - append string to each filename")
+            print("A - append incrementing number to each filename")
+            print("p - prepend string to each filename")
+            print("P - prepend incrementing number to each filename")
+            print("i - insert string into each filename")
+            print("I - insert incrementing number into each filename")
+            print("d - delete a substring from each filename")
+            print("r - replace a substring from each filename with a substring")
+            print("R - replace a substring from each filename with an incrementing number")
+            print("At any time in the dialog press ENTER to quit")
+            print("")
+            choice = input("Enter the required option: ")
+            os.system("clear")
+            if len(choice) > 0 and choice not in available_options:
+                print("Invalid option selected")
+                print("")
             else:
-                simulateRenaming(renamingMap) # give the user a hint about how the renamed files will look like; a renaming decision is then expected from user
-                decision = common.getInputWithTextCondition("Would you like to proceed? (y - yes, n - no (exit)) ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
+                isOptionValid = True
+        shouldRename = False
+        status = 0 # default status, no errors
+        if len(choice) > 0:
+            renamingParams = promptForRenameParameters(choice)
+            assert len(renamingParams) == 4, "Incorrect number of tuple values"
+            os.system("clear")
+            if not renamingParams[0]:
+                buildParams = (renamingParams[1], renamingParams[2], renamingParams[3])
+                renamingMap = dict()
+                status = rn.buildRenamingMap(choice, buildParams, renamingMap)
+                assert status in range(3), "Unknown status code for renaming map build"
+                if status == 0:
+                    simulateRenaming(renamingMap) # give the user a hint about how the renamed files will look like; a renaming decision is then expected from user
+                    decision = common.getInputWithTextCondition("Would you like to proceed? (y - yes, n - no (exit)) ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
                                                             "Invalid choice selected. Please try again")
-                os.system("clear")
-                if decision.lower() == 'y':
-                    shouldRename = True
-    if shouldRename:
-        doRenameItems(renamingMap)
-        print("Items renamed")
-    elif errorOccurred:
-        print("Cannot rename the items. Possible reasons: ")
-        print(" - the directory is empty")
-        print(" - an out-of-range position for insert/delete/replace has been provided")
-        print(" - duplicate filenames are being created")
+                    os.system("clear")
+                    if decision.lower() == 'y':
+                        shouldRename = True
+        if shouldRename:
+            doRenameItems(renamingMap)
+            print("Items renamed")
+        elif status > 0:
+            print("Cannot rename the items. " + statusMessages[status])
+        else:
+            print("Renaming aborted")
     else:
-        print("Renaming aborted")
+        print("The directory is empty or contains only hidden items. Cannot perform renaming")
