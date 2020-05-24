@@ -1,4 +1,4 @@
-import os
+import os, common
 
 available_options = {'a', 'A', 'p', 'P', 'i', 'I', 'd', 'r', 'R'}
 
@@ -39,7 +39,7 @@ def buildRenamingMap(choice, buildParams, renamingMap):
                 result = strippedFilename[0:buildParams[1]] + currentValue + strippedFilename[buildParams[1]:len(strippedFilename)]
         if choice in {'A', 'P', 'I', 'R'}:
             number = int(currentValue) + 1
-            currentValue = str(number)
+            currentValue = str(common.addPaddingZeroes(str(number), len(buildParams[0])))
         return (result, (currentValue, buildParams[1], buildParams[2]))
     def isValidRenamingMap(renamingMap):
         isValid = False
@@ -52,6 +52,9 @@ def buildRenamingMap(choice, buildParams, renamingMap):
     assert areRenameableItemsInCurrentDir(), "The current dir is empty or all items are hidden"
     assert choice in available_options, "The choice argument is invalid"
     assert len(buildParams) == 3, "The number of rename map build parameters is not correct"
+    isNumericRenameRequested = True if choice in {"A", "P", "I", "R"} else False
+    if isNumericRenameRequested:
+        assert str(buildParams[0]).isdigit(), "Non-numeric value detected for numeric rename operation"
     status = 0 # default code, succesfull creation of renamingMap
     transmittedBuildParams = buildParams
     curDirItems = []
@@ -60,6 +63,10 @@ def buildRenamingMap(choice, buildParams, renamingMap):
         if not entry.startswith('.'):
             curDirItems.append(entry)
     curDirItems.sort(key = lambda k: k.lower())
+    #fixed number of characters the numeric string should have (for fixed strings it doesn't matter so we set it 0) to have all numbers aligned
+    requestedNrOfCharacters = len(str(int(buildParams[0]) + len(curDirItems) - 1))  if isNumericRenameRequested else 0
+    if isNumericRenameRequested:
+        transmittedBuildParams = (common.addPaddingZeroes(buildParams[0], requestedNrOfCharacters), buildParams[1], buildParams[2])
     resultingMap = dict()
     for entry in curDirItems:
         result = createRenamingString(entry, choice, transmittedBuildParams)

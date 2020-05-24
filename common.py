@@ -174,3 +174,10 @@ def getInputWithTextCondition(requestMessage, errorCondition, errorMessage):
             resultingInput = userInput
             isValidInput = True
     return resultingInput
+
+def addPaddingZeroes(number, totalDigits):
+    result = str(number)
+    assert result.isdigit() and int(result) >= 0, "The number is not valid (should be a non-negative integer)"
+    while len(result) < totalDigits:
+        result = "0" + result
+    return result
