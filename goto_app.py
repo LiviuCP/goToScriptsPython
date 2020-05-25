@@ -1,5 +1,8 @@
 import os
-import display as out, navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt
+import display as out, navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt, rename as rn
+
+renaming_commands = {"ra", "ran", "rp", "rpn", "ri", "rin", "rd", "rr", "rrn"}
+renaming_translations = {"ra" : "a", "ran" : "A", "rp" : "p", "rpn" : "P", "ri" : "i", "rin" : "I", "rd" : "d", "rr" : "r", "rrn" : "R"}
 
 syncWithFinder = False
 closeFinder = True # set this variable to False if Finder should stay open when sync is toggled to off via :s command
@@ -19,7 +22,7 @@ def execute():
     os.system("clear")
     print("Welcome to navigation app!")
     while True == True:
-        if userInput != "?":
+        if userInput not in {"?", "?clip", "?ren"}:
             out.displayGeneralOutput(prevDir, syncWithFinder) if prevCommand == "" else out.displayGeneralOutput(prevDir, syncWithFinder, prevCommand, commandResult)
         userInput = input()
         while True == True:
@@ -49,6 +52,10 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
     shouldForwardData = False
     if userInput == "?":
         out.displayHelp()
+    elif userInput == "?clip":
+        out.displayClipboardHelp()
+    elif userInput == "?ren":
+        out.displayRenamingHelp()
     elif userInput == ":-":
         if prevCommand == "":
             print("No shell command previously executed")
@@ -138,6 +145,8 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         recursiveTransfer.eraseTargetDir(True)
     elif userInput == ":dtd":
         recursiveTransfer.displayTargetDir()
+    elif userInput.startswith(":") and userInput[1:] in renaming_commands:
+        rn.rename(renaming_translations[userInput[1:]])
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         print("Input cancelled, no action performed!")
     elif userInput == ":s":
