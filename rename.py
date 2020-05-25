@@ -8,8 +8,7 @@ status_messages = [
     "Duplicate items would result from renaming"
 ]
 
-
-def rename():
+def rename(chosenOption):
     """
     This function should return a tuple consisting of following fields:
     - abort: True if user aborts entering rename params
@@ -80,48 +79,25 @@ def rename():
                         renamingMap[entry] = ""
                         renamingDone = True
             sortAscending = not sortAscending #change direction
+    assert chosenOption in available_options, "The option argument is invalid"
     if rn.areRenameableItemsInCurrentDir():
-        isOptionValid = False
-        choice = ""
-        while isOptionValid == False:
-            print("Following options are available for batch renaming:")
-            print("")
-            print("a - append string to each filename")
-            print("A - append incrementing number to each filename")
-            print("p - prepend string to each filename")
-            print("P - prepend incrementing number to each filename")
-            print("i - insert string into each filename")
-            print("I - insert incrementing number into each filename")
-            print("d - delete a substring from each filename")
-            print("r - replace a substring from each filename with a substring")
-            print("R - replace a substring from each filename with an incrementing number")
-            print("At any time in the dialog press ENTER to quit")
-            print("")
-            choice = input("Enter the required option: ")
-            os.system("clear")
-            if len(choice) > 0 and choice not in available_options:
-                print("Invalid option selected")
-                print("")
-            else:
-                isOptionValid = True
         shouldRename = False
         status = 0 # default status, no errors
-        if len(choice) > 0:
-            renamingParams = promptForRenameParameters(choice)
-            assert len(renamingParams) == 4, "Incorrect number of tuple values"
-            os.system("clear")
-            if not renamingParams[0]:
-                buildParams = (renamingParams[1], renamingParams[2], renamingParams[3])
-                renamingMap = dict()
-                status = rn.buildRenamingMap(choice, buildParams, renamingMap)
-                assert status in range(3), "Unknown status code for renaming map build"
-                if status == 0:
-                    simulateRenaming(renamingMap) # give the user a hint about how the renamed files will look like; a renaming decision is then expected from user
-                    decision = common.getInputWithTextCondition("Would you like to proceed? (y - yes, n - no (exit)) ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
+        renamingParams = promptForRenameParameters(chosenOption)
+        assert len(renamingParams) == 4, "Incorrect number of tuple values"
+        os.system("clear")
+        if not renamingParams[0]:
+            buildParams = (renamingParams[1], renamingParams[2], renamingParams[3])
+            renamingMap = dict()
+            status = rn.buildRenamingMap(chosenOption, buildParams, renamingMap)
+            assert status in range(3), "Unknown status code for renaming map build"
+            if status == 0:
+                simulateRenaming(renamingMap) # give the user a hint about how the renamed files will look like; a renaming decision is then expected from user
+                decision = common.getInputWithTextCondition("Would you like to proceed? (y - yes, n - no (exit)) ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
                                                             "Invalid choice selected. Please try again")
-                    os.system("clear")
-                    if decision.lower() == 'y':
-                        shouldRename = True
+                os.system("clear")
+                if decision.lower() == 'y':
+                    shouldRename = True
         if shouldRename:
             doRenameItems(renamingMap)
             print("Items renamed")
