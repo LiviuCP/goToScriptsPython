@@ -153,6 +153,7 @@ def getInputWithNumCondition(requestMessage, isNumValRequired, errorCondition, e
         userInput = input(requestMessage)
         if isNumValRequired and ((len(userInput) > 0 and not userInput.isdigit()) or errorCondition(userInput)):
             print(errorMessage)
+            print("")
         elif len(userInput) == 0:
             break
         else:
@@ -168,6 +169,7 @@ def getInputWithTextCondition(requestMessage, errorCondition, errorMessage):
         userInput = input(requestMessage)
         if errorCondition(userInput):
             print(errorMessage)
+            print("")
         elif len(userInput) == 0:
             break
         else:

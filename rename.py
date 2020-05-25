@@ -1,4 +1,4 @@
-import os, datetime, common, rename_backend as rn
+import os, datetime, common, rename_backend as rn, display as out
 
 available_options = {'a', 'A', 'p', 'P', 'i', 'I', 'd', 'r', 'R'}
 simulation_limit = 5 #number of files for which the renaming would be simulated
@@ -8,7 +8,37 @@ status_messages = [
     "Duplicate items would result from renaming"
 ]
 
+available_options_labels = {
+    'a' : "append text",
+    'A' : "append incremented numeric value",
+    'p' : "prepend text",
+    'P' : "prepend incremented numeric value",
+    "i" : "insert text",
+    "I" : "insert incremented numeric value",
+    "d" : "delete text",
+    "r" : "replace characters with text",
+    "R" : "replace characters with incremented numeric value"
+}
+
 def rename(chosenOption):
+    def displayRenameInfo(chosenOption, valueToAdd = "", position = -1, nrOfRemovedCharacters = 0):
+        assert chosenOption in available_options, "The option argument is invalid"
+        os.system("clear")
+        print("1. Current directory:")
+        print(os.getcwd())
+        print("")
+        print("2. Items contained (hidden ones are excluded):")
+        print("")
+        out.displayCurrentDirContent()
+        print("")
+        print("3. Renaming information")
+        print("")
+        print("Rename operation: " + available_options_labels[chosenOption])
+        valueToAddPrefix = "Initial numeric value" if chosenOption in {'A', 'P', 'I', 'R'} else "Value"
+        print(valueToAddPrefix + " to add: " + valueToAdd) if len(valueToAdd) > 0 else print("", end='')
+        print("Position: " + str(position)) if position >= 0 else print("", end='')
+        print("Number of removed characters: " + str(nrOfRemovedCharacters)) if nrOfRemovedCharacters > 0 else print("", end='')
+        print("")
     """
     This function should return a tuple consisting of following fields:
     - abort: True if user aborts entering rename params
@@ -26,31 +56,41 @@ def rename(chosenOption):
         isNumValueRequired = True if chosenOption in {'A', 'P', 'I', 'R'} else False
         shouldAbort = False
         if chosenOption != 'd':
+            displayRenameInfo(chosenOption, valueToAdd, position, nrOfRemovedCharacters)
             requestedInput = common.getInputWithNumCondition("Enter the value to be added: ", isNumValueRequired, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
                                                          "Invalid input! A positive numeric value is required")
             shouldAbort = (len(requestedInput) == 0)
             if not shouldAbort:
                 valueToAdd = requestedInput
         if shouldAbort == False and chosenOption in {'i', 'I', 'd', 'r', 'R'}:
+            displayRenameInfo(chosenOption, valueToAdd, position, nrOfRemovedCharacters)
             requestedInput = common.getInputWithNumCondition("Enter the position within the file name: ", True, lambda userInput: len(userInput) > 0 and int(userInput) < 0, \
                                                          "Invalid input! A non-negative numeric value is required")
             shouldAbort = (len(requestedInput) == 0)
             if not shouldAbort:
                 position = int(requestedInput)
         if shouldAbort == False and chosenOption in {'d', 'r', 'R'}:
+            displayRenameInfo(chosenOption, valueToAdd, position, nrOfRemovedCharacters)
             requestedInput = common.getInputWithNumCondition("Enter the number of characters to be removed: ", True, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
                                                          "Invalid input! A positive numeric value is required")
             shouldAbort = (len(requestedInput) == 0)
             if not shouldAbort:
                 nrOfRemovedCharacters = int(requestedInput)
         return (shouldAbort, valueToAdd, position, nrOfRemovedCharacters)
-    def simulateRenaming(renamingMap):
+    def simulateRenaming(renamingMap, chosenOption, buildParams):
         assert len(renamingMap) > 0, "Empty renaming map detected"
-        print("Here is how the renamed items would look like:")
+        assert chosenOption in available_options, "The option argument is invalid"
+        assert len(buildParams) == 3, "The number of renaming map build parameters is not correct"
+        displayRenameInfo(chosenOption, buildParams[0], buildParams[1], buildParams[2])
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("Renaming of all items (except hidden ones) is about to proceed!")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("")
+        print("Here a few examples about how the renamed items would look like:")
         print("")
         entryNumber = 0
         for key, value in renamingMap.items():
-            print("Original: " + key + "\tRenamed: " + value)
+            print('{0:<40s} {1:<80s}'.format("Original:  " + key, "Renamed:  " + value))
             entryNumber += 1
             if entryNumber == simulation_limit:
                 break
@@ -92,8 +132,8 @@ def rename(chosenOption):
             status = rn.buildRenamingMap(chosenOption, buildParams, renamingMap)
             assert status in range(3), "Unknown status code for renaming map build"
             if status == 0:
-                simulateRenaming(renamingMap) # give the user a hint about how the renamed files will look like; a renaming decision is then expected from user
-                decision = common.getInputWithTextCondition("Would you like to proceed? (y - yes, n - no (exit)) ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
+                simulateRenaming(renamingMap, chosenOption, buildParams) # give the user a hint about how the renamed files will look like; a renaming decision is then expected from user
+                decision = common.getInputWithTextCondition("Would you like to continue? (y - yes, n - no (exit)) ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
                                                             "Invalid choice selected. Please try again")
                 os.system("clear")
                 if decision.lower() == 'y':
