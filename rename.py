@@ -2,7 +2,7 @@ import os, datetime, common, rename_backend as rn
 
 available_options = {'a', 'A', 'p', 'P', 'i', 'I', 'd', 'r', 'R'}
 simulation_limit = 5 #number of files for which the renaming would be simulated
-statusMessages = [
+status_messages = [
     "Success",
     "Some items could not be renamed due to insufficient string size",
     "Duplicate items would result from renaming"
@@ -126,7 +126,7 @@ def rename():
             doRenameItems(renamingMap)
             print("Items renamed")
         elif status > 0:
-            print("Cannot rename the items. " + statusMessages[status])
+            print("Cannot rename the items. " + status_messages[status])
         else:
             print("Renaming aborted")
     else:
