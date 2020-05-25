@@ -39,6 +39,7 @@ def buildRenamingMap(choice, buildParams, renamingMap):
                 result = strippedFilename[0:buildParams[1]] + currentValue + strippedFilename[buildParams[1]:len(strippedFilename)]
         if choice in {'A', 'P', 'I', 'R'}:
             number = int(currentValue) + 1
+            assert len(str(number)) <= len(currentValue) #ensure enough padding has been provided by calling function to accomodate the increment by keeping the total number of digits
             currentValue = str(common.addPaddingZeroes(str(number), len(buildParams[0])))
         return (result, (currentValue, buildParams[1], buildParams[2]))
     def isValidRenamingMap(renamingMap):
