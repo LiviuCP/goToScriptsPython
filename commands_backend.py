@@ -118,7 +118,7 @@ def buildFilteredCommandHistory(filteredContent, filterKey):
     return nrOfMatches
 
 def clearCommandHistory():
-    with open(c_r_hist_file, "w"), open(c_hist_file, "w"), open(c_p_str_hist_file, "w"), open(c_p_num_hist_file, "w"):
+    with open(c_r_hist_file, "w"), open(c_p_str_hist_file, "w"), open(c_p_num_hist_file, "w"), open(c_hist_file, "w"), open(c_l_hist_file, "w"):
         print("", end='')
 
 def consolidateCommandHistory():
