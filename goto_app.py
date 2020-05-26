@@ -21,6 +21,7 @@ def execute():
         if userInput not in {"?", "?clip", "?ren"}:
             out.displayGeneralOutput(prevDir) if prevCommand == "" else out.displayGeneralOutput(prevDir, prevCommand, commandResult)
         userInput = input()
+        userInput = userInput.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history
         while True == True:
             os.system("clear")
             result = handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfer)
