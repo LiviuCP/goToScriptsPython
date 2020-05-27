@@ -49,6 +49,7 @@ def editAndExecPrevCmd(previousCommand = ""):
         readline.set_pre_input_hook(hook)
     print("(press \':\' + ENTER to quit):")
     commandToExecute = input()
+    commandToExecute = commandToExecute.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the command history
     readline.set_pre_input_hook() # ensure any further input is no longer pre-filled
     os.system("clear")
     if commandToExecute == "" or commandToExecute[len(commandToExecute)-1] == ':':

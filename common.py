@@ -122,12 +122,16 @@ def setPathAutoComplete():
         dirName = os.path.dirname(dirPath)
         if dirPath.startswith(os.path.sep):
             dirContent = os.listdir(dirName)
-        elif dirPath.startswith("~"):
-            dirContent = [dirPath] if len(dirPath) == 1 else os.listdir(expanduser('~') + dirName[1:])
-        elif dirPath.startswith(".."):
-            dirContent = [dirPath] if len(dirPath) == 2 else os.listdir(dirName)
-        elif dirPath.startswith("."):
-            dirContent = [dirPath] if len(dirPath) == 1 else os.listdir(dirName)
+        elif dirPath in ["~", ".", ".."]:
+            dirContent = []
+            for entry in os.listdir(os.curdir):
+                if entry.startswith(dirPath):
+                    dirContent.append(entry)
+            dirContent.append(dirPath + os.path.sep)
+        elif dirPath.startswith("~") and dirPath[1] == os.path.sep:
+            dirContent = os.listdir(expanduser('~') + dirName[1:])
+        elif (dirPath.startswith("..") and dirPath[2] == os.path.sep) or (dirPath.startswith(".") and dirPath[1] == os.path.sep):
+            dirContent = os.listdir(dirName)
         else:
             dirContent = os.listdir(os.curdir) if len(dirName) == 0 else os.listdir(dirName)
         # general auto-completion if no corner cases occur
@@ -135,7 +139,8 @@ def setPathAutoComplete():
             dirContent = [os.path.join(dirName, name) for name in dirContent]
         # terminate path with slash for directory to enable further auto-completion
         for index in range(0, len(dirContent)):
-            if (dirContent[index].startswith('~') and os.path.isdir(expanduser('~') + dirContent[index][1:])) or os.path.isdir(dirContent[index]):
+            if (dirContent[index].startswith('~') and dirContent[index] != "~/" and os.path.isdir(expanduser('~') + dirContent[index][1:])) or \
+               (os.path.isdir(dirContent[index]) and dirContent[index] not in ["~/", "./", "../"]):
                 dirContent[index] += os.path.sep
         return dirContent
     def pathCompleter(inputText, state):

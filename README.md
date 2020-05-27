@@ -138,6 +138,8 @@ Notes:
 5) Any newly initiated move (:m) or copy(:c) operation overrides the clipboard.
 6) Use :dc to display the clipboard content and :ec to erase clipboard.
 
+All relevant clipboard commmands can be found in the clipboard help menu. Type ?clip and hit ENTER to have this menu displayed.
+
 5.8. Recursive move/copy
 
 It is also possible to move or copy files recursively from one/more source folder to a setup destination (target) directory. In order to do this following steps are necessary:
@@ -160,9 +162,11 @@ Notes:
    - for the missing directory of the entry the same steps are requires as when visiting the directory through the menu. For more details regarding missing directories from menu check section 7.
    - for the missing parent directory of the entry a warning message will be shown, no further actions enforced from menu.
 
+All relevant recursive move/copy commmands can be found in the clipboard help menu. Type ?clip and hit ENTER to have this menu displayed.
+
 5.9. Getting help
 
-All possible navigation options can be viewed by entering the ? character followed by ENTER in navigation mode. The application remains in "default mode" meaning the user can continue to use the navigation and commands functionality without the need to exit the help menu. This is slightly different from the BASH version where the user had to quit the help dialog to be able to continue to use the application.
+The main navigation options can be viewed by entering the ? character and hitting ENTER in navigation mode. The application remains in "default mode" meaning the user can continue to use the navigation and commands functionality without the need to exit the help menu. This is slightly different from the BASH version where the user had to quit the help dialog to be able to continue to use the application. The main help menu is complemented by two specialized menus, namely the clipboard/recursive help (type ?clip and hit ENTER) and the batch renaming help menu (?ren + ENTER). For more details about these functionality areas check sections 5.7, 5.8 and 8.
 
 6. THE HISTORY FUNCTIONALITY
 
@@ -265,7 +269,47 @@ It is not possible to switch between history and favorites menus when choosing t
 
 Also when choosing a valid replacing path the current directory will be switched to this path after remapping.
 
-8. MISCELLANEOUS
+8. Renaming a batch of items
+
+It is possible to rename all items from the current directory by using various schemes. Please note that for safety reasons the items that are hidden are excluded from this functionality.
+
+Batch renaming involves two basic operations: adding substrings and removing substrings to/from each item name. This can be done in more ways which will be presented below.
+
+The adding of the substring can be done:
+- either by adding a fixed string (like "Photo_") to each item. For example FileA becomes Photo_FileA, FileB becomse Photo_FileB and so on.
+- or by adding a number that is then incremented for each item. For example FileA becomes FileA1, FileB becomes FileB2 and so on.
+
+Following renaming schemes are currently supported:
+- appending a fixed string to each item name
+- appending a number that is incremented for each item
+- prepending a fixed string
+- prepending a number
+- inserting a string by specifying the index within the item name where the insert should occur. For example if the item is FileA, the index is 1 and the string is "_cc" the resulting name will be: F_cc_ileA
+- inserting an incrementable number
+- deleting a substring from each file. For example if deleting 2 characters at index 1, FileA becomes FeA and FileB becomes FeB.
+- replacing a substring with another substring. In addition to file index the number of removed characters should also be given. For example if the file is FileB, the index is 1, the number of removed characters is 2 and the substring to be added is _dd_ the resulting filename is F_dd_eB
+- replacing a substring with an incrementable number
+
+It is possible to combine these operations for more complex renaming. However this has to be done in separate sessions as the functionality does not allow executing them "on the fly". Actually I wouldn't even recommend this. In my opinion it is better to check the intermediary results each time an "atomic" operation is performed.
+
+For details regarding the commands to be used please check the renaming help by typing ?ren in the navigation menu and hitting ENTER. For example the command for appending a fixed substring to each item is :ra.
+
+The steps for performing the renaming are as follows:
+- navigate to the directory in which items should be renamed
+- execute the command for the chosen renaming scheme
+- you will enter an interactive menu where you will be prompted to provide all required data
+- after entering this data a simulation of the renaming is performed and some before/after examples are displayed. Hit y (yes) or n (no) and press ENTER to perform the actual operation or abort it.
+
+Notes:
+1) In the interactive menu it is anytime possible to abort renaming by just hitting ENTER.
+2) For renaming by using an incrementing number it is required to mention the starting value in the interactive menu. For example if the initial value is 3 FileA will be renamed FileA3, FileB - FileB4 and so on when choosing append mode.
+3) Only valid input parameters are accepted. For example it is not allowed to enter negative indexes for insertion. You will be required to re-enter the param if it is not valid.
+4) The system performs some checks based on the entered parameters. The renaming operation will NOT be allowed if any of following conditions occur:
+   - duplicates would result from renaming. If for example you remove one character at index 4 from FileA and FileB the resulting names would be File. This would cause the overriding of the content of one of the files by the other. Such an issue might cause a severe data loss.
+   - at least one of the items cannot be renamed due to parameters that are not fit for its original name size. For example if 2 characters were required to be removed at index 5 of FileA this operation would not be valid for the simple reason that there is nothing at this index. Even if the other items are eligible (say FileAbcdefgh) the operation is not allowed because each visible item needs to be renamed.
+   - also if no visible items are present in the current directory an error will be triggered prior to entering the interactive menu.
+
+9. MISCELLANEOUS
 
 1) It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the navigation favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :<> and hit ENTER in order to clear the navigation history. For command history type ::<> and hit ENTER.
 
