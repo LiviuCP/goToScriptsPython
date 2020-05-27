@@ -17,12 +17,12 @@ def execute():
     recursiveTransfer = rt.RecursiveTransfer()
     os.system("clear")
     print("Welcome to navigation app!")
-    while True == True:
+    while True:
         if userInput not in {"?", "?clip", "?ren"}:
-            out.displayGeneralOutput(prevDir) if prevCommand == "" else out.displayGeneralOutput(prevDir, prevCommand, commandResult)
+            out.displayGeneralOutput(prevDir) if len(prevCommand) == 0 else out.displayGeneralOutput(prevDir, prevCommand, commandResult)
         userInput = input()
         userInput = userInput.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history
-        while True == True:
+        while True:
             os.system("clear")
             result = handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfer)
             if result[0] == 1:
@@ -53,7 +53,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
     elif userInput == "?ren":
         out.displayRenamingHelp()
     elif userInput == ":-":
-        if prevCommand == "":
+        if len(prevCommand) == 0:
             print("No shell command previously executed")
         else:
             result = cmd.executeCommandWithStatus(prevCommand, True)
@@ -156,7 +156,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
             result = nav.goTo(userInput, prevDir)
             handleOutput = 4 if result[0] == 0 else handleOutput
         shouldForwardData = True
-    if shouldForwardData == True:
+    if shouldForwardData:
         passedInput = result[1]
         passedOutput = result[2]
     return (handleOutput, passedInput, passedOutput)

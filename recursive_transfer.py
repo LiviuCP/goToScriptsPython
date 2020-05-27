@@ -13,7 +13,7 @@ class RecursiveTransfer:
         if displayMessage == True:
             print("The target directory has been erased.")
     def displayTargetDir(self):
-        if self.targetDir == "":
+        if len(self.targetDir) == 0:
             print("No target directory has been setup.")
         elif not os.path.isdir(self.targetDir):
             print("Invalid target directory: " + self.targetDir)
@@ -24,7 +24,7 @@ class RecursiveTransfer:
             print("NO") if self.targetDir == os.getcwd() else print("YES")
     def setTargetDir(self, directory = ""):
         isValidDir = False
-        if directory == "":
+        if len(directory) == 0:
             self.targetDir = os.getcwd()
             isValidDir = True
         else:
@@ -41,7 +41,7 @@ class RecursiveTransfer:
                     with open(self.inPath, "r") as inputStorage:
                         self.targetDir = inputStorage.readline().strip('\n')
                         isValidDir = True
-        if isValidDir == True:
+        if isValidDir:
             print("Set new target directory for recursive moving/copying.")
             print("Target path: " + self.targetDir)
         else:
@@ -55,7 +55,7 @@ class RecursiveTransfer:
             self.eraseTargetDir(True)
     def transferItemsToTargetDir(self, copy = True):
         actionLabel = "copy" if copy == True else "move"
-        if self.targetDir == "":
+        if len(self.targetDir) == 0:
             print("No target directory has been setup.")
         elif not os.path.isdir(self.targetDir):
             print("Invalid target directory: " + self.targetDir)
@@ -71,7 +71,7 @@ class RecursiveTransfer:
             print()
             action = "mv -iv" if actionLabel == "move" else "cp -irv"
             keyword = ""
-            while True == True:
+            while True:
                 print("1. Current directory:")
                 print(os.getcwd())
                 print()
@@ -89,7 +89,7 @@ class RecursiveTransfer:
                 print()
                 keyword = input("Enter keyword: ")
                 os.system("clear")
-                if keyword == "":
+                if len(keyword) == 0:
                     print("Recursive " + actionLabel + " mode disabled")
                     break
                 else:

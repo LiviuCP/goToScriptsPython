@@ -21,7 +21,7 @@ def limitEntriesNr(filePath, maxEntries):
         if fileEntries > maxEntries:
             f.close()
             with open(filePath, "w") as f:
-                for entryNr in range(0, maxEntries):
+                for entryNr in range(maxEntries):
                     f.write(fileContent[entryNr])
 
 """
@@ -62,7 +62,7 @@ def getMenuEntry(userInput, content):
 
 # if a valid absolute path is fed as argument the unchanged path (without any ending '/') is returned
 def getAbsoluteDirPath(dirPath):
-    if dirPath == "":
+    if len(dirPath) == 0:
         pathToAdd = os.getcwd()
     else:
         pathToAdd = dirPath
@@ -99,7 +99,7 @@ def displayFormattedNavFileContent(fileContent, firstRowNr = 0, limit = -1):
             dirPath = fileContent[rowNr].strip('\n')
             dirName = os.path.basename(dirPath) if dirPath != "/" else "*root"
             parentDir = os.path.basename(str(Path(dirPath).parent))
-            if parentDir == "":
+            if len(parentDir) == 0:
                 parentDir = "*root"
             elif len(parentDir)-1 > max_nr_of_dir_name_chars:
                 parentDir = parentDir[0:beginCharsToDisplayForDirName] + "..." + parentDir[endCharsToDisplayForDirName-1:]
@@ -138,7 +138,7 @@ def setPathAutoComplete():
         if len(dirContent) > 1 or dirContent[0] != dirPath:
             dirContent = [os.path.join(dirName, name) for name in dirContent]
         # terminate path with slash for directory to enable further auto-completion
-        for index in range(0, len(dirContent)):
+        for index in range(len(dirContent)):
             if (dirContent[index].startswith('~') and dirContent[index] != "~/" and os.path.isdir(expanduser('~') + dirContent[index][1:])) or \
                (os.path.isdir(dirContent[index]) and dirContent[index] not in ["~/", "./", "../"]):
                 dirContent[index] += os.path.sep

@@ -28,7 +28,7 @@ def removePathFromTempHistoryFile(histFile, path):
                     itemContainedInHistFile = True
                 else:
                     histContent.append(entry)
-            if itemContainedInHistFile == True:
+            if itemContainedInHistFile:
                 with open(histFile, "w") as hist:
                     for entry in histContent:
                         hist.write(entry)

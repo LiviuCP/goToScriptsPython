@@ -27,7 +27,7 @@ class Clipboard:
         print()
         self.keyword = input("Enter keyword: ")
         os.system("clear")
-        if self.keyword == "":
+        if len(self.keyword) == 0:
             self.erase()
             print("No keyword input. Clipboard erased.")
             print("Please try again.")
@@ -39,7 +39,7 @@ class Clipboard:
             print("Please choose the destination directory and paste when ready.")
         return status
     def display(self):
-        if self.action == "":
+        if len(self.action) == 0:
             print("The clipboard is empty!")
         elif not os.path.isdir(self.sourceDir):
             print("The source directory contained in clipboard is invalid.")
@@ -54,7 +54,7 @@ class Clipboard:
             print("Can apply to current directory: ", end='')
             print("NO") if self.sourceDir == os.getcwd() else print("YES")
     def applyAction(self):
-        if self.action == "":
+        if len(self.action) == 0:
             print("Error! The clipboard is empty.")
             status = 1
         else:

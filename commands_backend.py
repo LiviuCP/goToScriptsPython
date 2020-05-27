@@ -113,7 +113,7 @@ def buildFilteredCommandHistory(filteredContent, filterKey):
                 result.append(entry.strip('\n'))
                 nrOfMatches = nrOfMatches + 1
         nrOfExposedEntries = nrOfMatches if nrOfMatches < max_filtered_c_hist_entries else max_filtered_c_hist_entries
-        for index in range(0, nrOfExposedEntries):
+        for index in range(nrOfExposedEntries):
             filteredContent.append(result[index])
     return nrOfMatches
 

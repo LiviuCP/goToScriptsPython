@@ -4,11 +4,11 @@ max_nr_of_items = 50 #maximum number of files/dirs listed from current directory
 max_nr_of_chars = 25 #maximum number of characters to be displayed for each item from current directory in navigation mode
 
 def displayGeneralOutput(prevDir, command = "", result = ""):
-    previousDirectory = "none" if prevDir == "" else prevDir
+    previousDirectory = "none" if len(prevDir) == 0 else prevDir
     commandResult = ""
-    if command == "" and result == "":
+    if len(command) == 0 and len(result) == 0:
         lastCommand = 'none'
-    elif result == "" or command == "":
+    elif len(result) == 0 or len(command) == 0:
         lastCommand = 'Error in displaying last command and its result!'
     else:
         lastCommand = command

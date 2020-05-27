@@ -42,7 +42,7 @@ def editAndExecPrevCmd(previousCommand = ""):
     status = 0 #normal execution, no user abort
     passedInput = ""
     passedOutput = ""
-    if previousCommand == "":
+    if len(previousCommand) == 0:
         print("No shell command executed in this session. Enter a new command")
     else:
         print("Please edit the below command and hit ENTER to execute")
@@ -52,7 +52,7 @@ def editAndExecPrevCmd(previousCommand = ""):
     commandToExecute = commandToExecute.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the command history
     readline.set_pre_input_hook() # ensure any further input is no longer pre-filled
     os.system("clear")
-    if commandToExecute == "" or commandToExecute[len(commandToExecute)-1] == ':':
+    if len(commandToExecute) == 0 or commandToExecute[len(commandToExecute)-1] == ':':
         print("Command aborted. You returned to navigation menu.")
         status = 1
     else:

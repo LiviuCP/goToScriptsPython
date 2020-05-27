@@ -10,7 +10,7 @@ output_storage_file = home_dir + ".store_output"
 def goTo(gtDirectory, prevDirectory):
     status = 0 #default status, successful execution
     prevDir = os.getcwd()
-    directory = home_dir if gtDirectory == "" else gtDirectory
+    directory = home_dir if len(gtDirectory) == 0 else gtDirectory
     # build and execute command
     getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
     cdCommand = "cd " + '\"' + "$directory" + '\"' + " 2> /dev/null;"
@@ -21,7 +21,7 @@ def goTo(gtDirectory, prevDirectory):
     # read command exit code and create the status message
     with open(output_storage_file, "r") as outputStorage:
         success = True if outputStorage.readline().strip('\n') == "0" else False
-        if success == True:
+        if success:
             with open(input_storage_file, "r") as inputStorage:
                 currentDir = inputStorage.readline().strip('\n')
                 os.chdir(currentDir)
@@ -138,9 +138,9 @@ def visitNavigationMenu(menuChoice, userInput = ""):
             displayFilteredHistMenu(filteredHistEntries, totalNrOfMatches)
             userInput = input()
             os.system("clear")
-    elif userInput == "":
+    elif len(userInput) == 0:
         os.system("clear")
-        if not nav.isMenuEmpty(menuChoice) == True:
+        if not nav.isMenuEmpty(menuChoice):
             displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
             userInput = input()
             os.system("clear")
@@ -248,7 +248,7 @@ def clearVisitedDirsMenu():
 def addDirToFavorites(dirPath = ""):
     pathToAdd = common.getAbsoluteDirPath(dirPath)
     if len(pathToAdd) > 0:
-        if nav.isContainedInFavorites(pathToAdd) == False:
+        if not nav.isContainedInFavorites(pathToAdd):
             nav.addPathToFavorites(pathToAdd)
             print("Directory " + pathToAdd + " added to favorites.")
         else:
@@ -271,7 +271,7 @@ def removeDirFromFavorites():
         print('')
     status = 0 # default status, successful removal or aborted by user
     userInput = ""
-    if nav.isFavEmpty() == True:
+    if nav.isFavEmpty():
         print("There are no entries in the favorites menu.")
         status = 4
     else:
