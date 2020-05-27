@@ -242,7 +242,7 @@ def handleMissingDir(path, menu, previousDir):
     return (status, userChoice, prevDir)
 
 def clearVisitedDirsMenu():
-    nav.clearHist()
+    nav.clearHistory()
     print("Content of navigation history menu has been erased.")
 
 def addDirToFavorites(dirPath = ""):

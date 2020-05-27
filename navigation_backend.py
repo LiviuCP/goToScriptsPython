@@ -177,7 +177,7 @@ def buildFilteredHistory(filteredContent, filterKey):
             filteredContent.append(result[index])
     return nrOfMatches
 
-def clearHist():
+def clearHistory():
     with open(r_hist_file, "w"), open(p_hist_file, "w"), open(hist_file, "w"), open(l_hist_file, "w"), open(e_hist_file, "w") as eHist, open(fav_file, "r") as fav:
         #re-create excluded history with 0 number of visits for each entry
         for entry in fav.readlines():
