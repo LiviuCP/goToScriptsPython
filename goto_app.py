@@ -62,7 +62,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
         handleOutput = 2 if result[0] == 0 else handleOutput
         shouldForwardData = True
-    elif userInput == "::<>":
+    elif userInput == ":clearcommands":
         cmd.clearCommandHistory()
     elif userInput == ":<":
         result = cmd.visitCommandMenu("--execute")
@@ -119,7 +119,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         result = nav.removeDirFromFavorites()
         handleOutput = 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
-    elif userInput == ":<>":
+    elif userInput == ":clearnavigation":
         nav.clearVisitedDirsMenu()
     elif userInput == ":c":
         clipboard.createAction()
