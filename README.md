@@ -311,6 +311,6 @@ Notes:
 
 9. MISCELLANEOUS
 
-1) It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the navigation favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :<> and hit ENTER in order to clear the navigation history. For command history type ::<> and hit ENTER.
+1) It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the navigation favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :clearnavigation and hit ENTER in order to clear the navigation history. For command history type :clearcommands and hit ENTER.
 
 2) Unlike the equivalent BASH scripts (that can be downloaded from the goToScripts repo: https://github.com/LiviuCP/gotoScripts.git), when exiting the Python script (either by entering ! or CTRL+C) the current directory is not retained but the terminal will revert to the original directory that was current when launching the goto_app.py. Also when executing CTRL+C for script exit a Python error will occur due to keyboard interrupt. This is not something to worry about but the more elegant exit solution is by using the '!' key followed by ENTER.

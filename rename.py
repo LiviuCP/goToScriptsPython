@@ -62,14 +62,14 @@ def rename(chosenOption):
             shouldAbort = (len(requestedInput) == 0)
             if not shouldAbort:
                 valueToAdd = requestedInput
-        if shouldAbort == False and chosenOption in {'i', 'I', 'd', 'r', 'R'}:
+        if not shouldAbort and chosenOption in {'i', 'I', 'd', 'r', 'R'}:
             displayRenameInfo(chosenOption, valueToAdd, position, nrOfRemovedCharacters)
             requestedInput = common.getInputWithNumCondition("Enter the position within the file name: ", True, lambda userInput: len(userInput) > 0 and int(userInput) < 0, \
                                                          "Invalid input! A non-negative numeric value is required")
             shouldAbort = (len(requestedInput) == 0)
             if not shouldAbort:
                 position = int(requestedInput)
-        if shouldAbort == False and chosenOption in {'d', 'r', 'R'}:
+        if not shouldAbort and chosenOption in {'d', 'r', 'R'}:
             displayRenameInfo(chosenOption, valueToAdd, position, nrOfRemovedCharacters)
             requestedInput = common.getInputWithNumCondition("Enter the number of characters to be removed: ", True, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
                                                          "Invalid input! A positive numeric value is required")

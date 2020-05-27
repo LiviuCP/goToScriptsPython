@@ -21,12 +21,12 @@ def execute():
     recursiveTransfer = rt.RecursiveTransfer()
     os.system("clear")
     print("Welcome to navigation app!")
-    while True == True:
+    while True:
         if userInput not in {"?", "?clip", "?ren"}:
-            out.displayGeneralOutput(prevDir, syncWithFinder) if prevCommand == "" else out.displayGeneralOutput(prevDir, syncWithFinder, prevCommand, commandResult)
+            out.displayGeneralOutput(prevDir, syncWithFinder) if len(prevCommand) == 0 else out.displayGeneralOutput(prevDir, syncWithFinder, prevCommand, commandResult)
         userInput = input()
         userInput = userInput.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history
-        while True == True:
+        while True:
             os.system("clear")
             result = handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfer)
             if result[0] == 1:
@@ -58,7 +58,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
     elif userInput == "?ren":
         out.displayRenamingHelp()
     elif userInput == ":-":
-        if prevCommand == "":
+        if len(prevCommand) == 0:
             print("No shell command previously executed")
         else:
             result = cmd.executeCommandWithStatus(prevCommand, True)
@@ -67,7 +67,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
         handleOutput = 2 if result[0] == 0 else handleOutput
         shouldForwardData = True
-    elif userInput == "::<>":
+    elif userInput == ":clearcommands":
         cmd.clearCommandHistory()
     elif userInput == ":<":
         result = cmd.visitCommandMenu("--execute")
@@ -124,7 +124,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         result = nav.removeDirFromFavorites()
         handleOutput = 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
-    elif userInput == ":<>":
+    elif userInput == ":clearnavigation":
         nav.clearVisitedDirsMenu()
     elif userInput == ":c":
         clipboard.createAction()
@@ -168,7 +168,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
             result = nav.goTo(userInput, prevDir, syncWithFinder)
             handleOutput = 4 if result[0] == 0 else handleOutput
         shouldForwardData = True
-    if shouldForwardData == True:
+    if shouldForwardData:
         passedInput = result[1]
         passedOutput = result[2]
     return (handleOutput, passedInput, passedOutput)

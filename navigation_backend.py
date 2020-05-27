@@ -132,13 +132,13 @@ def updateHistory(visitedDirPath):
                 with open(l_hist_file, "a") as lHist:
                     lHist.write(visitedDirPath + "\n")
                     eHistUpdateDict = {}
-                    if (canUpdateVisitsInHistoryFile(e_hist_file, eHistUpdateDict, visitedDirPath) == True):
+                    if canUpdateVisitsInHistoryFile(e_hist_file, eHistUpdateDict, visitedDirPath):
                         with open(e_hist_file, "w") as eHist:
                             for entry in eHistUpdateDict.items():
                                 eHist.write(entry[0] + ";" + str(entry[1]) + '\n')
                     else:
                         pHistUpdateDict = {}
-                        if not (canUpdateVisitsInHistoryFile(p_hist_file, pHistUpdateDict, visitedDirPath) == True):
+                        if not canUpdateVisitsInHistoryFile(p_hist_file, pHistUpdateDict, visitedDirPath):
                             pHistUpdateDict[visitedDirPath] = 1
                         with open(p_hist_file, "w") as pHist:
                             for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
@@ -173,11 +173,11 @@ def buildFilteredHistory(filteredContent, filterKey):
                 result.append(splitEntry[0])
                 nrOfMatches = nrOfMatches + 1
         nrOfExposedEntries = nrOfMatches if nrOfMatches < max_filtered_hist_entries else max_filtered_hist_entries
-        for index in range(0, nrOfExposedEntries):
+        for index in range(nrOfExposedEntries):
             filteredContent.append(result[index])
     return nrOfMatches
 
-def clearHist():
+def clearHistory():
     with open(r_hist_file, "w"), open(p_hist_file, "w"), open(hist_file, "w"), open(l_hist_file, "w"), open(e_hist_file, "w") as eHist, open(fav_file, "r") as fav:
         #re-create excluded history with 0 number of visits for each entry
         for entry in fav.readlines():
@@ -211,7 +211,7 @@ def addPathToFavorites(pathToAdd):
                     movedToExcludedHist = True
             else:
                 pHistUpdateDict[path] = int(splitEntry[1])
-        if movedToExcludedHist == True:
+        if movedToExcludedHist:
             # re-create persistent history file and re-consolidate history
             pHist.close()
             with open(p_hist_file, "w") as pHist:
@@ -307,7 +307,7 @@ def removeMissingDir(pathToRemove):
                     itemContainedInHistFile = True
                 else:
                     histContent.append(entry)
-            if itemContainedInHistFile == True:
+            if itemContainedInHistFile:
                 with open(histFile, "w") as hist:
                     for entry in histContent:
                         hist.write(entry)
@@ -324,7 +324,7 @@ def removeMissingDir(pathToRemove):
                 isInFavFile = True
             else:
                 favContent.append(entry)
-        if isInFavFile == True:
+        if isInFavFile:
             fav.close()
             with open(fav_file, "w") as fav:
                 for entry in favContent:
@@ -332,7 +332,7 @@ def removeMissingDir(pathToRemove):
             removePathFromPermHistoryFile(e_hist_file, pathToRemove)
         else:
             removedFromPHist = removePathFromPermHistoryFile(p_hist_file, pathToRemove)
-        if removedFromRHist == True or removedFromPHist == True:
+        if removedFromRHist or removedFromPHist:
             consolidateHistory()
     return pathToRemove
 
@@ -399,7 +399,7 @@ def mapMissingDir(pathToReplace, replacingPath):
         if isPathToReplaceInFav:
             favContent.remove(pathToReplace)
     elif replacingPath in eHistDict:
-        if favBuilt == False:
+        if not favBuilt:
             buildFavContent(favContent)
             favBuilt = True
         replacingPathVisits = eHistDict[replacingPath]
@@ -408,7 +408,7 @@ def mapMissingDir(pathToReplace, replacingPath):
         if isPathToReplaceInFav:
             favContent.remove(pathToReplace)
     else:
-        if isPathToReplaceInFav == True:
+        if isPathToReplaceInFav:
             eHistDict[replacingPath] = pathToReplaceVisits
             favContent.remove(pathToReplace)
             favContent.append(replacingPath)

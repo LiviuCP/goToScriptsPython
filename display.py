@@ -4,11 +4,11 @@ max_nr_of_items = 50 #maximum number of files/dirs listed from current directory
 max_nr_of_chars = 25 #maximum number of characters to be displayed for each item from current directory in navigation mode
 
 def displayGeneralOutput(prevDir, syncWithFinder, command = "", result = ""):
-    previousDirectory = "none" if prevDir == "" else prevDir
+    previousDirectory = "none" if len(prevDir) == 0 else prevDir
     commandResult = ""
-    if command == "" and result == "":
+    if len(command) == 0 and len(result) == 0:
         lastCommand = 'none'
-    elif result == "" or command == "":
+    elif len(result) == 0 or len(command) == 0:
         lastCommand = 'Error in displaying last command and its result!'
     else:
         lastCommand = command
@@ -100,14 +100,15 @@ def displayHelp():
     print(":     -  enter a shell command based on previous command")
     print(":<    -  enter command history menu (add keyword to get filtered entries)")
     print("::    -  enter command history menu to edit a previous command (add keyword to get filtered entries)")
-    print("::<>  -  clear command history")
     print("<     -  enter history menu")
     print(">     -  enter favorites menu")
     print(",     -  go to the previously visited directory")
     print("+>    -  add current directory to favorites")
     print("->    -  remove a directory from favorites")
-    print(":<>   -  clear navigation history")
     print(":s    -  toggle Finder sync on/off (for Mac OS only)")
+    print("")
+    print("To clear the navigation history enter :clearnavigation and press ENTER.")
+    print("To clear the commands history enter :clearcommands and press ENTER.")
     print("")
     print("Other special options can be found by entering the clipboard/recursive and renaming help menus:")
     print("")
