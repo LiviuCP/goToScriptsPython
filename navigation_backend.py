@@ -7,8 +7,10 @@ p_hist_max_entries = 15
 max_filtered_hist_entries = 5
 home_dir = expanduser("~") + "/"
 r_hist_file = home_dir + ".recent_history"
-p_hist_file = home_dir + ".persistent_history"
-e_hist_file = home_dir + ".excluded_history"
+p_str_hist_file = home_dir + ".persistent_history_strings" # actual persistent history paths
+p_num_hist_file = home_dir + ".persistent_history_numbers" # number of times each path was visited (each row should match a row from the p_str_hist_file)
+e_str_hist_file = home_dir + ".excluded_history_strings" # actual excluded history paths
+e_num_hist_file = home_dir + ".excluded_history_numbers" # number of times each path was visited (each row should match a row from the e_str_hist_file)
 hist_file = home_dir + ".goto_history"
 fav_file = home_dir + ".goto_favorites"
 log_dir = home_dir + ".goToLogs/"
@@ -21,10 +23,11 @@ def initNavMenus():
     # ensure all required files and dirs exist
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
-    with open(r_hist_file, "a") as rHist, open(p_hist_file, "a") as pHist, open(e_hist_file, "a"), open(l_hist_file, "a"), \
-         open (fav_file, "a"), open(input_storage_file, "a"), open(output_storage_file, "a"):
+    with open(r_hist_file, "a") as rHist, open(p_str_hist_file, "a") as pStrHist, open(p_num_hist_file, "a") as pNumHist, open(e_str_hist_file, "a") as eStrHist, open(e_num_hist_file, "a") as eNumHist, \
+         open(l_hist_file, "a"), open (fav_file, "a"), open(input_storage_file, "a"), open(output_storage_file, "a"):
         rHist.close() # close, in use by next functions
-        pHist.close() # close, in use by next functions
+        pStrHist.close() # close, in use by next functions
+        pNumHist.close() # close, in use by next functions
         doHistoryCleanup() #clean all invalid paths from history (except the most visited ones from persistent history)
         common.limitEntriesNr(r_hist_file, r_hist_max_entries) # limit the number of entries from recent navigation history files to the maximum allowed and get unified (recent + persistent) history
         consolidateHistory()
@@ -32,15 +35,20 @@ def initNavMenus():
 def doHistoryCleanup():
     pHistCleanedUp = 0
     rHistCleanedUp = 0
-    with open(p_hist_file, "r") as pHist, open(r_hist_file, "r") as rHist:
+    with open(p_str_hist_file, "r") as pStrHist, open(p_num_hist_file, "r") as pNumHist, open(r_hist_file, "r") as rHist:
         # clean up persistent history (except the most visited paths)
-        pHistEntriesInitial = pHist.readlines()
-        pHistEntriesUpdated = pHistEntriesInitial[0:p_hist_max_entries].copy()
-        if len(pHistEntriesInitial) > p_hist_max_entries:
-            for index in range(p_hist_max_entries, len(pHistEntriesInitial)):
-                entry = pHistEntriesInitial[index].split(";")
-                if os.path.exists(entry[0]):
-                    pHistEntriesUpdated.append(pHistEntriesInitial[index])
+        pStrHistList = pStrHist.readlines()
+        pNumHistList = pNumHist.readlines()
+        assert len(pStrHistList) == len(pNumHistList), "The number of elements in p_str_hist_file is different from the number contained in p_num_hist_file"
+        pStrHistListUpdated = []
+        pNumHistListUpdated = []
+        if len(pStrHistList) > p_hist_max_entries:
+            pStrHistListUpdated = pStrHistList[0:p_hist_max_entries].copy()
+            pNumHistListUpdated = pNumHistList[0:p_hist_max_entries].copy()
+            for index in range(p_hist_max_entries, len(pStrHistList)):
+                if os.path.exists(pStrHistList[index].strip("\n")):
+                    pStrHistListUpdated.append(pStrHistList[index])
+                    pNumHistListUpdated.append(pNumHistList[index])
                 else:
                     pHistCleanedUp += 1
         # clean up recent history
@@ -52,10 +60,12 @@ def doHistoryCleanup():
                 rHistCleanedUp += 1
         # write back if entries have been cleaned up
         if pHistCleanedUp > 0:
-            pHist.close()
-            with open(p_hist_file, "w") as pHist:
-                for entry in pHistEntriesUpdated:
-                    pHist.write(entry)
+            pStrHist.close()
+            pNumHist.close()
+            with open(p_str_hist_file, "w") as pStrHist, open(p_num_hist_file, "w") as pNumHist:
+                for index in range(len(pStrHistListUpdated)):
+                    pStrHist.write(pStrHistListUpdated[index])
+                    pNumHist.write(pNumHistListUpdated[index])
         if rHistCleanedUp > 0:
             rHist.close()
             with open(r_hist_file, "w") as rHist:
@@ -94,17 +104,20 @@ def isMenuEmpty(menuChoice):
 
 """ navigation history update functions """
 def updateHistory(visitedDirPath):
-    def canUpdateVisitsInHistoryFile(histFile, updateDict, visitedPath):
+    def canUpdateVisitsInHistoryFile(strHistFile, numHistFile, updateDict, visitedPath):
         entryContainedInFile = False
-        with open(histFile, "r") as hist:
-            for entry in hist.readlines():
-                splitEntry = entry.strip('\n').split(';')
-                path = splitEntry[0]
+        with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:
+            strHistList = strHist.readlines()
+            numHistList = numHist.readlines()
+            assert len(strHistList) == len(numHistList), "The number of elements in the the string history file is different from the number contained in the numbers history file"
+            for entryNumber in range(len(strHistList)):
+                path = strHistList[entryNumber].strip('\n')
+                count = numHistList[entryNumber].strip('\n')
                 if path == visitedPath:
-                    updateDict[splitEntry[0]] = int(splitEntry[1]) + 1
+                    updateDict[path] = int(count) + 1
                     entryContainedInFile = True
                 else:
-                    updateDict[splitEntry[0]] = int(splitEntry[1])
+                    updateDict[path] = int(count)
         return entryContainedInFile
     assert len(visitedDirPath) > 0, "Empty path argument detected"
     with open(l_hist_file, "a") as lHist, open(r_hist_file, "r") as rHist:
@@ -132,28 +145,29 @@ def updateHistory(visitedDirPath):
                 with open(l_hist_file, "a") as lHist:
                     lHist.write(visitedDirPath + "\n")
                     eHistUpdateDict = {}
-                    if canUpdateVisitsInHistoryFile(e_hist_file, eHistUpdateDict, visitedDirPath):
-                        with open(e_hist_file, "w") as eHist:
-                            for entry in eHistUpdateDict.items():
-                                eHist.write(entry[0] + ";" + str(entry[1]) + '\n')
+                    if canUpdateVisitsInHistoryFile(e_str_hist_file, e_num_hist_file, eHistUpdateDict, visitedDirPath):
+                        with open(e_str_hist_file, "w") as eStrHist, open(e_num_hist_file, "w") as eNumHist:
+                            for path, count in eHistUpdateDict.items():
+                                eStrHist.write(path + '\n')
+                                eNumHist.write(str(count) + '\n')
                     else:
                         pHistUpdateDict = {}
-                        if not canUpdateVisitsInHistoryFile(p_hist_file, pHistUpdateDict, visitedDirPath):
+                        if not canUpdateVisitsInHistoryFile(p_str_hist_file, p_num_hist_file, pHistUpdateDict, visitedDirPath):
                             pHistUpdateDict[visitedDirPath] = 1
-                        with open(p_hist_file, "w") as pHist:
-                            for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                                pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
+                        with open(p_str_hist_file, "w") as pStrHist, open(p_num_hist_file, "w") as pNumHist:
+                            for path, count in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                                pStrHist.write(path + '\n')
+                                pNumHist.write(str(count) + '\n')
 
 def consolidateHistory():
-    with open(r_hist_file, 'r') as rHist, open(p_hist_file, 'r') as pHist, open(hist_file, 'w') as hist:
+    with open(r_hist_file, 'r') as rHist, open(p_str_hist_file, 'r') as pStrHist, open(hist_file, 'w') as hist:
         rHistDict = {}
         pHistDict = {}
         for entry in rHist.readlines():
             rHistDict[entry.strip('\n')] = os.path.basename(entry.strip('\n'))
         limit = 0
-        for entry in pHist.readlines():
-            splitEntry = entry.split(";")
-            pHistDict[splitEntry[0]] = os.path.basename(splitEntry[0])
+        for entry in pStrHist.readlines():
+            pHistDict[entry.strip('\n')] = os.path.basename(entry.strip('\n'))
             limit = limit + 1
             if (limit == p_hist_max_entries):
                 break
@@ -165,12 +179,11 @@ def consolidateHistory():
 def buildFilteredHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Invalid filter key found"
     nrOfMatches = 0
-    with open(p_hist_file, 'r') as pHist:
+    with open(p_str_hist_file, 'r') as pStrHist:
         result = []
-        for entry in pHist.readlines():
-            splitEntry = entry.split(";")
-            if filterKey.lower() in splitEntry[0].lower():
-                result.append(splitEntry[0])
+        for entry in pStrHist.readlines():
+            if filterKey.lower() in entry.strip('\n').lower():
+                result.append(entry.strip('\n'))
                 nrOfMatches = nrOfMatches + 1
         nrOfExposedEntries = nrOfMatches if nrOfMatches < max_filtered_hist_entries else max_filtered_hist_entries
         for index in range(nrOfExposedEntries):
@@ -178,11 +191,11 @@ def buildFilteredHistory(filteredContent, filterKey):
     return nrOfMatches
 
 def clearHistory():
-    with open(r_hist_file, "w"), open(p_hist_file, "w"), open(hist_file, "w"), open(l_hist_file, "w"), open(e_hist_file, "w") as eHist, open(fav_file, "r") as fav:
+    with open(r_hist_file, "w"), open(p_str_hist_file, "w"), open(p_num_hist_file, "w"), open(hist_file, "w"), open(l_hist_file, "w"), open(e_str_hist_file, "w") as eStrHist, open(e_num_hist_file, "w") as eNumHist, open(fav_file, "r") as fav:
         #re-create excluded history with 0 number of visits for each entry
         for entry in fav.readlines():
-            entry = entry.strip('\n')
-            eHist.write(entry + ';0\n')
+            eStrHist.write(entry)
+            eNumHist.write('0\n')
 
 """ add/remove from favorites functions """
 def isContainedInFavorites(pathToAdd):
@@ -199,29 +212,34 @@ def isContainedInFavorites(pathToAdd):
 def addPathToFavorites(pathToAdd):
     assert len(pathToAdd) > 0, "Empty path argument detected"
     # move entry from persistent (if there) to excluded history
-    with open(p_hist_file, "r") as pHist:
+    with open(p_str_hist_file, "r") as pStrHist, open(p_num_hist_file, "r") as pNumHist:
+        pStrHistList = pStrHist.readlines()
+        pNumHistList = pNumHist.readlines()
+        assert len(pStrHistList) == len(pNumHistList), "The number of elements in p_str_hist_file is different from the number contained in p_num_hist_file"
         pHistUpdateDict = {}
         movedToExcludedHist = False
-        for entry in pHist.readlines():
-            splitEntry = entry.strip('\n').split(';')
-            path = splitEntry[0]
-            if path == pathToAdd:
-                with open(e_hist_file, "a") as eHist:
-                    eHist.write(path + ";" + str(splitEntry[1]) + "\n")
+        for index in range(len(pStrHistList)):
+            if pStrHistList[index].strip('\n') == pathToAdd:
+                with open(e_str_hist_file, "a") as eStrHist, open(e_num_hist_file, "a") as eNumHist:
+                    eStrHist.write(pStrHistList[index])
+                    eNumHist.write(pNumHistList[index])
                     movedToExcludedHist = True
             else:
-                pHistUpdateDict[path] = int(splitEntry[1])
+                pHistUpdateDict[pStrHistList[index].strip('\n')] = int(pNumHistList[index].strip('\n'))
         if movedToExcludedHist:
             # re-create persistent history file and re-consolidate history
-            pHist.close()
-            with open(p_hist_file, "w") as pHist:
-                for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                    pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
+            pStrHist.close()
+            pNumHist.close()
+            with open(p_str_hist_file, "w") as pStrHist, open(p_num_hist_file, "w") as pNumHist:
+                for path, count in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                    pStrHist.write(path + '\n')
+                    pNumHist.write(str(count) + '\n')
             consolidateHistory()
         else:
             # add file with no visits to excluded history, it still needs to be there; history remains unchanged
-            with open(e_hist_file, "a") as eHist:
-                eHist.write(pathToAdd + ";0\n")
+            with open(e_str_hist_file, "a") as eStrHist, open(e_num_hist_file, "a") as eNumHist:
+                eStrHist.write(pathToAdd + '\n')
+                eNumHist.write("0\n")
         #append path to favorites entries
         with open(fav_file, "a") as fav:
             fav.write(pathToAdd + '\n')
@@ -230,37 +248,46 @@ def addPathToFavorites(pathToAdd):
 
 def removePathFromFavorites(userInput):
     def removeFromExcludedHistory(pathToRemove):
-        with open(e_hist_file, "r") as eHist:
+        with open(e_str_hist_file, "r") as eStrHist, open(e_num_hist_file, "r") as eNumHist:
+            eStrHistList = eStrHist.readlines()
+            eNumHistList = eNumHist.readlines()
+            assert len(eStrHistList) == len(eNumHistList), "The number of elements in e_str_hist_file is different from the number contained in e_num_hist_file"
             eHistUpdateDict = {}
             pHistUpdateDict = {}
             pathToRemoveVisits = 0
             moveToPersistentHist = False
-            for entry in eHist.readlines():
-                splitEntry = entry.strip('\n').split(';')
-                path = splitEntry[0]
-                visits = splitEntry[1]
+            for index in range(len(eStrHistList)):
+                path = eStrHistList[index].strip('\n')
+                visits = eNumHistList[index].strip('\n')
                 if path == pathToRemove:
                     if visits != "0":
                         pathToRemoveVisits = visits
                         moveToPersistentHist = True
                 else:
                     eHistUpdateDict[path] = visits
-            eHist.close()
-            with open(e_hist_file, "w") as eHist:
-                for entry in eHistUpdateDict.items():
-                    eHist.write(entry[0] + ";" + entry[1] + "\n")
+            eStrHist.close()
+            eNumHist.close()
+            with open(e_str_hist_file, "w") as eStrHist, open(e_num_hist_file, "w") as eNumHist:
+                for path, count in eHistUpdateDict.items():
+                    eStrHist.write(path + '\n')
+                    eNumHist.write(count + '\n')
                 # move item to persistent history file, re-sort it and re-consolidate history
                 if moveToPersistentHist == True:
-                    with open(p_hist_file, "r") as pHist:
-                        for entry in pHist.readlines():
-                            splitEntry = entry.strip('\n').split(';')
-                            pHistUpdateDict[splitEntry[0]] = splitEntry[1]
+                    with open(p_str_hist_file, "r") as pStrHist, open(p_num_hist_file, "r") as pNumHist:
+                        pStrHistList = pStrHist.readlines()
+                        pNumHistList = pNumHist.readlines()
+                        assert len(pStrHistList) == len(pNumHistList), "The number of elements in p_str_hist_file is different from the number contained in p_num_hist_file"
+                        for index in range(len(pStrHistList)):
+                            pHistUpdateDict[pStrHistList[index].strip('\n')] = pNumHistList[index].strip('\n')
                         pHistUpdateDict[pathToRemove] = pathToRemoveVisits
-                        pHist.close()
-                        with open(p_hist_file, "w") as pHist:
-                            for entry in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                                pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
-                            pHist.close()
+                        pStrHist.close()
+                        pNumHist.close()
+                        with open(p_str_hist_file, "w") as pStrHist, open(p_num_hist_file, "w") as pNumHist:
+                            for path, count in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                                pStrHist.write(path + '\n')
+                                pNumHist.write(count + '\n')
+                            pStrHist.close()
+                            pNumHist.close()
                             consolidateHistory()
     pathToRemove = ""
     # remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once
@@ -297,20 +324,27 @@ def isFavEmpty():
 
 """ missing item removal / mapping from navigation history/favorites menu """
 def removeMissingDir(pathToRemove):
-    def removePathFromPermHistoryFile(histFile, pathToRemove):
+    def removePathFromPermHistoryFile(strHistFile, numHistFile, pathToRemove):
         itemContainedInHistFile = False
-        histContent = []
-        with open(histFile, "r") as hist:
-            for entry in hist.readlines():
-                splitEntry = entry.split(';')
-                if splitEntry[0] == pathToRemove:
+        strHistListUpdated = []
+        numHistListUpdated = []
+        with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:
+            strHistList = strHist.readlines()
+            numHistList = numHist.readlines()
+            assert len(strHistList) == len(numHistList), "The number of elements in the the string history file is different from the number contained in the numbers history file"
+            for index in range(len(strHistList)):
+                if strHistList[index].strip('\n') == pathToRemove:
                     itemContainedInHistFile = True
                 else:
-                    histContent.append(entry)
+                    strHistListUpdated.append(strHistList[index])
+                    numHistListUpdated.append(numHistList[index])
             if itemContainedInHistFile:
-                with open(histFile, "w") as hist:
-                    for entry in histContent:
-                        hist.write(entry)
+                strHist.close()
+                numHist.close()
+                with open(strHistFile, "w") as strHist, open(numHistFile, "w") as numHist:
+                    for index in range(len(strHistListUpdated)):
+                        strHist.write(strHistListUpdated[index])
+                        numHist.write(numHistListUpdated[index])
         return itemContainedInHistFile
     assert len(pathToRemove) > 0, "Empty path argument detected"
     with open(fav_file, "r") as fav:
@@ -329,31 +363,35 @@ def removeMissingDir(pathToRemove):
             with open(fav_file, "w") as fav:
                 for entry in favContent:
                     fav.write(entry)
-            removePathFromPermHistoryFile(e_hist_file, pathToRemove)
+            removePathFromPermHistoryFile(e_str_hist_file, e_num_hist_file, pathToRemove)
         else:
-            removedFromPHist = removePathFromPermHistoryFile(p_hist_file, pathToRemove)
+            removedFromPHist = removePathFromPermHistoryFile(p_str_hist_file, p_num_hist_file, pathToRemove)
         if removedFromRHist or removedFromPHist:
             consolidateHistory()
     return pathToRemove
 
 def mapMissingDir(pathToReplace, replacingPath):
-    def buildHistDict(histDict, histFile):
-        with open(histFile, "r") as hist:
-            for entry in hist.readlines():
-                splitEntry = entry.strip('\n').split(';')
-                histDict[splitEntry[0]] = int(splitEntry[1])
+    def buildHistDict(histDict, strHistFile, numHistFile):
+        with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:
+            strHistList = strHist.readlines()
+            numHistList = numHist.readlines()
+            assert len(strHistList) == len(numHistList), "The number of elements in the the string history file is different from the number contained in the numbers history file"
+            for index in range(len(strHistList)):
+                histDict[strHistList[index].strip('\n')] = int(numHistList[index].strip('\n'))
     def buildFavContent(favContent):
         with open(fav_file, "r") as fav:
             for entry in fav.readlines():
                 favContent.append(entry.strip('\n'))
     def resortAndWriteBackToPersistentHist(pHistDict):
-        with open(p_hist_file, "w") as pHist:
-            for entry in sorted(pHistDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                pHist.write(entry[0] + ";" + str(entry[1]) + '\n')
+        with open(p_str_hist_file, "w") as pStrHist, open(p_num_hist_file, "w") as pNumHist:
+            for path, count in sorted(pHistDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                pStrHist.write(path + '\n')
+                pNumHist.write(str(count) + '\n')
     def writeBackToExcludedHist(eHistDict):
-        with open(e_hist_file, "w") as eHist:
-            for entry in eHistDict.items():
-                eHist.write(entry[0] + ";" + str(entry[1]) + '\n')
+        with open(e_str_hist_file, "w") as eStrHist, open(e_num_hist_file, "w") as eNumHist:
+            for path, count in eHistDict.items():
+                eStrHist.write(path + '\n')
+                eNumHist.write(str(count) + '\n')
     def resortAndWriteBackToFav(favContent):
         favDict = {}
         for entry in favContent:
@@ -379,8 +417,8 @@ def mapMissingDir(pathToReplace, replacingPath):
     # remove from recent history if there
     removedFromRHist = ns.removePathFromTempHistoryFile(r_hist_file, pathToReplace)
     # handle persistent and excluded history files update
-    buildHistDict(pHistDict, p_hist_file)
-    buildHistDict(eHistDict, e_hist_file)
+    buildHistDict(pHistDict, p_str_hist_file, p_num_hist_file)
+    buildHistDict(eHistDict, e_str_hist_file, e_num_hist_file)
     if pathToReplace in pHistDict:
         pathToReplaceVisits = pHistDict[pathToReplace]
         pHistDict.pop(pathToReplace)
