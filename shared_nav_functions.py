@@ -33,3 +33,27 @@ def removePathFromTempHistoryFile(histFile, path):
                     for entry in histContent:
                         hist.write(entry)
     return itemContainedInHistFile
+
+def removePathFromPermHistoryFile(strHistFile, numHistFile, pathToRemove):
+    itemContainedInHistFile = False
+    strHistListUpdated = []
+    numHistListUpdated = []
+    nrOfRemovedPathVisits = -1 #default value, path is not contained in the history file
+    with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:
+        strHistList = strHist.readlines()
+        numHistList = numHist.readlines()
+        assert len(strHistList) == len(numHistList), "The number of elements in the the string history file is different from the number contained in the numbers history file"
+        for index in range(len(strHistList)):
+            if strHistList[index].strip('\n') == pathToRemove:
+                nrOfRemovedPathVisits = int(numHistList[index].strip('\n'))
+            else:
+                strHistListUpdated.append(strHistList[index])
+                numHistListUpdated.append(numHistList[index])
+        if nrOfRemovedPathVisits is not -1:
+            strHist.close()
+            numHist.close()
+            with open(strHistFile, "w") as strHist, open(numHistFile, "w") as numHist:
+                for index in range(len(strHistListUpdated)):
+                    strHist.write(strHistListUpdated[index])
+                    numHist.write(numHistListUpdated[index])
+    return nrOfRemovedPathVisits

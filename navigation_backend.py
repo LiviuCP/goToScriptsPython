@@ -211,84 +211,37 @@ def isContainedInFavorites(pathToAdd):
 
 def addPathToFavorites(pathToAdd):
     assert len(pathToAdd) > 0, "Empty path argument detected"
-    # move entry from persistent (if there) to excluded history
-    with open(p_str_hist_file, "r") as pStrHist, open(p_num_hist_file, "r") as pNumHist:
-        pStrHistList = pStrHist.readlines()
-        pNumHistList = pNumHist.readlines()
-        assert len(pStrHistList) == len(pNumHistList), "The number of elements in p_str_hist_file is different from the number contained in p_num_hist_file"
+    nrOfPathVisits = ns.removePathFromPermHistoryFile(p_str_hist_file, p_num_hist_file, pathToAdd)
+    with open(e_str_hist_file, "a") as eStrHist, open(e_num_hist_file, "a") as eNumHist, open(fav_file, "a") as fav:
+        eStrHist.write(pathToAdd + '\n')
+        if nrOfPathVisits is not -1:
+            eNumHist.write(str(nrOfPathVisits) + '\n')
+            consolidateHistory()
+        else:
+            eNumHist.write("0\n")
+        fav.write(pathToAdd + '\n')
+        fav.close() # close, in use by sortFavorites()
+        ns.sortFavorites(fav_file)
+
+def removePathFromFavorites(userInput):
+    def addToPersistentHistory():
         pHistUpdateDict = {}
-        movedToExcludedHist = False
-        for index in range(len(pStrHistList)):
-            if pStrHistList[index].strip('\n') == pathToAdd:
-                with open(e_str_hist_file, "a") as eStrHist, open(e_num_hist_file, "a") as eNumHist:
-                    eStrHist.write(pStrHistList[index])
-                    eNumHist.write(pNumHistList[index])
-                    movedToExcludedHist = True
-            else:
-                pHistUpdateDict[pStrHistList[index].strip('\n')] = int(pNumHistList[index].strip('\n'))
-        if movedToExcludedHist:
-            # re-create persistent history file and re-consolidate history
+        with open(p_str_hist_file, "r") as pStrHist, open(p_num_hist_file, "r") as pNumHist:
+            pStrHistList = pStrHist.readlines()
+            pNumHistList = pNumHist.readlines()
+            assert len(pStrHistList) == len(pNumHistList), "The number of elements in p_str_hist_file is different from the number contained in p_num_hist_file"
+            for index in range(len(pStrHistList)):
+                pHistUpdateDict[pStrHistList[index].strip('\n')] = pNumHistList[index].strip('\n')
+            pHistUpdateDict[pathToRemove] = str(nrOfRemovedPathVisits)
             pStrHist.close()
             pNumHist.close()
             with open(p_str_hist_file, "w") as pStrHist, open(p_num_hist_file, "w") as pNumHist:
                 for path, count in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
                     pStrHist.write(path + '\n')
-                    pNumHist.write(str(count) + '\n')
-            consolidateHistory()
-        else:
-            # add file with no visits to excluded history, it still needs to be there; history remains unchanged
-            with open(e_str_hist_file, "a") as eStrHist, open(e_num_hist_file, "a") as eNumHist:
-                eStrHist.write(pathToAdd + '\n')
-                eNumHist.write("0\n")
-        #append path to favorites entries
-        with open(fav_file, "a") as fav:
-            fav.write(pathToAdd + '\n')
-            fav.close() # close, in use by sortFavorites()
-            ns.sortFavorites(fav_file)
-
-def removePathFromFavorites(userInput):
-    def removeFromExcludedHistory(pathToRemove):
-        with open(e_str_hist_file, "r") as eStrHist, open(e_num_hist_file, "r") as eNumHist:
-            eStrHistList = eStrHist.readlines()
-            eNumHistList = eNumHist.readlines()
-            assert len(eStrHistList) == len(eNumHistList), "The number of elements in e_str_hist_file is different from the number contained in e_num_hist_file"
-            eHistUpdateDict = {}
-            pHistUpdateDict = {}
-            pathToRemoveVisits = 0
-            moveToPersistentHist = False
-            for index in range(len(eStrHistList)):
-                path = eStrHistList[index].strip('\n')
-                visits = eNumHistList[index].strip('\n')
-                if path == pathToRemove:
-                    if visits != "0":
-                        pathToRemoveVisits = visits
-                        moveToPersistentHist = True
-                else:
-                    eHistUpdateDict[path] = visits
-            eStrHist.close()
-            eNumHist.close()
-            with open(e_str_hist_file, "w") as eStrHist, open(e_num_hist_file, "w") as eNumHist:
-                for path, count in eHistUpdateDict.items():
-                    eStrHist.write(path + '\n')
-                    eNumHist.write(count + '\n')
-                # move item to persistent history file, re-sort it and re-consolidate history
-                if moveToPersistentHist == True:
-                    with open(p_str_hist_file, "r") as pStrHist, open(p_num_hist_file, "r") as pNumHist:
-                        pStrHistList = pStrHist.readlines()
-                        pNumHistList = pNumHist.readlines()
-                        assert len(pStrHistList) == len(pNumHistList), "The number of elements in p_str_hist_file is different from the number contained in p_num_hist_file"
-                        for index in range(len(pStrHistList)):
-                            pHistUpdateDict[pStrHistList[index].strip('\n')] = pNumHistList[index].strip('\n')
-                        pHistUpdateDict[pathToRemove] = pathToRemoveVisits
-                        pStrHist.close()
-                        pNumHist.close()
-                        with open(p_str_hist_file, "w") as pStrHist, open(p_num_hist_file, "w") as pNumHist:
-                            for path, count in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                                pStrHist.write(path + '\n')
-                                pNumHist.write(count + '\n')
-                            pStrHist.close()
-                            pNumHist.close()
-                            consolidateHistory()
+                    pNumHist.write(count + '\n')
+                pStrHist.close()
+                pNumHist.close()
+                consolidateHistory()
     pathToRemove = ""
     # remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once
     with open(fav_file, "r") as fav:
@@ -302,7 +255,10 @@ def removePathFromFavorites(userInput):
             fav.close() # close, in use by sortFavorites()
             ns.sortFavorites(fav_file)
             pathToRemove = pathToRemove.strip('\n')
-            removeFromExcludedHistory(pathToRemove)
+            nrOfRemovedPathVisits = ns.removePathFromPermHistoryFile(e_str_hist_file, e_num_hist_file, pathToRemove)
+            # move to persistent history if at least once visited
+            if nrOfRemovedPathVisits > 0:
+                addToPersistentHistory()
     return pathToRemove
 
 def isValidInput(userInput):
@@ -324,28 +280,6 @@ def isFavEmpty():
 
 """ missing item removal / mapping from navigation history/favorites menu """
 def removeMissingDir(pathToRemove):
-    def removePathFromPermHistoryFile(strHistFile, numHistFile, pathToRemove):
-        itemContainedInHistFile = False
-        strHistListUpdated = []
-        numHistListUpdated = []
-        with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:
-            strHistList = strHist.readlines()
-            numHistList = numHist.readlines()
-            assert len(strHistList) == len(numHistList), "The number of elements in the the string history file is different from the number contained in the numbers history file"
-            for index in range(len(strHistList)):
-                if strHistList[index].strip('\n') == pathToRemove:
-                    itemContainedInHistFile = True
-                else:
-                    strHistListUpdated.append(strHistList[index])
-                    numHistListUpdated.append(numHistList[index])
-            if itemContainedInHistFile:
-                strHist.close()
-                numHist.close()
-                with open(strHistFile, "w") as strHist, open(numHistFile, "w") as numHist:
-                    for index in range(len(strHistListUpdated)):
-                        strHist.write(strHistListUpdated[index])
-                        numHist.write(numHistListUpdated[index])
-        return itemContainedInHistFile
     assert len(pathToRemove) > 0, "Empty path argument detected"
     with open(fav_file, "r") as fav:
         ns.removePathFromTempHistoryFile(l_hist_file, pathToRemove)
@@ -363,9 +297,9 @@ def removeMissingDir(pathToRemove):
             with open(fav_file, "w") as fav:
                 for entry in favContent:
                     fav.write(entry)
-            removePathFromPermHistoryFile(e_str_hist_file, e_num_hist_file, pathToRemove)
+            ns.removePathFromPermHistoryFile(e_str_hist_file, e_num_hist_file, pathToRemove)
         else:
-            removedFromPHist = removePathFromPermHistoryFile(p_str_hist_file, p_num_hist_file, pathToRemove)
+            removedFromPHist = ns.removePathFromPermHistoryFile(p_str_hist_file, p_num_hist_file, pathToRemove) is not -1
         if removedFromRHist or removedFromPHist:
             consolidateHistory()
     return pathToRemove
