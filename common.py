@@ -188,3 +188,14 @@ def addPaddingZeroes(number, totalDigits):
     while len(result) < totalDigits:
         result = "0" + result
     return result
+
+""" Some paths should be excluded from visiting if they contain special characters like backslash as this might cause undefined script behavior """
+def hasPathInvalidCharacters(path):
+    assert path is not None and len(path) > 0, "Invalid path argument detected"
+    invalidChars = {'\\'} # further characters considered invalid to be added here
+    hasInvalidCharacters = False
+    for index in range(len(path)):
+        if path[index] in invalidChars:
+            hasInvalidCharacters = True
+            break
+    return hasInvalidCharacters

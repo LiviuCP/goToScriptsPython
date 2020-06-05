@@ -8,7 +8,7 @@ output_storage_file = home_dir + ".store_output"
 
 """ core function for visiting directories """
 def goTo(gtDirectory, prevDirectory):
-    status = 0 #default status, successful execution
+    status = -1
     prevDir = os.getcwd()
     directory = home_dir if len(gtDirectory) == 0 else gtDirectory
     # build and execute command
@@ -20,25 +20,26 @@ def goTo(gtDirectory, prevDirectory):
     os.system(executeCommandWithStatus)
     # read command exit code and create the status message
     with open(output_storage_file, "r") as outputStorage:
-        success = True if outputStorage.readline().strip('\n') == "0" else False
-        if success:
+        if outputStorage.readline().strip('\n') == "0":
             with open(input_storage_file, "r") as inputStorage:
                 currentDir = inputStorage.readline().strip('\n')
-                os.chdir(currentDir)
-                if (prevDir != currentDir):
-                    print("Switched to new directory: " + currentDir)
-                    nav.updateHistory(currentDir)
-                    nav.consolidateHistory()
-                else:
-                    print("Current directory remains unchanged: " + currentDir)
-                    prevDir = prevDirectory
-        else:
-            status = -1 # unsuccessful goTo, cannot change dir
+                if not common.hasPathInvalidCharacters(currentDir): # even if the directory is valid we should ensure it does not have characters like backslash (might cause undefined behavior)
+                    status = 0
+                    os.chdir(currentDir)
+                    if (prevDir != currentDir):
+                        print("Switched to new directory: " + currentDir)
+                        nav.updateHistory(currentDir)
+                        nav.consolidateHistory()
+                    else:
+                        print("Current directory remains unchanged: " + currentDir)
+                        prevDir = prevDirectory
+        if not status is 0:
             prevDir = prevDirectory # ensure the previously visited dir stays the same for consistency reasons (not actually used if the goTo execution is not successful)
             print("Error when attempting to change directory! Possible causes: ")
             print(" - chosen directory path does not exist or has been deleted")
-            print(" - chosen path is not a directory")
+            print(" - chosen path is not a directory or the name has invalid characters")
             print(" - insufficient access rights")
+            print(" - exception raised")
             print("Please try again!")
     return(status, "", prevDir)
 
