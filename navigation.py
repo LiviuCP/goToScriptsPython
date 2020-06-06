@@ -93,9 +93,9 @@ def executeGoToFromMenu(menuChoice, previousDir, syncWithFinder, userInput = "")
                 print()
                 print("Please remove or map the directory and/or child directories within history and/or favorites menus.")
             else:
-                handleResult = handleMissingDir(dirPath, menuChoice, previousDir, syncWithFinder)
                 if menuChoice == "-fh": #entries from filtered history are actually part of persistent history so they should be handled as a missing persistent history entry case
                     menuChoice = "-h"
+                handleResult = handleMissingDir(dirPath, menuChoice, previousDir, syncWithFinder)
                 if handleResult[0] == 1:
                     status = 1 #forward user input
                     passedInput = handleResult[1]
