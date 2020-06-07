@@ -1,33 +1,21 @@
-import sys, os, datetime
-import common
-from os.path import expanduser
-
-home_dir = expanduser("~") + "/"
-c_hist_file = home_dir + ".command_history"
-c_r_hist_file = home_dir + ".recent_command_history"
-c_p_str_hist_file = home_dir + ".persistent_command_history_strings" # actual commands
-c_p_num_hist_file = home_dir + ".persistent_command_history_numbers" # number of times each command was executed (each row should match a row from the c_p_str_hist_file)
-c_r_hist_max_entries = 10
-c_p_hist_max_entries = 15
-max_filtered_c_hist_entries = 5
-c_log_dir = home_dir + ".goToCmdLogs/"
-c_l_hist_file = c_log_dir + datetime.datetime.now().strftime("%Y%m%d")
+import sys, os
+import common, commands_settings as cmdset
 
 """ command history menu init/access functions """
 def initCmdMenus():
     #ensure all required files and dirs exist
-    if not os.path.exists(c_log_dir):
-        os.makedirs(c_log_dir)
-    with open(c_r_hist_file, "a") as crHist, open(c_p_str_hist_file, "a") as cpStrHist, open(c_p_num_hist_file, "a") as cpNumHist:
+    if not os.path.exists(cmdset.c_log_dir):
+        os.makedirs(cmdset.c_log_dir)
+    with open(cmdset.c_r_hist_file, "a") as crHist, open(cmdset.c_p_str_hist_file, "a") as cpStrHist, open(cmdset.c_p_num_hist_file, "a") as cpNumHist:
         crHist.close() # close, in use by limitEntriesNr()
-        common.limitEntriesNr(c_r_hist_file, c_r_hist_max_entries)
+        common.limitEntriesNr(cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries)
         cpStrHist.close() # close, in use by consolidatedHistory()
         cpNumHist.close() # close, in use by consolidatedHistory()
         consolidateCommandHistory()
 
 def chooseCommand(userInput):
     result = (":3", "", "")
-    with open(c_hist_file, "r") as cHist:
+    with open(cmdset.c_hist_file, "r") as cHist:
         result = common.getMenuEntry(userInput, cHist.readlines())
     return result
 
@@ -35,14 +23,14 @@ def chooseFilteredCommand(userInput, filteredContent):
     return common.getMenuEntry(userInput, filteredContent)
 
 def isCommandMenuEmpty():
-    return os.path.getsize(c_hist_file) == 0
+    return os.path.getsize(cmdset.c_hist_file) == 0
 
 def displayFormattedRecentCmdHistContent():
-    with open(c_hist_file, "r") as cHist, open(c_r_hist_file, "r") as crHist:
+    with open(cmdset.c_hist_file, "r") as cHist, open(cmdset.c_r_hist_file, "r") as crHist:
         common.displayFormattedCmdFileContent(cHist.readlines(), 0, len(crHist.readlines()))
 
 def displayFormattedPersistentCmdHistContent():
-    with open(c_hist_file, "r") as cHist, open(c_r_hist_file, "r") as crHist:
+    with open(cmdset.c_hist_file, "r") as cHist, open(cmdset.c_r_hist_file, "r") as crHist:
         common.displayFormattedCmdFileContent(cHist.readlines(), len(crHist.readlines()))
 
 def displayFormattedFilteredCmdHistContent(filteredContent, totalNrOfMatches):
@@ -55,24 +43,8 @@ def displayFormattedFilteredCmdHistContent(filteredContent, totalNrOfMatches):
 
 """ command history update functions """
 def updateCommandHistory(command):
-    def updateIfAlreadyExecuted(updateDict, executedCommand):
-        assert len(executedCommand) > 0, "Empty command argument detected"
-        entryContainedInFile = False
-        with open(c_p_str_hist_file, "r") as cpStrHist, open (c_p_num_hist_file, "r") as cpNumHist:
-            cpStrHistList = cpStrHist.readlines()
-            cpNumHistList = cpNumHist.readlines()
-            assert len(cpStrHistList) == len(cpNumHistList), "The number of elements in c_p_str_hist_file is different from the number contained in c_p_num_hist_file"
-            for entryNumber in range(len(cpStrHistList)):
-                command = cpStrHistList[entryNumber].strip('\n')
-                count =  cpNumHistList[entryNumber].strip('\n')
-                if command == executedCommand:
-                    updateDict[command] = int(count) + 1;
-                    entryContainedInFile = True
-                else:
-                    updateDict[command] = int(count);
-        return entryContainedInFile
     assert len(command) > 0, "Empty command argument detected"
-    with open(c_l_hist_file, "a") as clHist, open(c_r_hist_file, "r") as crHist:
+    with open(cmdset.c_l_hist_file, "a") as clHist, open(cmdset.c_r_hist_file, "r") as crHist:
         crHistContent = []
         crHistEntries = 0
         for entry in crHist.readlines():
@@ -80,11 +52,12 @@ def updateCommandHistory(command):
             crHistEntries = crHistEntries + 1
         if command in crHistContent:
             crHistContent.remove(command)
-        elif crHistEntries == c_r_hist_max_entries:
+        elif crHistEntries == cmdset.c_r_hist_max_entries:
             crHistContent.remove(crHistContent[crHistEntries-1])
         crHistContent = [command] + crHistContent
         crHist.close()
-        with open(c_r_hist_file, "w") as crHist, open(c_l_hist_file, "r") as clHist:
+        clHist.close()
+        with open(cmdset.c_r_hist_file, "w") as crHist, open(cmdset.c_l_hist_file, "r") as clHist:
             for entry in crHistContent:
                 crHist.write(entry+'\n')
             clHistContent = []
@@ -93,36 +66,33 @@ def updateCommandHistory(command):
             clHist.close()
             # only update persistent command history files if the executed command is not being contained in the visit log for the current day
             if command not in clHistContent:
-                with open(c_l_hist_file, "a") as clHist:
+                with open(cmdset.c_l_hist_file, "a") as clHist:
                     clHist.write(command + "\n")
                     cpHistUpdateDict = {}
-                    if not updateIfAlreadyExecuted(cpHistUpdateDict, command):
-                        cpHistUpdateDict[command] = 1
-                    with open(c_p_str_hist_file, "w") as cpStrHist, open(c_p_num_hist_file, "w") as cpNumHist:
-                        for cmd, count in sorted(cpHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                            cpStrHist.write(cmd + '\n')
-                            cpNumHist.write(str(count) + '\n')
+                    common.readFromPermHist(cpHistUpdateDict, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
+                    cpHistUpdateDict[command] = (cpHistUpdateDict[command] + 1) if command in cpHistUpdateDict.keys() else 1
+                    common.writeBackToPermHist(cpHistUpdateDict, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file, True)
 
 def buildFilteredCommandHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Invalid filter key found"
     nrOfMatches = 0
-    with open(c_p_str_hist_file, 'r') as cpStrHist:
+    with open(cmdset.c_p_str_hist_file, 'r') as cpStrHist:
         result = []
         for entry in cpStrHist.readlines():
             if filterKey.lower() in entry.lower():
                 result.append(entry.strip('\n'))
                 nrOfMatches = nrOfMatches + 1
-        nrOfExposedEntries = nrOfMatches if nrOfMatches < max_filtered_c_hist_entries else max_filtered_c_hist_entries
+        nrOfExposedEntries = nrOfMatches if nrOfMatches < cmdset.max_filtered_c_hist_entries else cmdset.max_filtered_c_hist_entries
         for index in range(nrOfExposedEntries):
             filteredContent.append(result[index])
     return nrOfMatches
 
 def clearCommandHistory():
-    with open(c_r_hist_file, "w"), open(c_p_str_hist_file, "w"), open(c_p_num_hist_file, "w"), open(c_hist_file, "w"), open(c_l_hist_file, "w"):
+    with open(cmdset.c_r_hist_file, "w"), open(cmdset.c_p_str_hist_file, "w"), open(cmdset.c_p_num_hist_file, "w"), open(cmdset.c_hist_file, "w"), open(cmdset.c_l_hist_file, "w"):
         print("", end='')
 
 def consolidateCommandHistory():
-    with open(c_r_hist_file, 'r') as crHist, open(c_p_str_hist_file, 'r') as cpStrHist, open(c_hist_file, 'w') as cHist:
+    with open(cmdset.c_r_hist_file, 'r') as crHist, open(cmdset.c_p_str_hist_file, 'r') as cpStrHist, open(cmdset.c_hist_file, 'w') as cHist:
         crHistEntries = crHist.readlines()
         crHistEntries.sort()
         cpStrHistEntries = []
@@ -130,7 +100,7 @@ def consolidateCommandHistory():
         for entry in cpStrHist.readlines():
             cpStrHistEntries.append(entry)
             limit = limit + 1
-            if limit == c_p_hist_max_entries:
+            if limit == cmdset.c_p_hist_max_entries:
                 break;
         cpStrHistEntries.sort()
         for entry in crHistEntries:

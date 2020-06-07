@@ -199,3 +199,22 @@ def hasPathInvalidCharacters(path):
             hasInvalidCharacters = True
             break
     return hasInvalidCharacters
+
+def readFromPermHist(histDict, strHistFile, numHistFile):
+    with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:
+        strHistList = strHist.readlines()
+        numHistList = numHist.readlines()
+        assert len(strHistList) == len(numHistList), "The number of entries contained in file " + strHistFile + " is different from the number contained in file" + numHistFile
+        for index in range(len(strHistList)):
+            histDict[strHistList[index].strip('\n')] = int(numHistList[index].strip('\n'))
+
+def writeBackToPermHist(histDict, strHistFile, numHistFile, shouldSort = False):
+    with open(strHistFile, "w") as strHist, open(numHistFile, "w") as numHist:
+        if shouldSort:
+            for path, count in sorted(histDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                strHist.write(path + '\n')
+                numHist.write(str(count) + '\n')
+        else:
+            for path, count in histDict.items():
+                strHist.write(path + '\n')
+                numHist.write(str(count) + '\n')
