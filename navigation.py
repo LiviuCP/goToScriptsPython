@@ -48,9 +48,9 @@ def initNavMenus():
     nav.initNavMenus()
 
 # negative statuses are special statuses and will be retrieved in conjunction with special characters preceding valid entry numbers (like + -> status -1); path is forwarded as input and used by main app
-def executeGoToFromMenu(menuChoice, previousDir, userInput = ""):
+def executeGoToFromMenu(menuChoice, previousDir, userInput = "", previousCommand = ""):
     assert menuChoice in ["-f", "-h", "-fh"], "Invalid menuChoice argument"
-    menuVisitResult = visitNavigationMenu(menuChoice, userInput)
+    menuVisitResult = visitNavigationMenu(menuChoice, userInput, previousCommand)
     status = 0 # default status, normal execution or missing dir successful removal/mapping
     passedInput = ""
     passedOutput = previousDir
@@ -95,10 +95,12 @@ def executeGoToFromMenu(menuChoice, previousDir, userInput = ""):
         passedOutput = ""
     return (status, passedInput, passedOutput)
 
-def visitNavigationMenu(menuChoice, userInput = ""):
+def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
     def displayCommonMenuPart():
         print("")
         print("Current directory: " + os.getcwd())
+        print("Last executed shell command: ", end='')
+        print(previousCommand) if len(previousCommand) > 0 else print("none")
         print("")
         print("Enter the number of the directory you want to navigate to. ", end='')
         print("To navigate to parent directory enter character ',' before the number.")
