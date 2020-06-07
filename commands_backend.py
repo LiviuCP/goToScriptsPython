@@ -43,22 +43,6 @@ def displayFormattedFilteredCmdHistContent(filteredContent, totalNrOfMatches):
 
 """ command history update functions """
 def updateCommandHistory(command):
-    def updateIfAlreadyExecuted(updateDict, executedCommand):
-        assert len(executedCommand) > 0, "Empty command argument detected"
-        entryContainedInFile = False
-        with open(cmdset.c_p_str_hist_file, "r") as cpStrHist, open (cmdset.c_p_num_hist_file, "r") as cpNumHist:
-            cpStrHistList = cpStrHist.readlines()
-            cpNumHistList = cpNumHist.readlines()
-            assert len(cpStrHistList) == len(cpNumHistList), "The number of elements in c_p_str_hist_file is different from the number contained in c_p_num_hist_file"
-            for entryNumber in range(len(cpStrHistList)):
-                command = cpStrHistList[entryNumber].strip('\n')
-                count =  cpNumHistList[entryNumber].strip('\n')
-                if command == executedCommand:
-                    updateDict[command] = int(count) + 1;
-                    entryContainedInFile = True
-                else:
-                    updateDict[command] = int(count);
-        return entryContainedInFile
     assert len(command) > 0, "Empty command argument detected"
     with open(cmdset.c_l_hist_file, "a") as clHist, open(cmdset.c_r_hist_file, "r") as crHist:
         crHistContent = []
@@ -72,6 +56,7 @@ def updateCommandHistory(command):
             crHistContent.remove(crHistContent[crHistEntries-1])
         crHistContent = [command] + crHistContent
         crHist.close()
+        clHist.close()
         with open(cmdset.c_r_hist_file, "w") as crHist, open(cmdset.c_l_hist_file, "r") as clHist:
             for entry in crHistContent:
                 crHist.write(entry+'\n')
@@ -84,8 +69,8 @@ def updateCommandHistory(command):
                 with open(cmdset.c_l_hist_file, "a") as clHist:
                     clHist.write(command + "\n")
                     cpHistUpdateDict = {}
-                    if not updateIfAlreadyExecuted(cpHistUpdateDict, command):
-                        cpHistUpdateDict[command] = 1
+                    common.readFromPermHist(cpHistUpdateDict, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
+                    cpHistUpdateDict[command] = (cpHistUpdateDict[command] + 1) if command in cpHistUpdateDict.keys() else 1
                     common.writeBackToPermHist(cpHistUpdateDict, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file, True)
 
 def buildFilteredCommandHistory(filteredContent, filterKey):

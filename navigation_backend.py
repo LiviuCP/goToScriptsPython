@@ -90,21 +90,6 @@ def isMenuEmpty(menuChoice):
 
 """ navigation history update functions """
 def updateHistory(visitedDirPath):
-    def canUpdateVisitsInHistoryFile(strHistFile, numHistFile, updateDict, visitedPath):
-        entryContainedInFile = False
-        with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:
-            strHistList = strHist.readlines()
-            numHistList = numHist.readlines()
-            assert len(strHistList) == len(numHistList), "The number of elements in the the string history file is different from the number contained in the numbers history file"
-            for entryNumber in range(len(strHistList)):
-                path = strHistList[entryNumber].strip('\n')
-                count = numHistList[entryNumber].strip('\n')
-                if path == visitedPath:
-                    updateDict[path] = int(count) + 1
-                    entryContainedInFile = True
-                else:
-                    updateDict[path] = int(count)
-        return entryContainedInFile
     assert len(visitedDirPath) > 0, "Empty path argument detected"
     with open(navset.l_hist_file, "a") as lHist, open(navset.r_hist_file, "r") as rHist:
         rHistContent = []
@@ -131,12 +116,14 @@ def updateHistory(visitedDirPath):
                 with open(navset.l_hist_file, "a") as lHist:
                     lHist.write(visitedDirPath + "\n")
                     eHistUpdateDict = {}
-                    if canUpdateVisitsInHistoryFile(navset.e_str_hist_file, navset.e_num_hist_file, eHistUpdateDict, visitedDirPath):
+                    common.readFromPermHist(eHistUpdateDict, navset.e_str_hist_file, navset.e_num_hist_file)
+                    if visitedDirPath in eHistUpdateDict.keys():
+                        eHistUpdateDict[visitedDirPath] += 1
                         common.writeBackToPermHist(eHistUpdateDict, navset.e_str_hist_file, navset.e_num_hist_file)
                     else:
                         pHistUpdateDict = {}
-                        if not canUpdateVisitsInHistoryFile(navset.p_str_hist_file, navset.p_num_hist_file, pHistUpdateDict, visitedDirPath):
-                            pHistUpdateDict[visitedDirPath] = 1
+                        common.readFromPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file)
+                        pHistUpdateDict[visitedDirPath] = (pHistUpdateDict[visitedDirPath] + 1) if visitedDirPath in pHistUpdateDict else 1
                         common.writeBackToPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file, True)
 
 def consolidateHistory():
