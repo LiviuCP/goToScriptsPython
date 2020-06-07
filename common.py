@@ -199,3 +199,14 @@ def hasPathInvalidCharacters(path):
             hasInvalidCharacters = True
             break
     return hasInvalidCharacters
+
+def writeBackToPermHist(histDict, strHistFile, numHistFile, shouldSort = False):
+    with open(strHistFile, "w") as strHist, open(numHistFile, "w") as numHist:
+        if shouldSort:
+            for path, count in sorted(histDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                strHist.write(path + '\n')
+                numHist.write(str(count) + '\n')
+        else:
+            for path, count in histDict.items():
+                strHist.write(path + '\n')
+                numHist.write(str(count) + '\n')

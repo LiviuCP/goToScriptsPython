@@ -86,10 +86,7 @@ def updateCommandHistory(command):
                     cpHistUpdateDict = {}
                     if not updateIfAlreadyExecuted(cpHistUpdateDict, command):
                         cpHistUpdateDict[command] = 1
-                    with open(cmdset.c_p_str_hist_file, "w") as cpStrHist, open(cmdset.c_p_num_hist_file, "w") as cpNumHist:
-                        for cmd, count in sorted(cpHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                            cpStrHist.write(cmd + '\n')
-                            cpNumHist.write(str(count) + '\n')
+                    common.writeBackToPermHist(cpHistUpdateDict, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file, True)
 
 def buildFilteredCommandHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Invalid filter key found"

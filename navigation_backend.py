@@ -132,18 +132,12 @@ def updateHistory(visitedDirPath):
                     lHist.write(visitedDirPath + "\n")
                     eHistUpdateDict = {}
                     if canUpdateVisitsInHistoryFile(navset.e_str_hist_file, navset.e_num_hist_file, eHistUpdateDict, visitedDirPath):
-                        with open(navset.e_str_hist_file, "w") as eStrHist, open(navset.e_num_hist_file, "w") as eNumHist:
-                            for path, count in eHistUpdateDict.items():
-                                eStrHist.write(path + '\n')
-                                eNumHist.write(str(count) + '\n')
+                        common.writeBackToPermHist(eHistUpdateDict, navset.e_str_hist_file, navset.e_num_hist_file)
                     else:
                         pHistUpdateDict = {}
                         if not canUpdateVisitsInHistoryFile(navset.p_str_hist_file, navset.p_num_hist_file, pHistUpdateDict, visitedDirPath):
                             pHistUpdateDict[visitedDirPath] = 1
-                        with open(navset.p_str_hist_file, "w") as pStrHist, open(navset.p_num_hist_file, "w") as pNumHist:
-                            for path, count in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                                pStrHist.write(path + '\n')
-                                pNumHist.write(str(count) + '\n')
+                        common.writeBackToPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file, True)
 
 def consolidateHistory():
     with open(navset.r_hist_file, 'r') as rHist, open(navset.p_str_hist_file, 'r') as pStrHist, open(navset.hist_file, 'w') as hist:
@@ -221,13 +215,8 @@ def removePathFromFavorites(userInput):
             pHistUpdateDict[pathToRemove] = str(nrOfRemovedPathVisits)
             pStrHist.close()
             pNumHist.close()
-            with open(navset.p_str_hist_file, "w") as pStrHist, open(navset.p_num_hist_file, "w") as pNumHist:
-                for path, count in sorted(pHistUpdateDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                    pStrHist.write(path + '\n')
-                    pNumHist.write(count + '\n')
-                pStrHist.close()
-                pNumHist.close()
-                consolidateHistory()
+            common.writeBackToPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file, True)
+            consolidateHistory()
     pathToRemove = ""
     # remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once
     with open(navset.fav_file, "r") as fav:
@@ -302,16 +291,6 @@ def mapMissingDir(pathToReplace, replacingPath):
         with open(navset.fav_file, "r") as fav:
             for entry in fav.readlines():
                 favContent.append(entry.strip('\n'))
-    def resortAndWriteBackToPersistentHist(pHistDict):
-        with open(navset.p_str_hist_file, "w") as pStrHist, open(navset.p_num_hist_file, "w") as pNumHist:
-            for path, count in sorted(pHistDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                pStrHist.write(path + '\n')
-                pNumHist.write(str(count) + '\n')
-    def writeBackToExcludedHist(eHistDict):
-        with open(navset.e_str_hist_file, "w") as eStrHist, open(navset.e_num_hist_file, "w") as eNumHist:
-            for path, count in eHistDict.items():
-                eStrHist.write(path + '\n')
-                eNumHist.write(str(count) + '\n')
     def resortAndWriteBackToFav(favContent):
         favDict = {}
         for entry in favContent:
@@ -376,7 +355,7 @@ def mapMissingDir(pathToReplace, replacingPath):
             reSortPHist = True
     # write back to files
     if isPathToReplaceInFav:
-        writeBackToExcludedHist(eHistDict)
+        common.writeBackToPermHist(eHistDict, navset.e_str_hist_file, navset.e_num_hist_file)
         if reSortFav == True: #old path had been replaced by an unvisited file
             resortAndWriteBackToFav(favContent)
             if removedFromRHist:
@@ -384,13 +363,13 @@ def mapMissingDir(pathToReplace, replacingPath):
         else:
             writeBackToFav(favContent) #old path had been removed and taken over by a visited path from persistent history/favorites
             if replacingPath in pHistDict and reSortPHist == True: #replacing path is in persistent history and the number of visits had been increased (taken over from the replaced path)
-                resortAndWriteBackToPersistentHist(pHistDict)
+                common.writeBackToPermHist(pHistDict, navset.p_str_hist_file, navset.p_num_hist_file, True)
                 consolidateHistory()
             elif removedFromRHist:
                 consolidateHistory()
     else:
-        resortAndWriteBackToPersistentHist(pHistDict) #always re-sort persistent history when path to be replaced is there
+        common.writeBackToPermHist(pHistDict, navset.p_str_hist_file, navset.p_num_hist_file, True) #always re-sort persistent history when path to be replaced is there
         if replacingPath in eHistDict:
-            writeBackToExcludedHist(eHistDict)
+            common.writeBackToPermHist(eHistDict, navset.e_str_hist_file, navset.e_num_hist_file)
         consolidateHistory()
     return (pathToReplace, replacingPath)
