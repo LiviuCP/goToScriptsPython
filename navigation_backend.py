@@ -206,17 +206,10 @@ def addPathToFavorites(pathToAdd):
 def removePathFromFavorites(userInput):
     def addToPersistentHistory():
         pHistUpdateDict = {}
-        with open(navset.p_str_hist_file, "r") as pStrHist, open(navset.p_num_hist_file, "r") as pNumHist:
-            pStrHistList = pStrHist.readlines()
-            pNumHistList = pNumHist.readlines()
-            assert len(pStrHistList) == len(pNumHistList), "The number of elements in p_str_hist_file is different from the number contained in p_num_hist_file"
-            for index in range(len(pStrHistList)):
-                pHistUpdateDict[pStrHistList[index].strip('\n')] = pNumHistList[index].strip('\n')
-            pHistUpdateDict[pathToRemove] = str(nrOfRemovedPathVisits)
-            pStrHist.close()
-            pNumHist.close()
-            common.writeBackToPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file, True)
-            consolidateHistory()
+        common.readFromPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file)
+        pHistUpdateDict[pathToRemove] = int(nrOfRemovedPathVisits)
+        common.writeBackToPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file, True)
+        consolidateHistory()
     pathToRemove = ""
     # remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once
     with open(navset.fav_file, "r") as fav:
@@ -280,13 +273,6 @@ def removeMissingDir(pathToRemove):
     return pathToRemove
 
 def mapMissingDir(pathToReplace, replacingPath):
-    def buildHistDict(histDict, strHistFile, numHistFile):
-        with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:
-            strHistList = strHist.readlines()
-            numHistList = numHist.readlines()
-            assert len(strHistList) == len(numHistList), "The number of elements in the the string history file is different from the number contained in the numbers history file"
-            for index in range(len(strHistList)):
-                histDict[strHistList[index].strip('\n')] = int(numHistList[index].strip('\n'))
     def buildFavContent(favContent):
         with open(navset.fav_file, "r") as fav:
             for entry in fav.readlines():
@@ -316,8 +302,8 @@ def mapMissingDir(pathToReplace, replacingPath):
     # remove from recent history if there
     removedFromRHist = ns.removePathFromTempHistoryFile(navset.r_hist_file, pathToReplace)
     # handle persistent and excluded history files update
-    buildHistDict(pHistDict, navset.p_str_hist_file, navset.p_num_hist_file)
-    buildHistDict(eHistDict, navset.e_str_hist_file, navset.e_num_hist_file)
+    common.readFromPermHist(pHistDict, navset.p_str_hist_file, navset.p_num_hist_file)
+    common.readFromPermHist(eHistDict, navset.e_str_hist_file, navset.e_num_hist_file)
     if pathToReplace in pHistDict:
         pathToReplaceVisits = pHistDict[pathToReplace]
         pHistDict.pop(pathToReplace)
