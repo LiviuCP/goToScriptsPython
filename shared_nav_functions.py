@@ -1,6 +1,10 @@
-""" functions shared within nav_menu_update.py and not used elsewhere """
+""" functions shared within navigation_backend.py and not used elsewhere """
 
 import os
+from pathlib import Path
+
+max_nr_of_dir_name_chars = 25
+max_nr_of_path_chars = 75
 
 def sortFavorites(favFile):
     assert len(favFile) > 0 and os.path.isfile(favFile), "Invalid favorites file"
@@ -57,3 +61,26 @@ def removePathFromPermHistoryFile(strHistFile, numHistFile, pathToRemove):
                     strHist.write(strHistListUpdated[index])
                     numHist.write(numHistListUpdated[index])
     return nrOfRemovedPathVisits
+
+def displayFormattedNavFileContent(fileContent, firstRowNr = 0, limit = -1):
+    beginCharsToDisplayForDirName = max_nr_of_dir_name_chars // 2 #first characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
+    endCharsToDisplayForDirName = beginCharsToDisplayForDirName - max_nr_of_dir_name_chars #last characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
+    beginCharsToDisplayForPath = max_nr_of_path_chars // 2 #first characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
+    endCharsToDisplayForPath = beginCharsToDisplayForPath - max_nr_of_path_chars #last characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
+    nrOfRows = len(fileContent)
+    limit = nrOfRows if limit < 0 or limit > nrOfRows else limit
+    if firstRowNr < limit and firstRowNr >= 0:
+        print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format('', '- PARENT DIR -', '- DIR NAME -', '- DIR PATH -'))
+        for rowNr in range(firstRowNr, limit):
+            dirPath = fileContent[rowNr].strip('\n')
+            dirName = os.path.basename(dirPath) if dirPath != "/" else "*root"
+            parentDir = os.path.basename(str(Path(dirPath).parent))
+            if len(parentDir) == 0:
+                parentDir = "*root"
+            elif len(parentDir)-1 > max_nr_of_dir_name_chars:
+                parentDir = parentDir[0:beginCharsToDisplayForDirName] + "..." + parentDir[endCharsToDisplayForDirName-1:]
+            if len(dirName)-1 > max_nr_of_dir_name_chars:
+                dirName = dirName[0:beginCharsToDisplayForDirName] + "..." + dirName[endCharsToDisplayForDirName-1:]
+            if len(dirPath)-1 > max_nr_of_path_chars:
+                dirPath = dirPath[0:beginCharsToDisplayForPath] + "..." + dirPath[endCharsToDisplayForPath-1:]
+            print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format(str(rowNr+1), parentDir, dirName, dirPath))

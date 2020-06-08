@@ -3,9 +3,6 @@
 import os
 from pathlib import Path
 
-max_nr_of_dir_name_chars = 25
-max_nr_of_path_chars = 75
-
 def limitEntriesNr(filePath, maxEntries):
     assert len(filePath) > 0, "Empty path argument detected"
     with open(filePath, "r") as f:
@@ -54,37 +51,6 @@ def getMenuEntry(userInput, content):
     else:
         output = ":4" if len(content) == 0 else ":2" if userInput == '!' else ":1"
     return (output.strip("\n"), userInput, "")
-
-def displayFormattedNavFileContent(fileContent, firstRowNr = 0, limit = -1):
-    beginCharsToDisplayForDirName = max_nr_of_dir_name_chars // 2 #first characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
-    endCharsToDisplayForDirName = beginCharsToDisplayForDirName - max_nr_of_dir_name_chars #last characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
-    beginCharsToDisplayForPath = max_nr_of_path_chars // 2 #first characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
-    endCharsToDisplayForPath = beginCharsToDisplayForPath - max_nr_of_path_chars #last characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
-    nrOfRows = len(fileContent)
-    limit = nrOfRows if limit < 0 or limit > nrOfRows else limit
-    if firstRowNr < limit and firstRowNr >= 0:
-        print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format('', '- PARENT DIR -', '- DIR NAME -', '- DIR PATH -'))
-        for rowNr in range(firstRowNr, limit):
-            dirPath = fileContent[rowNr].strip('\n')
-            dirName = os.path.basename(dirPath) if dirPath != "/" else "*root"
-            parentDir = os.path.basename(str(Path(dirPath).parent))
-            if len(parentDir) == 0:
-                parentDir = "*root"
-            elif len(parentDir)-1 > max_nr_of_dir_name_chars:
-                parentDir = parentDir[0:beginCharsToDisplayForDirName] + "..." + parentDir[endCharsToDisplayForDirName-1:]
-            if len(dirName)-1 > max_nr_of_dir_name_chars:
-                dirName = dirName[0:beginCharsToDisplayForDirName] + "..." + dirName[endCharsToDisplayForDirName-1:]
-            if len(dirPath)-1 > max_nr_of_path_chars:
-                dirPath = dirPath[0:beginCharsToDisplayForPath] + "..." + dirPath[endCharsToDisplayForPath-1:]
-            print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format(str(rowNr+1), parentDir, dirName, dirPath))
-
-def displayFormattedCmdFileContent(fileContent, firstRowNr = 0, limit = -1):
-    nrOfRows = len(fileContent)
-    limit = nrOfRows if limit < 0 or limit > nrOfRows else limit
-    if firstRowNr < limit and firstRowNr >= 0:
-        for rowNr in range(firstRowNr, limit):
-            command = fileContent[rowNr].strip('\n')
-            print('{0:<10s} {1:<140s}'.format(str(rowNr+1), command))
 
 def readFromPermHist(histDict, strHistFile, numHistFile):
     with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:

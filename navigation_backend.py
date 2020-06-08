@@ -71,14 +71,14 @@ def choosePath(menuChoice, userInput, filteredContent):
 
 def displayFormattedRecentHistContent():
     with open(navset.hist_file, "r") as hist, open(navset.r_hist_file, "r") as rHist:
-        common.displayFormattedNavFileContent(hist.readlines(), 0, len(rHist.readlines()))
+        ns.displayFormattedNavFileContent(hist.readlines(), 0, len(rHist.readlines()))
 
 def displayFormattedPersistentHistContent():
     with open(navset.hist_file, "r") as hist, open(navset.r_hist_file, "r") as rHist:
-        common.displayFormattedNavFileContent(hist.readlines(), len(rHist.readlines()))
+        ns.displayFormattedNavFileContent(hist.readlines(), len(rHist.readlines()))
 
 def displayFormattedFilteredHistContent(filteredContent, totalNrOfMatches):
-    common.displayFormattedNavFileContent(filteredContent, 0)
+    ns.displayFormattedNavFileContent(filteredContent, 0)
     print("")
     print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
     if totalNrOfMatches > len(filteredContent):
@@ -228,7 +228,7 @@ def isValidInput(userInput):
 
 def displayFormattedFavoritesContent():
     with open(navset.fav_file, "r") as fav:
-        common.displayFormattedNavFileContent(fav.readlines())
+        ns.displayFormattedNavFileContent(fav.readlines())
 
 def isFavEmpty():
     return os.path.getsize(navset.fav_file) == 0

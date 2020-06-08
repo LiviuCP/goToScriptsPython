@@ -1,5 +1,5 @@
 import sys, os
-import nav_cmd_common as common, commands_settings as cmdset
+import shared_cmd_functions as cs, nav_cmd_common as common, commands_settings as cmdset
 
 """ command history menu init/access functions """
 def initCmdMenus():
@@ -27,14 +27,14 @@ def isCommandMenuEmpty():
 
 def displayFormattedRecentCmdHistContent():
     with open(cmdset.c_hist_file, "r") as cHist, open(cmdset.c_r_hist_file, "r") as crHist:
-        common.displayFormattedCmdFileContent(cHist.readlines(), 0, len(crHist.readlines()))
+        cs.displayFormattedCmdFileContent(cHist.readlines(), 0, len(crHist.readlines()))
 
 def displayFormattedPersistentCmdHistContent():
     with open(cmdset.c_hist_file, "r") as cHist, open(cmdset.c_r_hist_file, "r") as crHist:
-        common.displayFormattedCmdFileContent(cHist.readlines(), len(crHist.readlines()))
+        cs.displayFormattedCmdFileContent(cHist.readlines(), len(crHist.readlines()))
 
 def displayFormattedFilteredCmdHistContent(filteredContent, totalNrOfMatches):
-    common.displayFormattedCmdFileContent(filteredContent, 0)
+    cs.displayFormattedCmdFileContent(filteredContent, 0)
     print("")
     print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
     if totalNrOfMatches > len(filteredContent):
