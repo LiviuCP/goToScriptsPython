@@ -70,10 +70,12 @@ def editAndExecPrevCmd(previousCommand = ""):
 def initCmdMenus():
     cmd.initCmdMenus()
 
-def visitCommandMenu(mode, filterKey = ""):
+def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
     def displayCommandMenuFooter():
         print("")
         print("Current directory: " + os.getcwd())
+        print("Last executed shell command: ", end='')
+        print(previousCommand) if len(previousCommand) > 0 else print("none")
         print("")
         print("Enter command number.")
         print("Enter ! to quit.")
