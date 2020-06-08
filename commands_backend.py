@@ -1,5 +1,5 @@
 import sys, os
-import common, commands_settings as cmdset
+import nav_cmd_common as common, commands_settings as cmdset
 
 """ command history menu init/access functions """
 def initCmdMenus():

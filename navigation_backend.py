@@ -1,5 +1,5 @@
 import sys, os
-import common, shared_nav_functions as ns, navigation_settings as navset
+import nav_cmd_common as common, shared_nav_functions as ns, navigation_settings as navset
 
 input_storage_file = navset.home_dir + ".store_input"
 output_storage_file = navset.home_dir + ".store_output"
