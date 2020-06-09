@@ -109,3 +109,17 @@ def updateHistory(newOrUpdatedEntry, lHistFile, rHistFile, rHistMaxEntries, pStr
                         readFromPermHist(pHistUpdateDict, pStrHistFile, pNumHistFile)
                         pHistUpdateDict[newOrUpdatedEntry] = (pHistUpdateDict[newOrUpdatedEntry] + 1) if newOrUpdatedEntry in pHistUpdateDict.keys() else 1
                         writeBackToPermHist(pHistUpdateDict, pStrHistFile, pNumHistFile, True)
+
+def buildFilteredHistory(filteredContent, filterKey, pStrHistFile, maxFilteredHistEntries):
+    assert len(filterKey) > 0, "Invalid filter key found"
+    nrOfMatches = 0
+    with open(pStrHistFile, 'r') as pStrHist:
+        result = []
+        for entry in pStrHist.readlines():
+            if filterKey.lower() in entry.strip('\n').lower():
+                result.append(entry.strip('\n'))
+                nrOfMatches = nrOfMatches + 1
+        nrOfExposedEntries = nrOfMatches if nrOfMatches < maxFilteredHistEntries else maxFilteredHistEntries
+        for index in range(nrOfExposedEntries):
+            filteredContent.append(result[index])
+    return nrOfMatches

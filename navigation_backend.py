@@ -110,19 +110,9 @@ def consolidateHistory():
         for entry in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
             hist.write(entry[0] + '\n')
 
-def buildFilteredHistory(filteredContent, filterKey):
+def buildFilteredNavigationHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Invalid filter key found"
-    nrOfMatches = 0
-    with open(navset.p_str_hist_file, 'r') as pStrHist:
-        result = []
-        for entry in pStrHist.readlines():
-            if filterKey.lower() in entry.strip('\n').lower():
-                result.append(entry.strip('\n'))
-                nrOfMatches = nrOfMatches + 1
-        nrOfExposedEntries = nrOfMatches if nrOfMatches < navset.max_filtered_hist_entries else navset.max_filtered_hist_entries
-        for index in range(nrOfExposedEntries):
-            filteredContent.append(result[index])
-    return nrOfMatches
+    return common.buildFilteredHistory(filteredContent, filterKey, navset.p_str_hist_file, navset.max_filtered_hist_entries)
 
 def clearHistory():
     with open(navset.r_hist_file, "w"), open(navset.p_str_hist_file, "w"), open(navset.p_num_hist_file, "w"), open(navset.hist_file, "w"), open(navset.l_hist_file, "w"), open(navset.e_str_hist_file, "w") as eStrHist, open(navset.e_num_hist_file, "w") as eNumHist, open(navset.fav_file, "r") as fav:

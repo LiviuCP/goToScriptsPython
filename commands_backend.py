@@ -48,17 +48,7 @@ def updateCommandHistory(command):
 
 def buildFilteredCommandHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Invalid filter key found"
-    nrOfMatches = 0
-    with open(cmdset.c_p_str_hist_file, 'r') as cpStrHist:
-        result = []
-        for entry in cpStrHist.readlines():
-            if filterKey.lower() in entry.lower():
-                result.append(entry.strip('\n'))
-                nrOfMatches = nrOfMatches + 1
-        nrOfExposedEntries = nrOfMatches if nrOfMatches < cmdset.max_filtered_c_hist_entries else cmdset.max_filtered_c_hist_entries
-        for index in range(nrOfExposedEntries):
-            filteredContent.append(result[index])
-    return nrOfMatches
+    return common.buildFilteredHistory(filteredContent, filterKey, cmdset.c_p_str_hist_file, cmdset.max_filtered_c_hist_entries)
 
 def clearCommandHistory():
     with open(cmdset.c_r_hist_file, "w"), open(cmdset.c_p_str_hist_file, "w"), open(cmdset.c_p_num_hist_file, "w"), open(cmdset.c_hist_file, "w"), open(cmdset.c_l_hist_file, "w"):
