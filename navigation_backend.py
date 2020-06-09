@@ -89,42 +89,9 @@ def isMenuEmpty(menuChoice):
     return os.path.getsize(navset.fav_file if menuChoice == "-f" else navset.hist_file) == 0
 
 """ navigation history update functions """
-def updateHistory(visitedDirPath):
+def updateNavigationHistory(visitedDirPath):
     assert len(visitedDirPath) > 0, "Empty path argument detected"
-    with open(navset.l_hist_file, "a") as lHist, open(navset.r_hist_file, "r") as rHist:
-        rHistContent = []
-        rHistEntries = 0
-        for entry in rHist.readlines():
-            rHistContent.append(entry.strip('\n'))
-            rHistEntries = rHistEntries + 1
-        if visitedDirPath in rHistContent:
-            rHistContent.remove(visitedDirPath)
-        elif rHistEntries == navset.r_hist_max_entries:
-            rHistContent.remove(rHistContent[rHistEntries-1])
-        rHistContent = [visitedDirPath] + rHistContent
-        rHist.close()
-        lHist.close()
-        with open(navset.r_hist_file, "w") as rHist, open(navset.l_hist_file, "r") as lHist:
-            for entry in rHistContent:
-                rHist.write(entry+'\n')
-            lHistContent = []
-            for entry in lHist.readlines():
-                lHistContent.append(entry.strip('\n'))
-            lHist.close()
-            # only update persistent or excluded history file if the visited path is not being contained in the visit log for the current day
-            if visitedDirPath not in lHistContent:
-                with open(navset.l_hist_file, "a") as lHist:
-                    lHist.write(visitedDirPath + "\n")
-                    eHistUpdateDict = {}
-                    common.readFromPermHist(eHistUpdateDict, navset.e_str_hist_file, navset.e_num_hist_file)
-                    if visitedDirPath in eHistUpdateDict.keys():
-                        eHistUpdateDict[visitedDirPath] += 1
-                        common.writeBackToPermHist(eHistUpdateDict, navset.e_str_hist_file, navset.e_num_hist_file)
-                    else:
-                        pHistUpdateDict = {}
-                        common.readFromPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file)
-                        pHistUpdateDict[visitedDirPath] = (pHistUpdateDict[visitedDirPath] + 1) if visitedDirPath in pHistUpdateDict else 1
-                        common.writeBackToPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file, True)
+    common.updateHistory(visitedDirPath, navset.l_hist_file, navset.r_hist_file, navset.r_hist_max_entries, navset.p_str_hist_file, navset.p_num_hist_file, navset.e_str_hist_file, navset.e_num_hist_file)
 
 def consolidateHistory():
     with open(navset.r_hist_file, 'r') as rHist, open(navset.p_str_hist_file, 'r') as pStrHist, open(navset.hist_file, 'w') as hist:

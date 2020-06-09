@@ -70,3 +70,42 @@ def writeBackToPermHist(histDict, strHistFile, numHistFile, shouldSort = False):
             for path, count in histDict.items():
                 strHist.write(path + '\n')
                 numHist.write(str(count) + '\n')
+
+def updateHistory(newOrUpdatedEntry, lHistFile, rHistFile, rHistMaxEntries, pStrHistFile, pNumHistFile, eStrHistFile = "", eNumHistFile = ""):
+    assert len(newOrUpdatedEntry) > 0, "Empty path argument detected"
+    with open(lHistFile, "a") as lHist, open(rHistFile, "r") as rHist:
+        rHistContent = []
+        rHistEntries = 0
+        for entry in rHist.readlines():
+            rHistContent.append(entry.strip('\n'))
+            rHistEntries = rHistEntries + 1
+        if newOrUpdatedEntry in rHistContent:
+            rHistContent.remove(newOrUpdatedEntry)
+        elif rHistEntries == rHistMaxEntries:
+            rHistContent.remove(rHistContent[rHistEntries-1])
+        rHistContent = [newOrUpdatedEntry] + rHistContent
+        rHist.close()
+        lHist.close()
+        with open(rHistFile, "w") as rHist, open(lHistFile, "r") as lHist:
+            for entry in rHistContent:
+                rHist.write(entry+'\n')
+            lHistContent = []
+            for entry in lHist.readlines():
+                lHistContent.append(entry.strip('\n'))
+            lHist.close()
+            # only update persistent or excluded history file if the visited path is not being contained in the visit log for the current day
+            if newOrUpdatedEntry not in lHistContent:
+                with open(lHistFile, "a") as lHist:
+                    lHist.write(newOrUpdatedEntry + "\n")
+                    eHistUpdateDict = {}
+                    if len(eStrHistFile) > 0:
+                        assert len(eNumHistFile) > 0, "The excluded history numbers file hasn't been passed as argument"
+                        readFromPermHist(eHistUpdateDict, eStrHistFile, eNumHistFile)
+                    if newOrUpdatedEntry in eHistUpdateDict.keys():
+                        eHistUpdateDict[newOrUpdatedEntry] += 1
+                        writeBackToPermHist(eHistUpdateDict, eStrHistFile, eNumHistFile)
+                    else:
+                        pHistUpdateDict = {}
+                        readFromPermHist(pHistUpdateDict, pStrHistFile, pNumHistFile)
+                        pHistUpdateDict[newOrUpdatedEntry] = (pHistUpdateDict[newOrUpdatedEntry] + 1) if newOrUpdatedEntry in pHistUpdateDict.keys() else 1
+                        writeBackToPermHist(pHistUpdateDict, pStrHistFile, pNumHistFile, True)

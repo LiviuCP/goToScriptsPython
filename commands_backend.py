@@ -44,34 +44,7 @@ def displayFormattedFilteredCmdHistContent(filteredContent, totalNrOfMatches):
 """ command history update functions """
 def updateCommandHistory(command):
     assert len(command) > 0, "Empty command argument detected"
-    with open(cmdset.c_l_hist_file, "a") as clHist, open(cmdset.c_r_hist_file, "r") as crHist:
-        crHistContent = []
-        crHistEntries = 0
-        for entry in crHist.readlines():
-            crHistContent.append(entry.strip('\n'))
-            crHistEntries = crHistEntries + 1
-        if command in crHistContent:
-            crHistContent.remove(command)
-        elif crHistEntries == cmdset.c_r_hist_max_entries:
-            crHistContent.remove(crHistContent[crHistEntries-1])
-        crHistContent = [command] + crHistContent
-        crHist.close()
-        clHist.close()
-        with open(cmdset.c_r_hist_file, "w") as crHist, open(cmdset.c_l_hist_file, "r") as clHist:
-            for entry in crHistContent:
-                crHist.write(entry+'\n')
-            clHistContent = []
-            for entry in clHist.readlines():
-                clHistContent.append(entry.strip('\n'))
-            clHist.close()
-            # only update persistent command history files if the executed command is not being contained in the visit log for the current day
-            if command not in clHistContent:
-                with open(cmdset.c_l_hist_file, "a") as clHist:
-                    clHist.write(command + "\n")
-                    cpHistUpdateDict = {}
-                    common.readFromPermHist(cpHistUpdateDict, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
-                    cpHistUpdateDict[command] = (cpHistUpdateDict[command] + 1) if command in cpHistUpdateDict.keys() else 1
-                    common.writeBackToPermHist(cpHistUpdateDict, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file, True)
+    common.updateHistory(command, cmdset.c_l_hist_file, cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
 
 def buildFilteredCommandHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Invalid filter key found"

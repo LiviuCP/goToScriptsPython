@@ -28,7 +28,7 @@ def goTo(gtDirectory, prevDirectory):
                     os.chdir(currentDir)
                     if (prevDir != currentDir):
                         print("Switched to new directory: " + currentDir)
-                        nav.updateHistory(currentDir)
+                        nav.updateNavigationHistory(currentDir)
                         nav.consolidateHistory()
                     else:
                         print("Current directory remains unchanged: " + currentDir)
