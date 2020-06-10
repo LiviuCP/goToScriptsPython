@@ -54,7 +54,7 @@ def editAndExecPrevCmd(previousCommand = ""):
     os.system("clear")
     if len(commandToExecute) == 0 or commandToExecute[len(commandToExecute)-1] == ':':
         print("Command aborted. You returned to navigation menu.")
-        status = 1
+        status = 2 #aborted by user
     else:
         commandType = "Edited" if previousCommand != "" else "Entered"
         print(commandType + " command is being executed: " + commandToExecute)

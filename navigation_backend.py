@@ -1,5 +1,5 @@
 import sys, os
-import common, shared_nav_functions as ns, navigation_settings as navset
+import nav_cmd_common as common, shared_nav_functions as ns, navigation_settings as navset
 
 input_storage_file = navset.home_dir + ".store_input"
 output_storage_file = navset.home_dir + ".store_output"
@@ -71,14 +71,14 @@ def choosePath(menuChoice, userInput, filteredContent):
 
 def displayFormattedRecentHistContent():
     with open(navset.hist_file, "r") as hist, open(navset.r_hist_file, "r") as rHist:
-        common.displayFormattedNavFileContent(hist.readlines(), 0, len(rHist.readlines()))
+        ns.displayFormattedNavFileContent(hist.readlines(), 0, len(rHist.readlines()))
 
 def displayFormattedPersistentHistContent():
     with open(navset.hist_file, "r") as hist, open(navset.r_hist_file, "r") as rHist:
-        common.displayFormattedNavFileContent(hist.readlines(), len(rHist.readlines()))
+        ns.displayFormattedNavFileContent(hist.readlines(), len(rHist.readlines()))
 
 def displayFormattedFilteredHistContent(filteredContent, totalNrOfMatches):
-    common.displayFormattedNavFileContent(filteredContent, 0)
+    ns.displayFormattedNavFileContent(filteredContent, 0)
     print("")
     print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
     if totalNrOfMatches > len(filteredContent):
@@ -89,42 +89,9 @@ def isMenuEmpty(menuChoice):
     return os.path.getsize(navset.fav_file if menuChoice == "-f" else navset.hist_file) == 0
 
 """ navigation history update functions """
-def updateHistory(visitedDirPath):
+def updateNavigationHistory(visitedDirPath):
     assert len(visitedDirPath) > 0, "Empty path argument detected"
-    with open(navset.l_hist_file, "a") as lHist, open(navset.r_hist_file, "r") as rHist:
-        rHistContent = []
-        rHistEntries = 0
-        for entry in rHist.readlines():
-            rHistContent.append(entry.strip('\n'))
-            rHistEntries = rHistEntries + 1
-        if visitedDirPath in rHistContent:
-            rHistContent.remove(visitedDirPath)
-        elif rHistEntries == navset.r_hist_max_entries:
-            rHistContent.remove(rHistContent[rHistEntries-1])
-        rHistContent = [visitedDirPath] + rHistContent
-        rHist.close()
-        lHist.close()
-        with open(navset.r_hist_file, "w") as rHist, open(navset.l_hist_file, "r") as lHist:
-            for entry in rHistContent:
-                rHist.write(entry+'\n')
-            lHistContent = []
-            for entry in lHist.readlines():
-                lHistContent.append(entry.strip('\n'))
-            lHist.close()
-            # only update persistent or excluded history file if the visited path is not being contained in the visit log for the current day
-            if visitedDirPath not in lHistContent:
-                with open(navset.l_hist_file, "a") as lHist:
-                    lHist.write(visitedDirPath + "\n")
-                    eHistUpdateDict = {}
-                    common.readFromPermHist(eHistUpdateDict, navset.e_str_hist_file, navset.e_num_hist_file)
-                    if visitedDirPath in eHistUpdateDict.keys():
-                        eHistUpdateDict[visitedDirPath] += 1
-                        common.writeBackToPermHist(eHistUpdateDict, navset.e_str_hist_file, navset.e_num_hist_file)
-                    else:
-                        pHistUpdateDict = {}
-                        common.readFromPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file)
-                        pHistUpdateDict[visitedDirPath] = (pHistUpdateDict[visitedDirPath] + 1) if visitedDirPath in pHistUpdateDict else 1
-                        common.writeBackToPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file, True)
+    common.updateHistory(visitedDirPath, navset.l_hist_file, navset.r_hist_file, navset.r_hist_max_entries, navset.p_str_hist_file, navset.p_num_hist_file, navset.e_str_hist_file, navset.e_num_hist_file)
 
 def consolidateHistory():
     with open(navset.r_hist_file, 'r') as rHist, open(navset.p_str_hist_file, 'r') as pStrHist, open(navset.hist_file, 'w') as hist:
@@ -143,19 +110,9 @@ def consolidateHistory():
         for entry in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
             hist.write(entry[0] + '\n')
 
-def buildFilteredHistory(filteredContent, filterKey):
+def buildFilteredNavigationHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Invalid filter key found"
-    nrOfMatches = 0
-    with open(navset.p_str_hist_file, 'r') as pStrHist:
-        result = []
-        for entry in pStrHist.readlines():
-            if filterKey.lower() in entry.strip('\n').lower():
-                result.append(entry.strip('\n'))
-                nrOfMatches = nrOfMatches + 1
-        nrOfExposedEntries = nrOfMatches if nrOfMatches < navset.max_filtered_hist_entries else navset.max_filtered_hist_entries
-        for index in range(nrOfExposedEntries):
-            filteredContent.append(result[index])
-    return nrOfMatches
+    return common.buildFilteredHistory(filteredContent, filterKey, navset.p_str_hist_file, navset.max_filtered_hist_entries)
 
 def clearHistory():
     with open(navset.r_hist_file, "w"), open(navset.p_str_hist_file, "w"), open(navset.p_num_hist_file, "w"), open(navset.hist_file, "w"), open(navset.l_hist_file, "w"), open(navset.e_str_hist_file, "w") as eStrHist, open(navset.e_num_hist_file, "w") as eNumHist, open(navset.fav_file, "r") as fav:
@@ -228,7 +185,7 @@ def isValidInput(userInput):
 
 def displayFormattedFavoritesContent():
     with open(navset.fav_file, "r") as fav:
-        common.displayFormattedNavFileContent(fav.readlines())
+        ns.displayFormattedNavFileContent(fav.readlines())
 
 def isFavEmpty():
     return os.path.getsize(navset.fav_file) == 0

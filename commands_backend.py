@@ -1,5 +1,5 @@
 import sys, os
-import common, commands_settings as cmdset
+import shared_cmd_functions as cs, nav_cmd_common as common, commands_settings as cmdset
 
 """ command history menu init/access functions """
 def initCmdMenus():
@@ -27,14 +27,14 @@ def isCommandMenuEmpty():
 
 def displayFormattedRecentCmdHistContent():
     with open(cmdset.c_hist_file, "r") as cHist, open(cmdset.c_r_hist_file, "r") as crHist:
-        common.displayFormattedCmdFileContent(cHist.readlines(), 0, len(crHist.readlines()))
+        cs.displayFormattedCmdFileContent(cHist.readlines(), 0, len(crHist.readlines()))
 
 def displayFormattedPersistentCmdHistContent():
     with open(cmdset.c_hist_file, "r") as cHist, open(cmdset.c_r_hist_file, "r") as crHist:
-        common.displayFormattedCmdFileContent(cHist.readlines(), len(crHist.readlines()))
+        cs.displayFormattedCmdFileContent(cHist.readlines(), len(crHist.readlines()))
 
 def displayFormattedFilteredCmdHistContent(filteredContent, totalNrOfMatches):
-    common.displayFormattedCmdFileContent(filteredContent, 0)
+    cs.displayFormattedCmdFileContent(filteredContent, 0)
     print("")
     print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
     if totalNrOfMatches > len(filteredContent):
@@ -44,48 +44,11 @@ def displayFormattedFilteredCmdHistContent(filteredContent, totalNrOfMatches):
 """ command history update functions """
 def updateCommandHistory(command):
     assert len(command) > 0, "Empty command argument detected"
-    with open(cmdset.c_l_hist_file, "a") as clHist, open(cmdset.c_r_hist_file, "r") as crHist:
-        crHistContent = []
-        crHistEntries = 0
-        for entry in crHist.readlines():
-            crHistContent.append(entry.strip('\n'))
-            crHistEntries = crHistEntries + 1
-        if command in crHistContent:
-            crHistContent.remove(command)
-        elif crHistEntries == cmdset.c_r_hist_max_entries:
-            crHistContent.remove(crHistContent[crHistEntries-1])
-        crHistContent = [command] + crHistContent
-        crHist.close()
-        clHist.close()
-        with open(cmdset.c_r_hist_file, "w") as crHist, open(cmdset.c_l_hist_file, "r") as clHist:
-            for entry in crHistContent:
-                crHist.write(entry+'\n')
-            clHistContent = []
-            for entry in clHist.readlines():
-                clHistContent.append(entry.strip('\n'))
-            clHist.close()
-            # only update persistent command history files if the executed command is not being contained in the visit log for the current day
-            if command not in clHistContent:
-                with open(cmdset.c_l_hist_file, "a") as clHist:
-                    clHist.write(command + "\n")
-                    cpHistUpdateDict = {}
-                    common.readFromPermHist(cpHistUpdateDict, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
-                    cpHistUpdateDict[command] = (cpHistUpdateDict[command] + 1) if command in cpHistUpdateDict.keys() else 1
-                    common.writeBackToPermHist(cpHistUpdateDict, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file, True)
+    common.updateHistory(command, cmdset.c_l_hist_file, cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
 
 def buildFilteredCommandHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Invalid filter key found"
-    nrOfMatches = 0
-    with open(cmdset.c_p_str_hist_file, 'r') as cpStrHist:
-        result = []
-        for entry in cpStrHist.readlines():
-            if filterKey.lower() in entry.lower():
-                result.append(entry.strip('\n'))
-                nrOfMatches = nrOfMatches + 1
-        nrOfExposedEntries = nrOfMatches if nrOfMatches < cmdset.max_filtered_c_hist_entries else cmdset.max_filtered_c_hist_entries
-        for index in range(nrOfExposedEntries):
-            filteredContent.append(result[index])
-    return nrOfMatches
+    return common.buildFilteredHistory(filteredContent, filterKey, cmdset.c_p_str_hist_file, cmdset.max_filtered_c_hist_entries)
 
 def clearCommandHistory():
     with open(cmdset.c_r_hist_file, "w"), open(cmdset.c_p_str_hist_file, "w"), open(cmdset.c_p_num_hist_file, "w"), open(cmdset.c_hist_file, "w"), open(cmdset.c_l_hist_file, "w"):

@@ -28,7 +28,7 @@ def goTo(gtDirectory, prevDirectory, syncWithFinder):
                     os.chdir(currentDir)
                     if (prevDir != currentDir):
                         print("Switched to new directory: " + currentDir)
-                        nav.updateHistory(currentDir)
+                        nav.updateNavigationHistory(currentDir)
                         nav.consolidateHistory()
                     else:
                         print("Current directory remains unchanged: " + currentDir)
@@ -155,7 +155,7 @@ def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
     filteredHistEntries = []
     if menuChoice == "-fh":
         assert len(userInput) > 0, "No filter has been provided for filtered navigation history"
-        totalNrOfMatches = nav.buildFilteredHistory(filteredHistEntries, userInput)
+        totalNrOfMatches = nav.buildFilteredNavigationHistory(filteredHistEntries, userInput)
         userInput = "" #input should be reset to correctly account for the case when the resulting filtered history menu is empty
         os.system("clear")
         if len(filteredHistEntries) > 0:
