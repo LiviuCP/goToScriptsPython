@@ -70,3 +70,12 @@ def consolidateCommandHistory():
             cHist.write(entry)
         for entry in cpStrHistEntries:
             cHist.write(entry)
+
+def isSensitiveCommand(command):
+    assert len(command) > 0, "Empty command argument detected"
+    isSensitive = False
+    for keyword in cmdset.sensitive_commands_keywords:
+        if keyword in command:
+            isSensitive = True
+            break
+    return isSensitive
