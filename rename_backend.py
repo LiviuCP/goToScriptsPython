@@ -1,5 +1,25 @@
 import os, common, rename_settings as renset
 
+available_options = {'a', 'A', 'p', 'P', 'i', 'I', 'd', 'r', 'R'}
+
+available_options_labels = {
+    'a' : "append text",
+    'A' : "append incremented numeric value",
+    'p' : "prepend text",
+    'P' : "prepend incremented numeric value",
+    "i" : "insert text",
+    "I" : "insert incremented numeric value",
+    "d" : "delete text",
+    "r" : "replace characters with text",
+    "R" : "replace characters with incremented numeric value"
+}
+
+status_messages = [
+    "Success",
+    "Some items could not be renamed due to insufficient string size",
+    "Duplicate items would result from renaming"
+]
+
 """
 Possible return codes:
     - 0: success, a valid map obtained
@@ -88,15 +108,6 @@ def areRenameableItemsInCurrentDir():
             result = True
             break
     return result
-
-def getRenamingOptions():
-    return renset.available_options
-
-def getRenamingOptionsLabels():
-    return renset.available_options_labels
-
-def getRenamingStatusMessages():
-    return renset.status_messages
 
 def getRenamingSimulationLimit():
     return renset.simulation_limit

@@ -2,7 +2,7 @@ import os, datetime, common, rename_backend as rn, display as out
 
 def rename(chosenOption):
     def displayRenameInfo(chosenOption, valueToAdd = "", position = -1, nrOfRemovedCharacters = 0):
-        assert chosenOption in rn.getRenamingOptions(), "The option argument is invalid"
+        assert chosenOption in rn.available_options, "The option argument is invalid"
         os.system("clear")
         print("1. Current directory:")
         print(os.getcwd())
@@ -13,7 +13,7 @@ def rename(chosenOption):
         print("")
         print("3. Renaming information")
         print("")
-        print("Rename operation: " + rn.getRenamingOptionsLabels()[chosenOption])
+        print("Rename operation: " + rn.available_options_labels[chosenOption])
         valueToAddPrefix = "Initial numeric value" if chosenOption in {'A', 'P', 'I', 'R'} else "Value"
         print(valueToAddPrefix + " to add: " + valueToAdd) if len(valueToAdd) > 0 else print("", end='')
         print("Position: " + str(position)) if position >= 0 else print("", end='')
@@ -27,7 +27,7 @@ def rename(chosenOption):
     - number of deleted/replaced characters (0 if no such operation or abort)
     """
     def promptForRenameParameters(chosenOption):
-        assert chosenOption in rn.getRenamingOptions(), "The option argument is invalid"
+        assert chosenOption in rn.available_options, "The option argument is invalid"
         # defaults
         shouldAbort = False
         valueToAdd = ""
@@ -59,7 +59,7 @@ def rename(chosenOption):
         return (shouldAbort, valueToAdd, position, nrOfRemovedCharacters)
     def simulateRenaming(renamingMap, chosenOption, buildParams):
         assert len(renamingMap) > 0, "Empty renaming map detected"
-        assert chosenOption in rn.getRenamingOptions(), "The option argument is invalid"
+        assert chosenOption in rn.available_options, "The option argument is invalid"
         assert len(buildParams) == 3, "The number of renaming map build parameters is not correct"
         displayRenameInfo(chosenOption, buildParams[0], buildParams[1], buildParams[2])
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -99,7 +99,7 @@ def rename(chosenOption):
                         renamingMap[entry] = ""
                         renamingDone = True
             sortAscending = not sortAscending #change direction
-    assert chosenOption in rn.getRenamingOptions(), "The option argument is invalid"
+    assert chosenOption in rn.available_options, "The option argument is invalid"
     if rn.areRenameableItemsInCurrentDir():
         shouldRename = False
         status = 0 # default status, no errors
@@ -122,7 +122,7 @@ def rename(chosenOption):
             doRenameItems(renamingMap)
             print("Items renamed")
         elif status > 0:
-            print("Cannot rename the items. " + rn.getRenamingStatusMessages()[status])
+            print("Cannot rename the items. " + rn.status_messages[status])
         else:
             print("Renaming aborted")
     else:
