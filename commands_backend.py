@@ -79,3 +79,6 @@ def isSensitiveCommand(command):
             isSensitive = True
             break
     return isSensitive
+
+def getMinCommandSize():
+    return cmdset.min_command_size

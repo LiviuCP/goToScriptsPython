@@ -13,5 +13,6 @@ c_p_num_hist_file = home_dir + ".persistent_command_history_numbers" # number of
 c_r_hist_max_entries = 10
 c_p_hist_max_entries = 15
 max_filtered_c_hist_entries = 5
+min_command_size = 10
 
 sensitive_commands_keywords = {"rmdir ", "rm ", "mv ", "cp "}
