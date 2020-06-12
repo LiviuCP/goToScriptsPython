@@ -1,28 +1,8 @@
 import os, datetime, common, rename_backend as rn, display as out
 
-available_options = {'a', 'A', 'p', 'P', 'i', 'I', 'd', 'r', 'R'}
-simulation_limit = 5 #number of files for which the renaming would be simulated
-status_messages = [
-    "Success",
-    "Some items could not be renamed due to insufficient string size",
-    "Duplicate items would result from renaming"
-]
-
-available_options_labels = {
-    'a' : "append text",
-    'A' : "append incremented numeric value",
-    'p' : "prepend text",
-    'P' : "prepend incremented numeric value",
-    "i" : "insert text",
-    "I" : "insert incremented numeric value",
-    "d" : "delete text",
-    "r" : "replace characters with text",
-    "R" : "replace characters with incremented numeric value"
-}
-
 def rename(chosenOption):
     def displayRenameInfo(chosenOption, valueToAdd = "", position = -1, nrOfRemovedCharacters = 0):
-        assert chosenOption in available_options, "The option argument is invalid"
+        assert chosenOption in rn.getRenamingOptions(), "The option argument is invalid"
         os.system("clear")
         print("1. Current directory:")
         print(os.getcwd())
@@ -33,7 +13,7 @@ def rename(chosenOption):
         print("")
         print("3. Renaming information")
         print("")
-        print("Rename operation: " + available_options_labels[chosenOption])
+        print("Rename operation: " + rn.getRenamingOptionsLabels()[chosenOption])
         valueToAddPrefix = "Initial numeric value" if chosenOption in {'A', 'P', 'I', 'R'} else "Value"
         print(valueToAddPrefix + " to add: " + valueToAdd) if len(valueToAdd) > 0 else print("", end='')
         print("Position: " + str(position)) if position >= 0 else print("", end='')
@@ -47,7 +27,7 @@ def rename(chosenOption):
     - number of deleted/replaced characters (0 if no such operation or abort)
     """
     def promptForRenameParameters(chosenOption):
-        assert chosenOption in available_options, "The option argument is invalid"
+        assert chosenOption in rn.getRenamingOptions(), "The option argument is invalid"
         # defaults
         shouldAbort = False
         valueToAdd = ""
@@ -79,7 +59,7 @@ def rename(chosenOption):
         return (shouldAbort, valueToAdd, position, nrOfRemovedCharacters)
     def simulateRenaming(renamingMap, chosenOption, buildParams):
         assert len(renamingMap) > 0, "Empty renaming map detected"
-        assert chosenOption in available_options, "The option argument is invalid"
+        assert chosenOption in rn.getRenamingOptions(), "The option argument is invalid"
         assert len(buildParams) == 3, "The number of renaming map build parameters is not correct"
         displayRenameInfo(chosenOption, buildParams[0], buildParams[1], buildParams[2])
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -92,7 +72,7 @@ def rename(chosenOption):
         for key, value in renamingMap.items():
             print('{0:<40s} {1:<80s}'.format("Original:  " + key, "Renamed:  " + value))
             entryNumber += 1
-            if entryNumber == simulation_limit:
+            if entryNumber == rn.getRenamingSimulationLimit():
                 break
         print("")
     def doRenameItems(renamingMap):
@@ -119,7 +99,7 @@ def rename(chosenOption):
                         renamingMap[entry] = ""
                         renamingDone = True
             sortAscending = not sortAscending #change direction
-    assert chosenOption in available_options, "The option argument is invalid"
+    assert chosenOption in rn.getRenamingOptions(), "The option argument is invalid"
     if rn.areRenameableItemsInCurrentDir():
         shouldRename = False
         status = 0 # default status, no errors
@@ -142,7 +122,7 @@ def rename(chosenOption):
             doRenameItems(renamingMap)
             print("Items renamed")
         elif status > 0:
-            print("Cannot rename the items. " + status_messages[status])
+            print("Cannot rename the items. " + rn.getRenamingStatusMessages()[status])
         else:
             print("Renaming aborted")
     else:

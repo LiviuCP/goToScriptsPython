@@ -1,6 +1,4 @@
-import os, common
-
-available_options = {'a', 'A', 'p', 'P', 'i', 'I', 'd', 'r', 'R'}
+import os, common, rename_settings as renset
 
 """
 Possible return codes:
@@ -10,7 +8,7 @@ Possible return codes:
 """
 def buildRenamingMap(choice, buildParams, renamingMap):
     def createRenamingString(filename, choice, buildParams):
-        assert choice in available_options, "The choice argument is invalid"
+        assert choice in renset.available_options, "The choice argument is invalid"
         assert len(buildParams) == 3, "The number of rename map build parameters is not correct"
         assert len(filename) > 0, "Empty filename passed"
         result = ""
@@ -50,9 +48,9 @@ def buildRenamingMap(choice, buildParams, renamingMap):
             isValid = True
         return isValid
     assert areRenameableItemsInCurrentDir(), "The current dir is empty or all items are hidden"
-    assert choice in available_options, "The choice argument is invalid"
+    assert choice in renset.available_options, "The choice argument is invalid"
     assert len(buildParams) == 3, "The number of rename map build parameters is not correct"
-    isNumericRenameRequested = True if choice in {"A", "P", "I", "R"} else False
+    isNumericRenameRequested = True if choice in {'A', 'P', 'I', 'R'} else False
     if isNumericRenameRequested:
         assert str(buildParams[0]).isdigit(), "Non-numeric value detected for numeric rename operation"
     status = 0 # default code, succesfull creation of renamingMap
@@ -82,6 +80,7 @@ def buildRenamingMap(choice, buildParams, renamingMap):
     else:
         status = 1
     return status
+
 def areRenameableItemsInCurrentDir():
     result = False
     for entry in os.listdir(os.curdir):
@@ -89,3 +88,15 @@ def areRenameableItemsInCurrentDir():
             result = True
             break
     return result
+
+def getRenamingOptions():
+    return renset.available_options
+
+def getRenamingOptionsLabels():
+    return renset.available_options_labels
+
+def getRenamingStatusMessages():
+    return renset.status_messages
+
+def getRenamingSimulationLimit():
+    return renset.simulation_limit
