@@ -36,8 +36,9 @@ def rename(chosenOption):
         isNumValueRequired = True if chosenOption in {'A', 'P', 'I', 'R'} else False
         shouldAbort = False
         if chosenOption != 'd':
+            promptForValueToAdd = "Enter the " + ("numeric value" if isNumValueRequired else "fixed text string") + " to be added to " + ("first" if isNumValueRequired else "each") + " item name: "
             displayRenameInfo(chosenOption, valueToAdd, position, nrOfRemovedCharacters)
-            requestedInput = common.getInputWithNumCondition("Enter the value to be added: ", isNumValueRequired, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
+            requestedInput = common.getInputWithNumCondition(promptForValueToAdd, isNumValueRequired, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
                                                          "Invalid input! A positive numeric value is required")
             shouldAbort = (len(requestedInput) == 0)
             if not shouldAbort:
