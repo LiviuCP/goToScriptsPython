@@ -1,5 +1,5 @@
 import os, readline
-import commands_backend as cmd
+import commands_backend as cmd, common
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
@@ -133,11 +133,29 @@ def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
     elif commandHistoryEntry != ":3" and commandHistoryEntry != ":4":
         if mode == "--execute":
             commandToExecute = commandHistoryEntry
-            print("Repeated command is being executed: " + commandToExecute)
-            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            result = executeCommand(commandToExecute)
-            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            print("Repeated command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
+            if cmd.isSensitiveCommand(commandToExecute):
+                print("The following command might cause ireversible changes:")
+                print(commandToExecute)
+                print("")
+                print("Current directory: ")
+                print(os.getcwd())
+                print("")
+                print("Are you sure you want to continue?")
+                print("")
+                choice = common.getInputWithTextCondition("Enter your choice (y/n): ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
+                                                          "Invalid choice selected. Please try again")
+                os.system("clear")
+                if choice.lower() == "n":
+                    commandToExecute = None
+                    result = (2, "", "")
+                    status = result[0]
+                    print("Command aborted. You returned to navigation menu.")
+            if commandToExecute is not None:
+                print("Repeated command is being executed: " + commandToExecute)
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                result = executeCommand(commandToExecute)
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                print("Repeated command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
         else:
             result = editAndExecPrevCmd(commandHistoryEntry)
             if result[0] != 0:
