@@ -33,7 +33,7 @@ def rename(chosenOption):
         valueToAdd = ""
         position = -1
         nrOfRemovedCharacters = 0
-        isNumValueRequired = True if chosenOption in {'A', 'P', 'I', 'R'} else False
+        isNumValueRequired = True if chosenOption in rn.number_adding_options else False
         shouldAbort = False
         if chosenOption != 'd':
             promptForValueToAdd = "Enter the " + ("numeric value" if isNumValueRequired else "fixed text string") + " to be added to " + ("first" if isNumValueRequired else "each") + " item name: "
@@ -43,14 +43,14 @@ def rename(chosenOption):
             shouldAbort = (len(requestedInput) == 0)
             if not shouldAbort:
                 valueToAdd = requestedInput
-        if not shouldAbort and chosenOption in {'i', 'I', 'd', 'r', 'R'}:
+        if not shouldAbort and chosenOption in rn.position_requiring_options:
             displayRenameInfo(chosenOption, valueToAdd, position, nrOfRemovedCharacters)
             requestedInput = common.getInputWithNumCondition("Enter the position within the file name: ", True, lambda userInput: len(userInput) > 0 and int(userInput) < 0, \
                                                          "Invalid input! A non-negative numeric value is required")
             shouldAbort = (len(requestedInput) == 0)
             if not shouldAbort:
                 position = int(requestedInput)
-        if not shouldAbort and chosenOption in {'d', 'r', 'R'}:
+        if not shouldAbort and chosenOption in rn.string_removal_options:
             displayRenameInfo(chosenOption, valueToAdd, position, nrOfRemovedCharacters)
             requestedInput = common.getInputWithNumCondition("Enter the number of characters to be removed: ", True, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
                                                          "Invalid input! A positive numeric value is required")
