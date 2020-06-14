@@ -303,3 +303,15 @@ def mapMissingDir(pathToReplace, replacingPath):
             common.writeBackToPermHist(eHistDict, navset.e_str_hist_file, navset.e_num_hist_file)
         consolidateHistory()
     return (pathToReplace, replacingPath)
+
+def getDelayBeforeFinderClose():
+    return navset.delayBeforeFinderClose
+
+def getDelayBeforeFinderReopen():
+    return navset.delayBeforeFinderReopen
+
+def getDelayAfterFinderReopen():
+    return navset.delayAfterFinderReopen
+
+def getDelayErrorFinderReopen():
+    return navset.delayErrorFinderReopen

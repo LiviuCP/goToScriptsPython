@@ -14,3 +14,7 @@ hist_file = home_dir + ".goto_history" # consolidated navigation history file
 fav_file = home_dir + ".goto_favorites" # navigation favorites file
 log_dir = home_dir + ".goToLogs/" # contains all daily log navigation files
 l_hist_file = log_dir + datetime.datetime.now().strftime("%Y%m%d") # daily log file, contains all paths visited that day
+delayBeforeFinderClose = 0.1 # delay applied before closing Finder via OSAScript
+delayBeforeFinderReopen = 0.2 # delay applied before re-opening Finder to prevent any unwanted behavior
+delayAfterFinderReopen = 0.5 # delay applied after re-opening Finder to avoid any unwanted behavior
+delayErrorFinderReopen = 1.8 # delay applied in case Finder cannot be re-opened due to an error to prevent an early re-open attempt (and a new and maybe more serious error)

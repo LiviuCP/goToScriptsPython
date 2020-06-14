@@ -47,7 +47,10 @@ def goTo(gtDirectory, prevDirectory, syncWithFinder):
     return(status, "", prevDir)
 
 def doFinderSync():
-    setDelays = "delayBeforeClose=0.1;" + "\n" + "delayBeforeReopen=0.2" + "\n" + "delayAfterReopen=0.5;" + "\n" + "delayErrorReopen=1.8;" + "\n"
+    setDelays = "delayBeforeClose=" + str(nav.getDelayBeforeFinderClose()) + ";" + "\n" + \
+                "delayBeforeReopen=" + str(nav.getDelayBeforeFinderReopen()) + ";" + "\n" + \
+                "delayAfterReopen=" + str(nav.getDelayAfterFinderReopen()) + ";" + "\n" + \
+                "delayErrorReopen=" + str(nav.getDelayErrorFinderReopen()) + ";" + "\n"
     closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
     handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n"
     reopenFinder = "else sleep $delayBeforeReopen; open . 2> /dev/null;" + "\n"
