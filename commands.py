@@ -4,7 +4,6 @@ from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
 output_storage_file = home_dir + ".store_output" #used for communication with BASH
-min_nr_of_cmd_chars = 10
 
 """ core command execution function """
 def executeCommand(command):
@@ -19,7 +18,7 @@ def executeCommand(command):
     with open(output_storage_file, "r") as output:
         if int(output.readline().strip('\n')) == 0:
             printedStatus = "successfully"
-        if len(command) >= min_nr_of_cmd_chars:
+        if len(command) >= cmd.getMinCommandSize():
             cmd.updateCommandHistory(command)
             cmd.consolidateCommandHistory()
     return (0, command, printedStatus)
