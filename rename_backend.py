@@ -36,7 +36,7 @@ Possible return codes:
 """
 def buildRenamingMap(choice, buildParams, renamingMap):
     def createRenamingString(filename, choice, buildParams):
-        assert choice in renset.available_options, "The choice argument is invalid"
+        assert choice in available_options, "The choice argument is invalid"
         assert len(buildParams) == 3, "The number of rename map build parameters is not correct"
         assert len(filename) > 0, "Empty filename passed"
         result = ""
@@ -76,7 +76,7 @@ def buildRenamingMap(choice, buildParams, renamingMap):
             isValid = True
         return isValid
     assert areRenameableItemsInCurrentDir(), "The current dir is empty or all items are hidden"
-    assert choice in renset.available_options, "The choice argument is invalid"
+    assert choice in available_options, "The choice argument is invalid"
     assert len(buildParams) == 3, "The number of rename map build parameters is not correct"
     isNumericRenameRequested = True if choice in number_adding_options else False
     if isNumericRenameRequested:
