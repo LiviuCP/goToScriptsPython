@@ -111,7 +111,7 @@ def consolidateHistory():
             hist.write(entry[0] + '\n')
 
 def buildFilteredNavigationHistory(filteredContent, filterKey):
-    assert len(filterKey) > 0, "Invalid filter key found"
+    assert len(filterKey) > 0, "Empty filter key found"
     return common.buildFilteredHistory(filteredContent, filterKey, navset.p_str_hist_file, navset.max_filtered_hist_entries)
 
 def clearHistory():
