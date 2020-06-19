@@ -111,7 +111,7 @@ def updateHistory(newOrUpdatedEntry, lHistFile, rHistFile, rHistMaxEntries, pStr
                         writeBackToPermHist(pHistUpdateDict, pStrHistFile, pNumHistFile, True)
 
 def buildFilteredHistory(filteredContent, filterKey, pStrHistFile, maxFilteredHistEntries):
-    assert len(filterKey) > 0, "Invalid filter key found"
+    assert len(filterKey) > 0, "Empty filter key found"
     nrOfMatches = 0
     with open(pStrHistFile, 'r') as pStrHist:
         result = []

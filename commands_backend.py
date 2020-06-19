@@ -47,7 +47,7 @@ def updateCommandHistory(command):
     common.updateHistory(command, cmdset.c_l_hist_file, cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
 
 def buildFilteredCommandHistory(filteredContent, filterKey):
-    assert len(filterKey) > 0, "Invalid filter key found"
+    assert len(filterKey) > 0, "Empty filter key found"
     return common.buildFilteredHistory(filteredContent, filterKey, cmdset.c_p_str_hist_file, cmdset.max_filtered_c_hist_entries)
 
 def clearCommandHistory():

@@ -63,12 +63,14 @@ def removePathFromPermHistoryFile(strHistFile, numHistFile, pathToRemove):
     return nrOfRemovedPathVisits
 
 def displayFormattedNavFileContent(fileContent, firstRowNr = 0, limit = -1):
+    nrOfRows = len(fileContent)
+    assert nrOfRows > 0, "Attempt to display an empty navigation menu"
+    limit = nrOfRows if limit < 0 or limit > nrOfRows else limit
+    assert limit != 0, "Zero entries limit detected, not permitted"
     beginCharsToDisplayForDirName = max_nr_of_dir_name_chars // 2 #first characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
     endCharsToDisplayForDirName = beginCharsToDisplayForDirName - max_nr_of_dir_name_chars #last characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
     beginCharsToDisplayForPath = max_nr_of_path_chars // 2 #first characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
     endCharsToDisplayForPath = beginCharsToDisplayForPath - max_nr_of_path_chars #last characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
-    nrOfRows = len(fileContent)
-    limit = nrOfRows if limit < 0 or limit > nrOfRows else limit
     if firstRowNr < limit and firstRowNr >= 0:
         print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format('', '- PARENT DIR -', '- DIR NAME -', '- DIR PATH -'))
         for rowNr in range(firstRowNr, limit):
