@@ -45,9 +45,9 @@ d. Before shutting down the machine, in order to prevent forceful terminal closu
 
 2) When having directories like ./abcd and ./abcdefgh there are issues when using wildcards. For example if using *ab to switch to either of these two an error will occur and the change dir command will not be executed. A workaround is to type a*d for switching to abcd or a*h for switching to abcdefgh. Also a good practice that I recommend is (as much as possible) not to create a folder that has its name included as first part of the string of another dir.
 
-3) Sometimes when having the Finder re-opened the window is in an inactive state and the user cannot move between directories by using the arrow keys. To correct this initiate a new re-opening in the current directory by entering '.' and pressing ENTER.
+3) Sometimes when having the Finder re-opened the window is in an inactive state and the user cannot move between directories by using the arrow keys. To correct this initiate a new re-opening in the current directory by entering '.' and pressing ENTER. Also it is possible to use the :s option for disabling terminal syncronisation if you don't necessarily want to see the directory content in Finder.
 
-4) On some Linux systems sometimes the persistent command history section vanishes from the command history menu after executing a command. Unfortunately I haven't managed to find the root cause of this bug and I suspect it might be related to the Python library version used on that system (it occurred on OpenSUSE 15.1 so far). If this happens please exit and re-enter the app.
+4) On some Linux systems sometimes the persistent command history section vanishes from the command history menu after executing a command. Unfortunately I haven't managed to find the root cause of this bug and I suspect it might be related to the Python library version used on that system (it occurred on OpenSUSE 15.1 so far). If this happens please exit and re-enter the app. It also happens that when executing a new command the history "magically" recovers.
 
 If any other bugs are discovered please feel free to report them on my Github page: https://github.com/LiviuCP.
 
@@ -168,6 +168,19 @@ All relevant recursive move/copy commmands can be found in the clipboard help me
 
 The main navigation options can be viewed by entering the ? character and hitting ENTER in navigation mode. The application remains in "default mode" meaning the user can continue to use the navigation and commands functionality without the need to exit the help menu. This is slightly different from the BASH version where the user had to quit the help dialog to be able to continue to use the application. The main help menu is complemented by two specialized menus, namely the clipboard/recursive help (type ?clip and hit ENTER) and the batch renaming help menu (?ren + ENTER). For more details about these functionality areas check sections 5.7, 5.8 and 8.
 
+5.10. Settings
+
+For specific functionality domains settings files have been created. These have names ending with _settings.py are directly accessible by the _backend.py functions. The settings files contain specific variables that can be modified by user for doing adjustments in the behavior of the application. Examples of possible changes are:
+- changing the minimum number of characters a command should have so it gets memorized in the commands history
+- changing the names and location of the history files (currently they are all located in the user home directory)
+
+Currently settings are available for:
+- navigation (navigation_settings.py)
+- commands (commands_settings.py)
+- batch renaming of files contained in the current directory (rename_settings.py)
+
+For more details consult these files and read the comment added to each settings variable.
+
 6. THE HISTORY FUNCTIONALITY
 
 Each time a directory is visited or a command is executed, the event is tracked in a history file. There are three different history sections available:
@@ -179,9 +192,9 @@ The command history only tracks the commands initiated in navigation mode, namel
 
 6.1. Recent history
 
-Most recently visited directory paths or executed commands are mentioned here. It has a limited number of entries (which is specified by a global variable) and older content is overridden.
+Most recently visited directory paths or executed commands are mentioned here. It has a limited number of entries (which is specified by a variable from navigation_settings.py / commands_settings.py) and older content is continually overridden.
 
-The entries are stored "in order" but duplicates are not allowed. If the maximum number of entries has been reached the least recently visited path/executed command is taken out. The entries are displayed to the user in a sorted fashion so they can easily be found and visited/executed.
+The entries are stored "in order" but duplicates are not allowed. If the maximum number of entries has been reached the least recently visited path/executed command is taken out (circular buffer behavior). The entries are displayed to the user in a sorted fashion so they can easily be found and visited/executed.
 
 6.2. Persistent history
 
@@ -193,7 +206,7 @@ The file is sorted each time it is updated and the most visited paths are added 
 
 The same behavior is implemented for executed commands except there is no excluded history to be taken into account.
 
-The persistent history holds an unlimited number of entries. However only a limited number (specified by a global variable) is displayed in the unified menu (consolidated history), namely the ones that have been visited/executed the highest number of times.
+The persistent history holds an unlimited number of entries. However only a limited number (specified by a variable from navigation_settings.py / commands_settings.py) is displayed in the unified menu (consolidated history), namely the ones that have been visited/executed the highest number of times.
 
 6.3. Consolidated history
 
@@ -228,13 +241,31 @@ Notes:
 
 6.6. Adding commands to history based on command string size
 
-It is possible to setup the minimum number of characters a command should contain in order to be stored into the command history file. This is done by setting up the minNrOfCmdChars variable. For example by setting minNrOfCmdChars=10 each command with less than 10 characters will be prevented from being included into the command history. The characters include the spaces but not the : character used for entering the command in navigation mode. This rule can be bypassed if more spaces are being included in the command (if the command has a single word the spaces should be added before the word). An alternative is to set the minimum number of characters to 0.
+It is possible to setup the minimum number of characters a command should contain in order to be stored into the command history file. This is done by setting up the min_command_size variable in commands_settings.py. For example by setting min_command_size=10 each command with less than 10 characters will be prevented from being included into the command history. The characters include the spaces but not the : character used for entering the command in navigation mode. This rule can be bypassed if more spaces are being included in the command (if the command has a single word the spaces should be added before the word). An alternative is to set the minimum number of characters to 0 in the settings file.
 
 For example:
 :echo abcd #will not be included in command history (less than 10 characters - a total of 9, including space, excluding : )
 :echo  abcd #will be included in command history (2 spaces this time)
 :echo #will not be included, no matter how many spaces are entered after echo
 :      echo #will be included, there is a total of 10 spaces, 6 spaces before the echo word
+
+Note: this setting does not affect storing the command in the "last executed shell command" buffer which is updated each time a command is executed no matter how many chars the command contains. The content of this buffer is volatile and is erased once exiting the goto_app.py script.
+
+6.7. Sensitive commands
+
+It is possible to mark specific commands as sensitive. This is not done via script execution but by manually modifying the value of the sensitive_commands_keywords variable in commands_settings.py by adding a search keyword to the set. For example if the keyword is 'rm ' every command containing this string will be marked as sensitive (the space is important as you would not like any command containing this substring (like 'echo permanent' to be added to the sensitive area). This functionality is useful for preventing accidental execution of commands that produce irreversible unwanted results. Examples of such commands are: rm, rmdir, mv.
+
+How this actually works:
+- if the user chooses a command from the commands history menu (in execute mode) the script will check if the command string contains one of the substrings that had been added to sensitive_commands_keywords
+- if the command contains (at least) one of these substrings a prompt will be displayed asking the user to confirm the command execution
+- the user should enter y (yes) for confirming and n (no) for declining. The option is case insensitive but should be one of these two.
+- if the operation is confirmed the command will get executed, otherwise it will be cancelled
+
+Note:
+- the functionality is active only when accesing the command from any commands history (persistent, recent, filtered) only in EXECUTE mode. It does not get applied in EDIT mode or when manually entering a command from navigation mode by preceding it with the : character.
+- also the functionality does not get applied when repeating the previously executed shell command by entering the special option :- from navigation menu
+
+I strongly recommend using this option and carefully checking the command string prior to choosing the 'y' option. The principle "better safe than sorry" has a good application in this situation.
 
 7. HANDLING MISSING DIRECTORIES
 
