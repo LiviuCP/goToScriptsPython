@@ -1,5 +1,5 @@
 import sys, os
-import shared_cmd_functions as cs, nav_cmd_common as common, commands_settings as cmdset
+import shared_cmd_functions as cs, nav_cmd_common as nvcdcmn, commands_settings as cmdset
 
 """ command history menu init/access functions """
 def initCmdMenus():
@@ -8,7 +8,7 @@ def initCmdMenus():
         os.makedirs(cmdset.c_log_dir)
     with open(cmdset.c_r_hist_file, "a") as crHist, open(cmdset.c_p_str_hist_file, "a") as cpStrHist, open(cmdset.c_p_num_hist_file, "a") as cpNumHist:
         crHist.close() # close, in use by limitEntriesNr()
-        common.limitEntriesNr(cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries)
+        nvcdcmn.limitEntriesNr(cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries)
         cpStrHist.close() # close, in use by consolidatedHistory()
         cpNumHist.close() # close, in use by consolidatedHistory()
         consolidateCommandHistory()
@@ -16,11 +16,11 @@ def initCmdMenus():
 def chooseCommand(userInput):
     result = (":3", "", "")
     with open(cmdset.c_hist_file, "r") as cHist:
-        result = common.getMenuEntry(userInput, cHist.readlines())
+        result = nvcdcmn.getMenuEntry(userInput, cHist.readlines())
     return result
 
 def chooseFilteredCommand(userInput, filteredContent):
-    return common.getMenuEntry(userInput, filteredContent)
+    return nvcdcmn.getMenuEntry(userInput, filteredContent)
 
 def isCommandMenuEmpty():
     return os.path.getsize(cmdset.c_hist_file) == 0
@@ -44,11 +44,11 @@ def displayFormattedFilteredCmdHistContent(filteredContent, totalNrOfMatches):
 """ command history update functions """
 def updateCommandHistory(command):
     assert len(command) > 0, "Empty command argument detected"
-    common.updateHistory(command, cmdset.c_l_hist_file, cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
+    nvcdcmn.updateHistory(command, cmdset.c_l_hist_file, cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
 
 def buildFilteredCommandHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Empty filter key found"
-    return common.buildFilteredHistory(filteredContent, filterKey, cmdset.c_p_str_hist_file, cmdset.max_filtered_c_hist_entries)
+    return nvcdcmn.buildFilteredHistory(filteredContent, filterKey, cmdset.c_p_str_hist_file, cmdset.max_filtered_c_hist_entries)
 
 def clearCommandHistory():
     with open(cmdset.c_r_hist_file, "w"), open(cmdset.c_p_str_hist_file, "w"), open(cmdset.c_p_num_hist_file, "w"), open(cmdset.c_hist_file, "w"), open(cmdset.c_l_hist_file, "w"):
