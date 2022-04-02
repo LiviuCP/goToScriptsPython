@@ -20,13 +20,19 @@ This script file contains various functions that enable navigation through a UNI
 
 It also performs history reporting and creating a list of favorite dirs. Both history and favorites can be used for easy navigation to any of the entries.
 
-2. Supported systems
+2. SUPPORTED OPERATING SYSTEMS
 
-The script is supported both on Linux and MacOS.
+The script is supported both on Linux and MacOS. It is not supported on Windows.
+
+The pre-requisites for running it correctly are:
+- Python 3.6
+- BASH CLI
+
+Following should be noted for each supported OS:
 
 1) On the Linux version the "CLI-only" mode is supported. This means the script does not synchronize the current directory of the terminal with the one from the explorer window. The reason for this implementation is that there are several distributions of Linux and the explorer tool might be differ from one to another.
 
-Unlike the BASH version of the script it is NOT possible to obtain synchronization between terminal and graphical explorer if the terminal is embedded in an explorer window (as on OpenSUSE). This is due to the fact that the script runs in a sub-shell of the terminal. If you require this synchronization please use the BASH scripts (see section 8. for more details)
+Unlike the non-Python (BASH-only) version of the script it is NOT possible to obtain synchronization between terminal and graphical explorer if the terminal is embedded in an explorer window (as on OpenSUSE). This is due to the fact that the script runs in a sub-shell of the terminal. If you require this synchronization please use the BASH-only scripts (see section 8. for more details)
 
 2) On the MacOS version the terminal can be synchronized with the Finder window. This occurs as follows: when a valid path is entered in the terminal the Finder will close and the re-open in the directory for which the path has been entered. This occurs no matter if the path is the same with the old one or not and this behavior has been implemented as the user might sometimes need to refresh the Finder window. The possible reason for requiring Finder refresh is mentioned in section 4. By default the sync feature is disabled but it can be enabled by entering :s (+hit ENTER) in the navigation menu. To disable it enter :s again and hit the RETURN key.
 
@@ -166,7 +172,7 @@ All relevant recursive move/copy commmands can be found in the clipboard help me
 
 5.9. Getting help
 
-The main navigation options can be viewed by entering the ? character and hitting ENTER in navigation mode. The application remains in "default mode" meaning the user can continue to use the navigation and commands functionality without the need to exit the help menu. This is slightly different from the BASH version where the user had to quit the help dialog to be able to continue to use the application. The main help menu is complemented by two specialized menus, namely the clipboard/recursive help (type ?clip and hit ENTER) and the batch renaming help menu (?ren + ENTER). For more details about these functionality areas check sections 5.7, 5.8 and 8.
+The main navigation options can be viewed by entering the ? character and hitting ENTER in navigation mode. The application remains in "default mode" meaning the user can continue to use the navigation and commands functionality without the need to exit the help menu. This is slightly different from the BASH-only version where the user had to quit the help dialog to be able to continue to use the application. The main help menu is complemented by two specialized menus, namely the clipboard/recursive help (type ?clip and hit ENTER) and the batch renaming help menu (?ren + ENTER). For more details about these functionality areas check sections 5.7, 5.8 and 8.
 
 5.10. Settings
 
@@ -300,7 +306,7 @@ It is not possible to switch between history and favorites menus when choosing t
 
 Also when choosing a valid replacing path the current directory will be switched to this path after remapping.
 
-8. Renaming a batch of items
+8. RENAMING A BATCH OF ITEMS
 
 It is possible to rename all items from the current directory by using various schemes. Please note that for safety reasons the items that are hidden are excluded from this functionality.
 
@@ -344,4 +350,4 @@ Notes:
 
 1) It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the navigation favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :clearnavigation and hit ENTER in order to clear the navigation history. For command history type :clearcommands and hit ENTER.
 
-2) Unlike the equivalent BASH scripts (that can be downloaded from the goToScripts repo: https://github.com/LiviuCP/gotoScripts.git), when exiting the Python script (either by entering ! or CTRL+C) the current directory is not retained but the terminal will revert to the original directory that was current when launching the goto_app.py. Also when executing CTRL+C for script exit a Python error will occur due to keyboard interrupt. This is not something to worry about but the more elegant exit solution is by using the '!' key followed by ENTER.
+2) Unlike the equivalent BASH-only scripts (that can be downloaded from the goToScripts repo: https://github.com/LiviuCP/gotoScripts.git), when exiting the Python script (either by entering ! or CTRL+C) the current directory is not retained but the terminal will revert to the original directory that was current when launching the goto_app.py. Also when executing CTRL+C for script exit a Python error will occur due to keyboard interrupt. This is not something to worry about but the more elegant exit solution is by using the '!' key followed by ENTER.
