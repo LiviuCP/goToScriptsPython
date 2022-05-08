@@ -25,8 +25,10 @@ It also performs history reporting and creating a list of favorite dirs. Both hi
 The script is supported both on Linux and MacOS. It is not supported on Windows.
 
 The pre-requisites for running it correctly are:
-- Python 3.6
+- Python 3.6 (minimum version)
 - BASH CLI
+
+On MacOS the Anaconda navigator should be installed in order to ensure the script works properly.
 
 Following should be noted for each supported OS:
 
@@ -38,12 +40,12 @@ Unlike the non-Python (BASH-only) version of the script it is NOT possible to ob
 
 3. INSTALLATION
 
-Use the master or linuxScript branch to download the Linux version and macOsScript branch to download the OS-X version. Clone from the repo, switch to the chosen branch and follow these steps:
+Use the master or linuxScript branch to download the Linux version and macOsScript branch to download the MacOS version. Clone from the repo, switch to the chosen branch and follow these steps:
 
-a. Ensure you have Python 3 installed. Check if /usr/bin/python3 exists and if not install it. Minimum required version is 3.4.
-b. Create an alias for /usr/bin/python3 [absolute_path_of_cloned_repo]/goto_app.py in .bashrc
-c. Open a new terminal window/tab and start using the functionality by executing the instruction mentioned at point b.
-d. Before shutting down the machine, in order to prevent forceful terminal closure exit the script by entering the exit key (character '!') and pressing ENTER. Do not close by using CTRL+C as this will trigger a keyboard interrupt error.
+a. Ensure you have Python 3 installed (on Mac OS install Anaconda). Check whether /usr/bin/python3 exists. Minimum required Python version is 3.6.
+b. Create an alias for /usr/bin/python3 [absolute_path_of_cloned_repo]/goto_app.py in .bashrc. On Mac OS after installing Anaconda it is sufficient to enter keyword python instead of /usr/bin/python3 in the alias.
+c. Open a new terminal window/tab and start using the functionality by executing the command alias mentioned at previous point.
+d. Before shutting down the machine, in order to prevent forceful terminal closure, exit the script by entering the exit key (character '!') and pressing ENTER. Do not close by using CTRL+C as this will trigger a keyboard interrupt error.
 
 4. KNOWN ISSUES/BUGS
 
