@@ -1,6 +1,6 @@
 """ common code to be used by navigation_backend.py and commands_backend.py """
 
-import os
+import os, re
 from pathlib import Path
 
 def limitEntriesNr(filePath, maxEntries):
@@ -110,16 +110,36 @@ def updateHistory(newOrUpdatedEntry, lHistFile, rHistFile, rHistMaxEntries, pStr
                         pHistUpdateDict[newOrUpdatedEntry] = (pHistUpdateDict[newOrUpdatedEntry] + 1) if newOrUpdatedEntry in pHistUpdateDict.keys() else 1
                         writeBackToPermHist(pHistUpdateDict, pStrHistFile, pNumHistFile, True)
 
-def buildFilteredHistory(filteredContent, filterKey, pStrHistFile, maxFilteredHistEntries):
-    assert len(filterKey) > 0, "Empty filter key found"
+def buildFilteredHistory(filteredContent, filterKeyword, pStrHistFile, maxFilteredHistEntries):
+    assert len(filterKeyword) > 0, "Empty filter keyword found"
     nrOfMatches = 0
-    with open(pStrHistFile, 'r') as pStrHist:
-        result = []
-        for entry in pStrHist.readlines():
-            if filterKey.lower() in entry.strip('\n').lower():
-                result.append(entry.strip('\n'))
-                nrOfMatches = nrOfMatches + 1
-        nrOfExposedEntries = nrOfMatches if nrOfMatches < maxFilteredHistEntries else maxFilteredHistEntries
-        for index in range(nrOfExposedEntries):
-            filteredContent.append(result[index])
+    filters = filterKeyword.split(",")
+    validFilters = []
+    for filter in filters:
+        filter = filter.lstrip()
+        filter = filter.rstrip()
+        #only valid (non-empty) filters are taken into consideration
+        if len(filter) > 0:
+            validFilters.append(filter.lower())
+    if len(validFilters) > 0:
+        with open(pStrHistFile, 'r') as pStrHist:
+            result = []
+            try:
+                for entry in pStrHist.readlines():
+                    entry = entry.strip('\n')
+                    match = True
+                    for filter in validFilters:
+                        searchResult = re.search(filter, entry.lower())
+                        if not searchResult:
+                            match = False
+                            break
+                    if match:
+                        result.append(entry)
+                nrOfMatches = len(result)
+                nrOfExposedEntries = nrOfMatches if nrOfMatches < maxFilteredHistEntries else maxFilteredHistEntries
+                for index in range(nrOfExposedEntries):
+                    filteredContent.append(result[index])
+            except Exception as e:
+                result.clear()
+                nrOfMatches = 0
     return nrOfMatches
