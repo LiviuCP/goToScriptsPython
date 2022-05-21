@@ -232,20 +232,28 @@ There is no excluded history for commands. For "favorite commands" using of stan
 
 6.5. Filtered history
 
-Both for visited directories and commands there is also the possibility to filter the persistent history (whole file) based on a search keyword, namely a sub-string contained in a path/command. The search will find all matches but only display a limited number on screen. This limitation is implemented for usability reasons. By modifying a variable in the navigation_backend.py or commands_backend.py it is possible to modify this limit (however I recommend keeping it low). When the search is complete please select the number of the required entry from the menu so it is executed/visited. The filtered history menus behave the same as the consolidated menus regarding usage.
+Both for visited directories and commands there is also the possibility to filter the persistent history (whole file) based on a search keyword. The search will find all matches but only display a limited number of results on screen. This limitation is implemented for efficiency purposes. By modifying a variable in the navigation_backend.py or commands_backend.py it is possible to modify this limit (however I recommend keeping it low).
+
+Once the search results are displayed please select the number of the required entry from the menu so it is executed/visited. The filtered history menus behave the same as the consolidated menus regarding usage.
 
 To filter visited paths enter << followed by the search keywoard and hit ENTER in navigation mode. For example enter <<abcd to find the directory /home/user_a/abcdefgh.
+
 To filter executed commands enter:
 - :< followed by keyword to display filtered entries so one is selected for executing (same behavior as when entering :< to display the consolidated command history). Example: type :<abc to search for echo zabcd (exec)
 - :: followed by keyword to display filtered entries so one is selected for editing (same behavior as when entering :: to display the consolidated command history). Example: type ::adg to search for echo zadgb (edit and exec)
 
+In the above examples the search keyword contains a single filter. However both for visited paths and executed commands it is possible to use multiple filters. These should be separated by commas, i.e. keyword should have the format: [filter_1],[filter_2],...,[filter_n]. Each keyword filter is being used for conducting a separate search. Search results are AND-ed. For example if the user enters <<abc, def then results matching BOTH 'abc' and 'def' are being displayed. Note that for each filter the preceding and trailing whitespaces are being ignored (for example when entering :<    abc, def the filters are 'abc' and 'def'). Only spaces contained within filter are being taken into consideration, e.g. <<abc, d ef implies using 'abc' and 'd ef' as filters. This is especially useful for finding commands as these might also contain spaces.
+
+Last but not least each individual filter is counted as a regular expression so the specific regex syntax can be used. However this should be valid otherwise no search results will be returned. For example entering ::* will yield no results.
+
 Notes:
-- all persistent history file entries (including the ones not displayed in consolidated menu) are being searched for the given keyword. This gives the user a chance to reuse the less visited/executed paths/commands as well.
+- all persistent history file entries (including the ones not displayed in the consolidated menu) are being searched for the given keyword. This gives the user a chance to reuse the less visited/executed paths/commands as well.
 - the search is case-insensitive, meaning you can enter <<abcd for /home/aBcd retrieval
-- the number of spaces from search keyword is relevant and should be the right one for identifying the substring in the command/path. For example you should enter :<cho ab and not :<cho  ab to find the echo abdcgijk command. This might change in the future updates.
-- if the number of found entries is higher than the displayed ones try to narrow down the search if the required path/command is not visible
-- also if no match was found try to refine the search keyword until getting the desired result. If the result is not obtained it is likely that the required entry is not in the persistent history file (maybe it had been deleted at the last history reset)
+- the number of spaces within search keyword filter is relevant and should be the right one for identifying the substring in the command/path. For example you should enter :<cho ab and not :<cho  ab to find the echo abdcgijk command. As already mentioned before, preceding and trailing spaces are ignored for each filter.
+- if the number of found entries is higher than the displayed ones try to narrow down the search if the required path/command is not visible. This can be done by modifying the filter(s) within keyword or by adding new filters. Feel free to use regex specific syntax as well if required.
+- also if no match was found try to modify the search keyword until getting the desired result. If the result is still not obtained it is likely that the required entry is not in the persistent history file (maybe it had been deleted at the last history reset)
 - the excluded history is not contained in the paths used as navigation history filtering base. The search is performed only in the persistent history files.
+- empty filters are ignored. For example if the user enters <<,,abc only abc is being used for the search. If no valid (not empty) filters have been entered then no results are being displayed. Please note that filters containing only whitespaces are also considered empty.
 
 6.6. Adding commands to history based on command string size
 
