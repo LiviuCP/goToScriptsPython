@@ -53,7 +53,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
     shouldForwardData = False
     passedInput = ""
     passedOutput = ""
-    shouldSwitchToMainContext = True #currently the app switches to main context each time input is entered in one of the main menus (to be updated)
+    shouldSwitchToMainContext = True
     if userInput == "?":
         out.displayHelp()
     elif userInput == "?clip":
@@ -77,6 +77,18 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         result = outcome[0]
         handleOutput = outcome[1] if result is not None else handleOutput
         shouldForwardData = outcome[2] if result is not None else shouldForwardData
+        shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
+    elif userInput == ":t":
+        result = None
+        newContext = "--edit" if currentContext == "--execute" else "--execute" if currentContext == "--edit" else ""
+        if len(newContext) > 0:
+            outcome = setContext(newContext, currentFilter, handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
+            result = outcome[0]
+            handleOutput = outcome[1] if result is not None else handleOutput
+            shouldForwardData = outcome[2] if result is not None else shouldForwardData
+            shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
+        else:
+            print("Unable to toggle, user was not in command history menu!")
     elif len(userInput) >= 2 and userInput[0:2] == "<<":
         outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
         result = outcome[0]
