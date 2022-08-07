@@ -128,6 +128,8 @@ It is also possible to enter the command history menu by typing :< and pressing 
 
 The command history can also be accessed in edit mode by entering :: and pressing ENTER. In edit mode when the number of a command is entered the string of the command is displayed for editing. After editing and pressing ENTER the new command will be executed. The command execution can be aborted by entering : at the end of the string and pressing ENTER.
 
+The user can switch between execute and edit mode by entering the :t keyword while in one of these modes. This option is currently only available for commands. It is particularly useful when the user has input a filter keyword to retrieve part of the history (see section 6.5). To switch back to previous mode enter :t again.
+
 Important note: in navigation mode make sure you launch time consuming commands in the background by using the ampersand (&) unless you need to visualize the output of the executed command on the screen.
 
 5.7. The clipboard functionality
