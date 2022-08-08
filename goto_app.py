@@ -3,8 +3,8 @@ import display as out, navigation as nav, commands as cmd, common, clipboard as 
 
 renaming_commands = {"ra", "ran", "rp", "rpn", "ri", "rin", "rd", "rr", "rrn"}
 renaming_translations = {"ra" : "a", "ran" : "A", "rp" : "p", "rpn" : "P", "ri" : "i", "rin" : "I", "rd" : "d", "rr" : "r", "rrn" : "R"}
-contextsDict = {":<" : "--execute", "::" : "--edit", "<" : "-h", "<<" : "-fh", ">" : "-f", "main" : ""}
-validContexts = {"--execute", "--edit", "-h", "-fh", "-f", ""}
+contextsDict = {":<" : "--execute", "::" : "--edit", "<" : "-h", "<<" : "-fh", ">" : "-f", ">>" : "-ff", "main" : ""}
+validContexts = {"--execute", "--edit", "-h", "-fh", "-f", "-ff", ""}
 
 currentContext = "" # main context
 currentFilter = "" # should change each time the user filters the navigation/command history
@@ -68,7 +68,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         shouldForwardData = True
     elif userInput == ":clearcommands":
         cmd.clearCommandHistory()
-    elif len(userInput) >= 2 and (userInput[0:2] == ":<" or userInput[0:2] == "::"):
+    elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
         outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
         result = outcome[0]
         handleOutput = outcome[1] if result is not None else handleOutput
@@ -85,7 +85,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
         else:
             print("Unable to toggle, user was not in command history menu!")
-    elif len(userInput) >= 2 and userInput[0:2] == "<<":
+    elif len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
         outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
         result = outcome[0]
         handleOutput = outcome[1] if result is not None else handleOutput
@@ -205,7 +205,7 @@ def setContext(newContext, userInput, outputHandling, shouldForwardInputOutput, 
             if result[0] == -1:
                 recursiveTransfer.setTargetDir(result[1])
         shouldForwardData = True
-    elif currentContext == "-fh":
+    elif currentContext in ["-fh", "-ff"]:
         if len(userInput) > 0:
             currentFilter = userInput
             result = nav.executeGoToFromMenu(currentContext, previousDirectory, userInput, previousCommand)

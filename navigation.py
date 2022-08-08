@@ -49,13 +49,13 @@ def initNavMenus():
 
 # negative statuses are special statuses and will be retrieved in conjunction with special characters preceding valid entry numbers (like + -> status -1); path is forwarded as input and used by main app
 def executeGoToFromMenu(menuChoice, previousDir, userInput = "", previousCommand = ""):
-    assert menuChoice in ["-f", "-h", "-fh"], "Invalid menuChoice argument"
+    assert menuChoice in ["-f", "-ff", "-h", "-fh"], "Invalid menuChoice argument"
     menuVisitResult = visitNavigationMenu(menuChoice, userInput, previousCommand)
     status = 0 # default status, normal execution or missing dir successful removal/mapping
     passedInput = ""
     passedOutput = previousDir
     dirPath = menuVisitResult[0]
-    menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "filtered history"
+    menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "filtered history" if menuChoice == "-fh" else "filtered favorites"
     if dirPath == ":1" or dirPath == ":4":
         status = int(dirPath[1])
         passedInput = menuVisitResult[1]
@@ -74,6 +74,8 @@ def executeGoToFromMenu(menuChoice, previousDir, userInput = "", previousCommand
             else:
                 if menuChoice == "-fh": #entries from filtered history are actually part of persistent history so they should be handled as a missing persistent history entry case
                     menuChoice = "-h"
+                elif menuChoice == "-ff": #entries from filtered favorites are actually part of favorites so they should be handled as a missing favorites entry case
+                    menuChoice = "-f"
                 handleResult = handleMissingDir(dirPath, menuChoice, previousDir)
                 if handleResult[0] == 1:
                     status = 1 #forward user input
@@ -121,25 +123,26 @@ def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
         print("")
         nav.displayFormattedPersistentHistContent()
         displayCommonMenuPart()
-    def displayFilteredHistMenu(content, totalNrOfMatches):
-        print("FILTERED VISITED DIRECTORIES")
-        print("")
-        nav.displayFormattedFilteredHistContent(content, totalNrOfMatches)
-        displayCommonMenuPart()
     def displayFavoritesMenu():
         print("FAVORITE DIRECTORIES")
         print("")
         nav.displayFormattedFavoritesContent()
         displayCommonMenuPart()
-    assert menuChoice in ["-f", "-h", "-fh"], "Wrong menu option provided"
-    filteredHistEntries = []
-    if menuChoice == "-fh":
-        assert len(userInput) > 0, "No filter has been provided for filtered navigation history"
-        totalNrOfMatches = nav.buildFilteredNavigationHistory(filteredHistEntries, userInput)
+    def displayFilteredMenu(choice, content, totalNrOfMatches):
+        assert choice in ["-fh", "-ff"]
+        print("FILTERED VISITED DIRECTORIES") if choice == "-fh" else print("FILTERED FAVORITE DIRECTORIES")
+        print("")
+        nav.displayFormattedFilteredContent(content, totalNrOfMatches)
+        displayCommonMenuPart()
+    assert menuChoice in ["-f", "-ff", "-h", "-fh"], "Wrong menu option provided"
+    filteredEntries = []
+    if menuChoice in ["-fh", "-ff"]:
+        assert len(userInput) > 0, "No filter has been provided for filtered navigation menu"
+        totalNrOfMatches = nav.buildFilteredNavigationHistory(filteredEntries, userInput) if menuChoice == "-fh" else nav.buildFilteredFavorites(filteredEntries, userInput)
         userInput = "" #input should be reset to correctly account for the case when the resulting filtered history menu is empty
         os.system("clear")
-        if len(filteredHistEntries) > 0:
-            displayFilteredHistMenu(filteredHistEntries, totalNrOfMatches)
+        if len(filteredEntries) > 0:
+            displayFilteredMenu(menuChoice, filteredEntries, totalNrOfMatches)
             userInput = input()
             os.system("clear")
     elif len(userInput) == 0:
@@ -148,7 +151,7 @@ def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
             displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
             userInput = input()
             os.system("clear")
-    choiceResult = nav.choosePath(menuChoice, userInput, filteredHistEntries)
+    choiceResult = nav.choosePath(menuChoice, userInput, filteredEntries)
     return choiceResult
 
 """
