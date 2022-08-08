@@ -62,7 +62,7 @@ def doHistoryCleanup():
 
 def choosePath(menuChoice, userInput, filteredContent):
     result = (":3", "", "")
-    if menuChoice == "-fh":
+    if menuChoice in ["-fh", "-ff"]:
         result = nvcdcmn.getMenuEntry(userInput, filteredContent)
     else:
         with open(navset.fav_file if menuChoice == "-f" else navset.hist_file, "r") as fPath:
@@ -77,7 +77,7 @@ def displayFormattedPersistentHistContent():
     with open(navset.hist_file, "r") as hist, open(navset.r_hist_file, "r") as rHist:
         ns.displayFormattedNavFileContent(hist.readlines(), len(rHist.readlines()))
 
-def displayFormattedFilteredHistContent(filteredContent, totalNrOfMatches):
+def displayFormattedFilteredContent(filteredContent, totalNrOfMatches):
     ns.displayFormattedNavFileContent(filteredContent, 0)
     print("")
     print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
@@ -113,6 +113,10 @@ def consolidateHistory():
 def buildFilteredNavigationHistory(filteredContent, filterKey):
     assert len(filterKey) > 0, "Empty filter key found"
     return nvcdcmn.buildFilteredHistory(filteredContent, filterKey, navset.p_str_hist_file, navset.max_filtered_hist_entries)
+
+def buildFilteredFavorites(filteredContent, filterKey):
+    assert len(filterKey) > 0, "Empty filter key found"
+    return nvcdcmn.buildFilteredHistory(filteredContent, filterKey, navset.e_str_hist_file, navset.max_filtered_fav_entries)
 
 def clearHistory():
     with open(navset.r_hist_file, "w"), open(navset.p_str_hist_file, "w"), open(navset.p_num_hist_file, "w"), open(navset.hist_file, "w"), open(navset.l_hist_file, "w"), open(navset.e_str_hist_file, "w") as eStrHist, open(navset.e_num_hist_file, "w") as eNumHist, open(navset.fav_file, "r") as fav:

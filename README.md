@@ -238,7 +238,11 @@ Both for visited directories and commands there is also the possibility to filte
 
 Once the search results are displayed please select the number of the required entry from the menu so it is executed/visited. The filtered history menus behave the same as the consolidated menus regarding usage.
 
+The same filtering mechanism also applies to favorite directories.
+
 To filter visited paths enter << followed by the search keywoard and hit ENTER in navigation mode. For example enter <<abcd to find the directory /home/user_a/abcdefgh.
+
+To filter favorite paths enter >> followed by the search keyword and hit the ENTER key.
 
 To filter executed commands enter:
 - :< followed by keyword to display filtered entries so one is selected for executing (same behavior as when entering :< to display the consolidated command history). Example: type :<abc to search for echo zabcd (exec)
@@ -254,7 +258,7 @@ Notes:
 - the number of spaces within search keyword filter is relevant and should be the right one for identifying the substring in the command/path. For example you should enter :<cho ab and not :<cho  ab to find the echo abdcgijk command. As already mentioned before, preceding and trailing spaces are ignored for each filter.
 - if the number of found entries is higher than the displayed ones try to narrow down the search if the required path/command is not visible. This can be done by modifying the filter(s) within keyword or by adding new filters. Feel free to use regex specific syntax as well if required.
 - also if no match was found try to modify the search keyword until getting the desired result. If the result is still not obtained it is likely that the required entry is not in the persistent history file (maybe it had been deleted at the last history reset)
-- the excluded history is not contained in the paths used as navigation history filtering base. The search is performed only in the persistent history files.
+- the excluded history is not contained in the paths used as navigation history filtering base. The search is performed only in the persistent history files. It is possible to filter excluded history separately by using prefix >> (favorite paths filtering)
 - empty filters are ignored. For example if the user enters <<,,abc only abc is being used for the search. If no valid (not empty) filters have been entered then no results are being displayed. Please note that filters containing only whitespaces are also considered empty.
 
 6.6. Adding commands to history based on command string size

@@ -4,6 +4,7 @@ from os.path import expanduser
 r_hist_max_entries = 10 # maximum number of paths to be stored in recent navigation history (and displayed in consolidated navigation history)
 p_hist_max_entries = 15 # maximum number of entries (paths + visits) to be displayed in consolidated navigation history
 max_filtered_hist_entries = 5 # maximum number of paths to be displayed when filtering persistent navigation history
+max_filtered_fav_entries = 2 # maximum number of paths to be displayed when filtering favorites
 home_dir = expanduser("~") + "/" # user home directory
 r_hist_file = home_dir + ".recent_history" # file containing the most recently visited paths
 p_str_hist_file = home_dir + ".persistent_history_strings" # file containing the persistent history paths
