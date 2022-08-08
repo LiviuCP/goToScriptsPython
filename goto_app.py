@@ -54,12 +54,8 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
     passedInput = ""
     passedOutput = ""
     shouldSwitchToMainContext = True
-    if userInput == "?":
-        out.displayHelp()
-    elif userInput == "?clip":
-        out.displayClipboardHelp()
-    elif userInput == "?ren":
-        out.displayRenamingHelp()
+    if userInput in ["?", "?clip", "?ren"]:
+        handleHelpRequest(userInput, out)
     elif userInput == ":-":
         if len(prevCommand) == 0:
             print("No shell command previously executed")
@@ -111,26 +107,10 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         shouldForwardData = True
     elif userInput == ":clearnavigation":
         nav.clearVisitedDirsMenu()
-    elif userInput == ":c":
-        clipboard.createAction()
-    elif userInput == ":m":
-        clipboard.createAction(False)
-    elif userInput == ":y":
-        clipboard.applyAction()
-    elif userInput == ":ec":
-        clipboard.erase(True)
-    elif userInput == ":dc":
-        clipboard.display()
-    elif userInput == ":td":
-        recursiveTransfer.setTargetDir()
-    elif userInput == ":M":
-        recursiveTransfer.transferItemsToTargetDir(False)
-    elif userInput == ":C":
-        recursiveTransfer.transferItemsToTargetDir()
-    elif userInput == ":etd":
-        recursiveTransfer.eraseTargetDir(True)
-    elif userInput == ":dtd":
-        recursiveTransfer.displayTargetDir()
+    elif userInput in [":c", ":m", ":y", ":ec", ":dc"]:
+        handleClipboardInput(userInput, clipboard)
+    elif userInput in [":td", ":M", ":C", ":etd", ":dtd"]:
+        handleRecursiveTransferInput(userInput, recursiveTransfer)
     elif userInput.startswith(":") and userInput[1:] in renaming_commands:
         rn.rename(renaming_translations[userInput[1:]])
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
@@ -157,6 +137,44 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         setContext(contextsDict["main"], "", handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
     return (handleOutput, passedInput, passedOutput)
 
+def handleHelpRequest(helpInput, out):
+    if helpInput == "?":
+        out.displayHelp()
+    elif helpInput == "?clip":
+        out.displayClipboardHelp()
+    elif helpInput == "?ren":
+        out.displayRenamingHelp()
+    else:
+        assert False, "Invalid help option"
+
+def handleClipboardInput(clipboardInput, clipboard):
+    if clipboardInput == ":c":
+        clipboard.createAction()
+    elif clipboardInput == ":m":
+        clipboard.createAction(False)
+    elif clipboardInput == ":y":
+        clipboard.applyAction()
+    elif clipboardInput == ":ec":
+        clipboard.erase(True)
+    elif clipboardInput == ":dc":
+        clipboard.display()
+    else:
+        assert False, "Invalid clipboard option"
+
+def handleRecursiveTransferInput(recursiveTransferInput, recursiveTransfer):
+    if recursiveTransferInput == ":td":
+        recursiveTransfer.setTargetDir()
+    elif recursiveTransferInput == ":M":
+        recursiveTransfer.transferItemsToTargetDir(False)
+    elif recursiveTransferInput == ":C":
+        recursiveTransfer.transferItemsToTargetDir()
+    elif recursiveTransferInput == ":etd":
+        recursiveTransfer.eraseTargetDir(True)
+    elif recursiveTransferInput == ":dtd":
+        recursiveTransfer.displayTargetDir()
+    else:
+        assert False, "Invalid recursive transfer option"
+
 # contexts are related to main menus:
 # - navigation history
 # - filtered navigation history
@@ -180,7 +198,7 @@ def setContext(newContext, userInput, outputHandling, shouldForwardInputOutput, 
         shouldForwardData = True
     elif currentContext in ["-f", "-h"]:
         result = nav.executeGoToFromMenu(currentContext, previousDirectory, userInput, previousCommand)
-        if (len(userInput) > 0):
+        if len(userInput) > 0:
             handleOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else handleOutput #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
         else:
             handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
@@ -188,7 +206,7 @@ def setContext(newContext, userInput, outputHandling, shouldForwardInputOutput, 
                 recursiveTransfer.setTargetDir(result[1])
         shouldForwardData = True
     elif currentContext == "-fh":
-        if (len(userInput) > 0):
+        if len(userInput) > 0:
             currentFilter = userInput
             result = nav.executeGoToFromMenu(currentContext, previousDirectory, userInput, previousCommand)
             handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
