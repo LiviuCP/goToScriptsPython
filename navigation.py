@@ -110,6 +110,7 @@ def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
         print("Enter ! to quit.")
         print("")
     def displayHistMenu():
+        nav.consolidateHistory() #normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
         print("VISITED DIRECTORIES")
         print("")
         print("-- RECENTLY VISITED --")
