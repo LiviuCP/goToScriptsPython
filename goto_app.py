@@ -5,6 +5,7 @@ renaming_commands = {"ra", "ran", "rp", "rpn", "ri", "rin", "rd", "rr", "rrn"}
 renaming_translations = {"ra" : "a", "ran" : "A", "rp" : "p", "rpn" : "P", "ri" : "i", "rin" : "I", "rd" : "d", "rr" : "r", "rrn" : "R"}
 contextsDict = {":<" : "--execute", "::" : "--edit", "<" : "-h", "<<" : "-fh", ">" : "-f", ">>" : "-ff", "main" : ""}
 validContexts = {"--execute", "--edit", "-h", "-fh", "-f", "-ff", ""}
+contextSwitchDict = {"--execute" : "--edit", "--edit" : "--execute", "-f" : "-h", "-h" : "-f", "-fh" : "-ff", "-ff" : "-fh", "" : ""}
 
 currentContext = "" # main context
 currentFilter = "" # should change each time the user filters the navigation/command history
@@ -81,7 +82,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
     elif userInput == ":t":
         result = None
-        newContext = "--edit" if currentContext == "--execute" else "--execute" if currentContext == "--edit" else ""
+        newContext = contextSwitchDict[currentContext]
         if len(newContext) > 0:
             outcome = setContext(newContext, currentFilter, handleOutput, shouldForwardData, prevCommand, prevDir, syncWithFinder, recursiveTransfer)
             result = outcome[0]
@@ -89,17 +90,19 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
             shouldForwardData = outcome[2] if result is not None else shouldForwardData
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
         else:
-            print("Unable to toggle, user was not in command history menu!")
+            print("Unable to toggle, not in the right menu!")
     elif len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
         outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, syncWithFinder, recursiveTransfer)
         result = outcome[0]
         handleOutput = outcome[1] if result is not None else handleOutput
         shouldForwardData = outcome[2] if result is not None else shouldForwardData
+        shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
     elif len(userInput) >= 1 and userInput[0] in ["<", ">"]:
         outcome = setContext(contextsDict[userInput[0]], userInput[1:], handleOutput, shouldForwardData, prevCommand, prevDir, syncWithFinder, recursiveTransfer)
         result = outcome[0]
         handleOutput = outcome[1] if result is not None else handleOutput
         shouldForwardData = outcome[2] if result is not None else shouldForwardData
+        shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
     elif userInput == ",":
         result = nav.goTo(prevDir, os.getcwd(), syncWithFinder)
         handleOutput = 4 if result[0] == 0 else handleOutput

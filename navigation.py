@@ -122,7 +122,8 @@ def executeGoToFromMenu(menuChoice, previousDir, syncWithFinder, userInput = "",
     return (status, passedInput, passedOutput)
 
 def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
-    def displayCommonMenuPart():
+    def displayCommonMenuPart(choice):
+        toggleDict = {"-h" : "FAVORITE DIRECTORIES", "-f" : "VISITED DIRECTORIES", "-fh" : "FILTERED FAVORITE DIRECTORIES", "-ff" : "FILTERED VISITED DIRECTORIES"}
         print("")
         print("Current directory: " + os.getcwd())
         print("Last executed shell command: ", end='')
@@ -132,6 +133,8 @@ def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
         print("To navigate to parent directory enter character ',' before the number.")
         print("To set the directory as target dir enter '+' before the number. ", end='')
         print("Enter '-' to set its parent as target.")
+        print("")
+        print("Enter :t to toggle to " + toggleDict[choice] + ".")
         print("")
         print("Enter ! to quit.")
         print("")
@@ -146,18 +149,18 @@ def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
         print("-- MOST VISITED --")
         print("")
         nav.displayFormattedPersistentHistContent()
-        displayCommonMenuPart()
+        displayCommonMenuPart("-h")
     def displayFavoritesMenu():
         print("FAVORITE DIRECTORIES")
         print("")
         nav.displayFormattedFavoritesContent()
-        displayCommonMenuPart()
+        displayCommonMenuPart("-f")
     def displayFilteredMenu(choice, content, totalNrOfMatches):
         assert choice in ["-fh", "-ff"]
         print("FILTERED VISITED DIRECTORIES") if choice == "-fh" else print("FILTERED FAVORITE DIRECTORIES")
         print("")
         nav.displayFormattedFilteredContent(content, totalNrOfMatches)
-        displayCommonMenuPart()
+        displayCommonMenuPart(choice)
     assert menuChoice in ["-f", "-ff", "-h", "-fh"], "Wrong menu option provided"
     filteredEntries = []
     if menuChoice in ["-fh", "-ff"]:

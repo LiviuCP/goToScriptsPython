@@ -78,7 +78,8 @@ def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
         print("")
         print("Enter command number.")
         print("Enter :t to toggle to ", end='')
-        print("EDIT mode.") if mode == "--execute" else print("EXECUTE mode.")
+        print("EDIT MODE.") if mode == "--execute" else print("EXECUTE MODE.")
+        print("")
         print("Enter ! to quit.")
         print("")
     def displayCmdHistMenu(mode):

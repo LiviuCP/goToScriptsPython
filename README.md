@@ -128,8 +128,6 @@ It is also possible to enter the command history menu by typing :< and pressing 
 
 The command history can also be accessed in edit mode by entering :: and pressing ENTER. In edit mode when the number of a command is entered the string of the command is displayed for editing. After editing and pressing ENTER the new command will be executed. The command execution can be aborted by entering : at the end of the string and pressing ENTER.
 
-The user can switch between execute and edit mode by entering the :t keyword while in one of these modes. This option is currently only available for commands. It is particularly useful when the user has input a filter keyword to retrieve part of the history (see section 6.5). To switch back to previous mode enter :t again.
-
 Important note: in navigation mode make sure you launch time consuming commands in the background by using the ampersand (&) unless you need to visualize the output of the executed command on the screen.
 
 5.7. The clipboard functionality
@@ -190,6 +188,26 @@ Currently settings are available for:
 - batch renaming of files contained in the current directory (rename_settings.py)
 
 For more details consult these files and read the comment added to each settings variable.
+
+5.11. Toggling between menus
+
+When the user is in one of the following menus it is possible to toggle to its "counterpart" menu:
+- navigation history -> to navigation favorites
+- navigation favorites -> to navigation history
+- commands history execute mode -> to edit mode
+- commands history edit mode -> to execute mode
+
+The user just has to enter option :t while in one of these menus and hit ENTER.
+
+Please note that no toggling occurs if the counterpart menu has no entries available. Instead the same error message is displayed as if the user tried to enter this menu from the start.
+
+To be noted is that the toggle option works in filtered menus as well. The counterpart will have the same filter applied. Same rule applies here: if the counterpart does not have any entries when applying that filter then no toggling will occur and the corresponding error message is displayed.
+
+If the user enters the toggle option without being in either of the above menus, then a distinct error is displayed stating toggling is not possible.
+
+The toggle option is particularly useful in filtered menus by saving the effort of manually re-entering the filter for the menu counterpart (most commonly when the user wants to edit a command instead of directly executing it).
+
+Note: by re-entering option :t the user toggles back to previous menu (and so on...). This back-and-forth toggling is obviously not applicable if the counterpart menu has no available entries.
 
 6. THE HISTORY FUNCTIONALITY
 
