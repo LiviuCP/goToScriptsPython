@@ -113,6 +113,7 @@ def updateHistory(newOrUpdatedEntry, lHistFile, rHistFile, rHistMaxEntries, pStr
 def buildFilteredHistory(filteredContent, filterKeyword, pStrHistFile, maxFilteredHistEntries):
     assert len(filterKeyword) > 0, "Empty filter keyword found"
     nrOfMatches = 0
+    appliedFilterKeyword = ""
     filters = filterKeyword.split(",")
     validFilters = []
     for filter in filters:
@@ -139,7 +140,14 @@ def buildFilteredHistory(filteredContent, filterKeyword, pStrHistFile, maxFilter
                 nrOfExposedEntries = nrOfMatches if nrOfMatches < maxFilteredHistEntries else maxFilteredHistEntries
                 for index in range(nrOfExposedEntries):
                     filteredContent.append(result[index])
+                # provide the cleaned-up filter string to the user
+                for filter in validFilters:
+                    appliedFilterKeyword += filter + ", "
+                appliedFilterKeywordLength = len(appliedFilterKeyword)
+                if appliedFilterKeywordLength >= 2:
+                    appliedFilterKeyword = appliedFilterKeyword[0:appliedFilterKeywordLength-2]
             except Exception as e:
                 result.clear()
                 nrOfMatches = 0
-    return nrOfMatches
+                appliedFilterKeyword = ""
+    return (nrOfMatches, appliedFilterKeyword)
