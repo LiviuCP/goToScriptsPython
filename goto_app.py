@@ -73,7 +73,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         handleOutput = 2 if result[0] == 0 else handleOutput
         shouldForwardData = True
     elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
-        outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, syncWithFinder, recursiveTransfer)
+        outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
         result = outcome[0]
         handleOutput = outcome[1] if result is not None else handleOutput
         shouldForwardData = outcome[2] if result is not None else shouldForwardData
@@ -82,7 +82,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         result = None
         newContext = contextSwitchDict[currentContext]
         if len(newContext) > 0:
-            outcome = setContext(newContext, currentFilter, handleOutput, shouldForwardData, prevCommand, prevDir, syncWithFinder, recursiveTransfer)
+            outcome = setContext(newContext, currentFilter, handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
             result = outcome[0]
             handleOutput = outcome[1] if result is not None else handleOutput
             shouldForwardData = outcome[2] if result is not None else shouldForwardData
@@ -90,13 +90,13 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         else:
             print("Unable to toggle, not in the right menu!")
     elif len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
-        outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, syncWithFinder, recursiveTransfer)
+        outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
         result = outcome[0]
         handleOutput = outcome[1] if result is not None else handleOutput
         shouldForwardData = outcome[2] if result is not None else shouldForwardData
         shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
     elif len(userInput) >= 1 and userInput[0] in ["<", ">"]:
-        outcome = setContext(contextsDict[userInput[0]], userInput[1:], handleOutput, shouldForwardData, prevCommand, prevDir, syncWithFinder, recursiveTransfer)
+        outcome = setContext(contextsDict[userInput[0]], userInput[1:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
         result = outcome[0]
         handleOutput = outcome[1] if result is not None else handleOutput
         shouldForwardData = outcome[2] if result is not None else shouldForwardData
@@ -137,7 +137,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         passedInput = result[1]
         passedOutput = result[2]
     if shouldSwitchToMainContext:
-        setContext(contextsDict["main"], "", handleOutput, shouldForwardData, prevCommand, prevDir, syncWithFinder, recursiveTransfer)
+        setContext(contextsDict["main"], "", handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
     return (handleOutput, passedInput, passedOutput)
 
 def handleHelpRequest(helpInput, out):
@@ -210,7 +210,8 @@ def handleCloseApplication(previousCommand):
 # - command history in execute mode (filtered or not)
 # - command history in edit mode (filtered or not)
 # - main navigation mode (no main menu): includes all sub-contexts: edit an individual command, help menu, move/copy, recursive move/copy, renaming files/dirs etc
-def setContext(newContext, userInput, outputHandling, shouldForwardInputOutput, previousCommand, previousDirectory, syncWithFinder, recursiveTransfer):
+def setContext(newContext, userInput, outputHandling, shouldForwardInputOutput, previousCommand, previousDirectory, recursiveTransfer):
+    global syncWithFinder
     global currentContext
     global currentFilter
     assert newContext in validContexts, "Invalid context detected"
