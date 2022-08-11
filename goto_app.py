@@ -122,12 +122,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         print("Input cancelled, no action performed!")
     elif userInput == ":s":
-        print("Finder synchronization enabled") if syncWithFinder == False else print("Finder synchronization disabled")
-        syncWithFinder = not syncWithFinder
-        if syncWithFinder == True:
-            nav.doFinderSync()
-        elif closeFinder == True:
-            nav.doCloseFinder()
+        handleSyncWithFinder(closeFinder)
     elif userInput == "!":
         handleCloseApplication(prevCommand)
     else:
@@ -182,6 +177,15 @@ def handleRecursiveTransferInput(recursiveTransferInput, recursiveTransfer):
         recursiveTransfer.displayTargetDir()
     else:
         assert False, "Invalid recursive transfer option"
+
+def handleSyncWithFinder(closeFinder):
+    global syncWithFinder
+    syncWithFinder = not syncWithFinder
+    print("Finder synchronization enabled") if syncWithFinder == True else print("Finder synchronization disabled")
+    if syncWithFinder == True:
+        nav.doFinderSync()
+    elif closeFinder == True:
+        nav.doCloseFinder()
 
 def handleClearMenu(userInput):
     if userInput == ":clearnavigation":
