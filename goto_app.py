@@ -72,8 +72,6 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
         handleOutput = 2 if result[0] == 0 else handleOutput
         shouldForwardData = True
-    elif userInput == ":clearcommands":
-        cmd.clearCommandHistory()
     elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
         outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, syncWithFinder, recursiveTransfer)
         result = outcome[0]
@@ -113,8 +111,8 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         result = nav.removeDirFromFavorites()
         handleOutput = 1 if result[0] == 1 else handleOutput
         shouldForwardData = True
-    elif userInput == ":clearnavigation":
-        nav.clearVisitedDirsMenu()
+    elif userInput in [":clearnavigation", ":clearcommands"]:
+        handleClearMenu(userInput)
     elif userInput in [":c", ":m", ":y", ":ec", ":dc"]:
         handleClipboardInput(userInput, clipboard)
     elif userInput in [":td", ":M", ":C", ":etd", ":dtd"]:
@@ -131,12 +129,7 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         elif closeFinder == True:
             nav.doCloseFinder()
     elif userInput == "!":
-        print("You exited the navigation app.")
-        print("")
-        print("Last visited directory: " + os.getcwd())
-        print("Last executed shell command: ", end='')
-        print(prevCommand) if len(prevCommand) > 0 else print("none")
-        print("")
+        handleCloseApplication(prevCommand)
     else:
         if userInput != "" and userInput[0] == ":":
             result = cmd.executeCommandWithStatus(userInput[1:])
@@ -189,6 +182,22 @@ def handleRecursiveTransferInput(recursiveTransferInput, recursiveTransfer):
         recursiveTransfer.displayTargetDir()
     else:
         assert False, "Invalid recursive transfer option"
+
+def handleClearMenu(userInput):
+    if userInput == ":clearnavigation":
+        nav.clearVisitedDirsMenu()
+    elif userInput == ":clearcommands":
+        cmd.clearCommandHistory()
+    else:
+        assert False, "Invalid clear menu option"
+
+def handleCloseApplication(previousCommand):
+    print("You exited the navigation app.")
+    print("")
+    print("Last visited directory: " + os.getcwd())
+    print("Last executed shell command: ", end='')
+    print(previousCommand) if len(previousCommand) > 0 else print("none")
+    print("")
 
 # contexts are related to main menus:
 # - navigation history
