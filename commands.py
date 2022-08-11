@@ -70,18 +70,6 @@ def initCmdMenus():
     cmd.initCmdMenus()
 
 def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
-    def displayCommandMenuFooter():
-        print("")
-        print("Current directory: " + os.getcwd())
-        print("Last executed shell command: ", end='')
-        print(previousCommand) if len(previousCommand) > 0 else print("none")
-        print("")
-        print("Enter command number.")
-        print("Enter :t to toggle to ", end='')
-        print("EDIT MODE.") if mode == "--execute" else print("EXECUTE MODE.")
-        print("")
-        print("Enter ! to quit.")
-        print("")
     def displayCmdHistMenu(mode):
         print("COMMANDS LIST")
         print("")
@@ -94,14 +82,27 @@ def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
         print("-- MOST EXECUTED --")
         print("")
         cmd.displayFormattedPersistentCmdHistContent()
-        displayCommandMenuFooter()
     def displayFilteredCmdHistMenu(content, mode, totalNrOfMatches):
         print("FILTERED COMMANDS LIST")
         print("")
         print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
         print("")
         cmd.displayFormattedFilteredCmdHistContent(content, totalNrOfMatches)
-        displayCommandMenuFooter()
+    def displayPageFooter(filterKey = ""):
+        print("")
+        print("Current directory: " + os.getcwd())
+        print("Last executed shell command: ", end='')
+        print(previousCommand) if len(previousCommand) > 0 else print("none")
+        print("")
+        if len(filterKey) > 0:
+            print("Applied filter: " + filterKey)
+            print("")
+        print("Enter command number.")
+        print("Enter :t to toggle to ", end='')
+        print("EDIT MODE.") if mode == "--execute" else print("EXECUTE MODE.")
+        print("")
+        print("Enter ! to quit.")
+        print("")
     status = 0 # default status (normal execution)
     passedInput = ""
     passedOutput = ""
@@ -113,15 +114,19 @@ def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
         userInput = ""
     elif len(filterKey) == 0:
         displayCmdHistMenu(mode)
+        displayPageFooter()
         userInput = input()
         os.system("clear")
     else:
-        totalNrOfMatches = cmd.buildFilteredCommandHistory(filteredHistEntries, filterKey)
+        filterResult = cmd.buildFilteredCommandHistory(filteredHistEntries, filterKey)
+        totalNrOfMatches = filterResult[0]
+        appliedFilterKey = filterResult[1]
         if len(filteredHistEntries) == 0:
             print("There are no entries in the filtered command history menu.")
             userInput = ""
         else:
             displayFilteredCmdHistMenu(filteredHistEntries, mode, totalNrOfMatches)
+            displayPageFooter(appliedFilterKey)
             userInput = input()
             os.system("clear")
     # process user choice

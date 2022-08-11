@@ -98,22 +98,6 @@ def executeGoToFromMenu(menuChoice, previousDir, userInput = "", previousCommand
     return (status, passedInput, passedOutput)
 
 def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
-    def displayCommonMenuPart(choice):
-        toggleDict = {"-h" : "FAVORITE DIRECTORIES", "-f" : "VISITED DIRECTORIES", "-fh" : "FILTERED FAVORITE DIRECTORIES", "-ff" : "FILTERED VISITED DIRECTORIES"}
-        print("")
-        print("Current directory: " + os.getcwd())
-        print("Last executed shell command: ", end='')
-        print(previousCommand) if len(previousCommand) > 0 else print("none")
-        print("")
-        print("Enter the number of the directory you want to navigate to. ", end='')
-        print("To navigate to parent directory enter character ',' before the number.")
-        print("To set the directory as target dir enter '+' before the number. ", end='')
-        print("Enter '-' to set its parent as target.")
-        print("")
-        print("Enter :t to toggle to " + toggleDict[choice] + ".")
-        print("")
-        print("Enter ! to quit.")
-        print("")
     def displayHistMenu():
         nav.consolidateHistory() #normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
         print("VISITED DIRECTORIES")
@@ -125,33 +109,53 @@ def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
         print("-- MOST VISITED --")
         print("")
         nav.displayFormattedPersistentHistContent()
-        displayCommonMenuPart("-h")
     def displayFavoritesMenu():
         print("FAVORITE DIRECTORIES")
         print("")
         nav.displayFormattedFavoritesContent()
-        displayCommonMenuPart("-f")
     def displayFilteredMenu(choice, content, totalNrOfMatches):
         assert choice in ["-fh", "-ff"]
         print("FILTERED VISITED DIRECTORIES") if choice == "-fh" else print("FILTERED FAVORITE DIRECTORIES")
         print("")
         nav.displayFormattedFilteredContent(content, totalNrOfMatches)
-        displayCommonMenuPart(choice)
+    def displayPageFooter(choice, filterKey = ""):
+        toggleDict = {"-h" : "FAVORITE DIRECTORIES", "-f" : "VISITED DIRECTORIES", "-fh" : "FILTERED FAVORITE DIRECTORIES", "-ff" : "FILTERED VISITED DIRECTORIES"}
+        print("")
+        print("Current directory: " + os.getcwd())
+        print("Last executed shell command: ", end='')
+        print(previousCommand) if len(previousCommand) > 0 else print("none")
+        print("")
+        if len(filterKey) > 0:
+            print("Applied filter: " + filterKey)
+            print("")
+        print("Enter the number of the directory you want to navigate to. ", end='')
+        print("To navigate to parent directory enter character ',' before the number.")
+        print("To set the directory as target dir enter '+' before the number. ", end='')
+        print("Enter '-' to set its parent as target.")
+        print("")
+        print("Enter :t to toggle to " + toggleDict[choice] + ".")
+        print("")
+        print("Enter ! to quit.")
+        print("")
     assert menuChoice in ["-f", "-ff", "-h", "-fh"], "Wrong menu option provided"
     filteredEntries = []
     if menuChoice in ["-fh", "-ff"]:
         assert len(userInput) > 0, "No filter has been provided for filtered navigation menu"
-        totalNrOfMatches = nav.buildFilteredNavigationHistory(filteredEntries, userInput) if menuChoice == "-fh" else nav.buildFilteredFavorites(filteredEntries, userInput)
+        filterResult = nav.buildFilteredNavigationHistory(filteredEntries, userInput) if menuChoice == "-fh" else nav.buildFilteredFavorites(filteredEntries, userInput)
+        totalNrOfMatches = filterResult[0]
+        appliedFilterKey = filterResult[1]
         userInput = "" #input should be reset to correctly account for the case when the resulting filtered history menu is empty
         os.system("clear")
         if len(filteredEntries) > 0:
             displayFilteredMenu(menuChoice, filteredEntries, totalNrOfMatches)
+            displayPageFooter(menuChoice, appliedFilterKey)
             userInput = input()
             os.system("clear")
     elif len(userInput) == 0:
         os.system("clear")
         if not nav.isMenuEmpty(menuChoice):
             displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
+            displayPageFooter(menuChoice)
             userInput = input()
             os.system("clear")
     choiceResult = nav.choosePath(menuChoice, userInput, filteredEntries)
