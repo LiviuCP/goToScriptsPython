@@ -55,18 +55,18 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
     passedInput = ""
     passedOutput = ""
     shouldSwitchToMainContext = True
-    if userInput in ["?", "?clip", "?ren"]:
-        handleHelpRequest(userInput, out)
-    elif userInput == ":-":
-        if len(prevCommand) == 0:
-            print("No shell command previously executed")
-        else:
-            result = cmd.executeCommandWithStatus(prevCommand, True)
-            shouldForwardData = True
-    elif userInput == ":":
-        result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
-        handleOutput = 2 if result[0] == 0 else handleOutput
-        shouldForwardData = True
+    if len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
+        outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
+        result = outcome[0]
+        handleOutput = outcome[1] if result is not None else handleOutput
+        shouldForwardData = outcome[2] if result is not None else shouldForwardData
+        shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
+    elif len(userInput) >= 1 and userInput[0] in ["<", ">"]:
+        outcome = setContext(contextsDict[userInput[0]], userInput[1:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
+        result = outcome[0]
+        handleOutput = outcome[1] if result is not None else handleOutput
+        shouldForwardData = outcome[2] if result is not None else shouldForwardData
+        shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
     elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
         outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
         result = outcome[0]
@@ -84,21 +84,19 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
         else:
             print("Unable to toggle, not in the right menu!")
-    elif len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
-        outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
-        result = outcome[0]
-        handleOutput = outcome[1] if result is not None else handleOutput
-        shouldForwardData = outcome[2] if result is not None else shouldForwardData
-        shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
-    elif len(userInput) >= 1 and userInput[0] in ["<", ">"]:
-        outcome = setContext(contextsDict[userInput[0]], userInput[1:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
-        result = outcome[0]
-        handleOutput = outcome[1] if result is not None else handleOutput
-        shouldForwardData = outcome[2] if result is not None else shouldForwardData
-        shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
     elif userInput == ",":
         result = nav.goTo(prevDir, os.getcwd())
         handleOutput = 4 if result[0] == 0 else handleOutput
+        shouldForwardData = True
+    elif userInput == ":-":
+        if len(prevCommand) > 0:
+            result = cmd.executeCommandWithStatus(prevCommand, True)
+            shouldForwardData = True
+        else:
+            print("No shell command previously executed")
+    elif userInput == ":":
+        result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
+        handleOutput = 2 if result[0] == 0 else handleOutput
         shouldForwardData = True
     elif userInput == "+>":
         nav.addDirToFavorites()
@@ -116,10 +114,12 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         rn.rename(renaming_translations[userInput[1:]])
     elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
         print("Input cancelled, no action performed!")
+    elif userInput in ["?", "?clip", "?ren"]:
+        handleHelpRequest(userInput, out)
     elif userInput == "!":
         handleCloseApplication(prevCommand)
     else:
-        if userInput != "" and userInput[0] == ":":
+        if len(userInput) > 0 and userInput[0] == ":":
             result = cmd.executeCommandWithStatus(userInput[1:])
             handleOutput = 2
         else:
