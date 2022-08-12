@@ -243,7 +243,8 @@ def setContext(newContext, userInput, outputHandling, shouldForwardInputOutput, 
             if result[0] == -1:
                 recursiveTransfer.setTargetDir(result[1])
         else:
-            print("No filter keyword entered. Cannot filter navigation history.")
+            print("No filter keyword entered. Cannot filter ", end='')
+            print("navigation history.") if currentContext == "-fh" else print("favorites.")
 
     return (result, handleOutput, shouldForwardData)
 
