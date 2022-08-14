@@ -209,6 +209,25 @@ The toggle option is particularly useful in filtered menus by saving the effort 
 
 Note: by re-entering option :t the user toggles back to previous menu (and so on...). This back-and-forth toggling is obviously not applicable if the counterpart menu has no available entries.
 
+5.12. Re-entering the last used filter
+
+For more details regarding filtered history please consult section 6.5.
+
+If a filter has been previously input for navigation/commands it can be re-entered by using a (short) specific keyword without the user requiring to re-enter the actual filter keyword. The last entered filter keyword is displayed on the main navigation page, namely:
+- last used navigation filter
+- last used commands filter
+
+Following keywords can be entered to enter the last used filter:
+- :n for applying the last used navigation filter to the navigation history
+- :N for applying the last used navigation filter to the favorites
+- :f for applying the last used commands filter to commands history in execute mode
+- :F for applying the last used commands filter to commands history in edit mode
+
+Notes:
+- the filter might yield no results (same as when applying it directly by entering the filter keyword)
+- if no filter has been previously entered then an error message is displayed and no filtering is performed
+- the filter is displayed on the main page exactly as previously input by user from keyboard. This means it might for example contain preceding and/or trailing whitespaces. This is not the case with the filter displayed in the filtered navigation/command menu (a.k.a. "applied filter". This one is actually the "pre-processed" filter which was used to perform the concrete filtering. The ones displayed on the main navigation page could be called "raw filters" as they represent the user "raw" input.
+
 6. THE HISTORY FUNCTIONALITY
 
 Each time a directory is visited or a command is executed, the event is tracked in a history file. There are three different history sections available:

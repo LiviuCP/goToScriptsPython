@@ -3,7 +3,7 @@ import sys, os
 max_nr_of_items = 50 #maximum number of files/dirs listed from current directory in navigation mode
 max_nr_of_chars = 25 #maximum number of characters to be displayed for each item from current directory in navigation mode
 
-def displayGeneralOutput(prevDir, command = "", result = ""):
+def displayGeneralOutput(prevDir, command = "", result = "", navigationFilter = "", commandsFilter = ""):
     previousDirectory = "none" if len(prevDir) == 0 else prevDir
     commandResult = ""
     if len(command) == 0 and len(result) == 0:
@@ -28,11 +28,15 @@ def displayGeneralOutput(prevDir, command = "", result = ""):
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Last executed shell command", end='')
-    if commandResult != "":
-        print(" (finished " + commandResult + "):")
-    else:
-        print(":")
+    print(" (finished " + commandResult + "):") if commandResult != "" else print(":")
     print(lastCommand)
+    print("")
+    print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+    print("")
+    print("Last used navigation filter: ", end='')
+    print(navigationFilter) if len(navigationFilter) > 0 else print("none")
+    print("Last used commands filter: ", end='')
+    print(commandsFilter) if len(commandsFilter) > 0 else print("none")
     print("")
     print("*********************************************************************************************************************************************************")
     print("")
@@ -97,6 +101,8 @@ def displayHelp():
     print("::    -  enter command history menu to edit a previous command (add keyword to get filtered entries)")
     print("<     -  enter history menu")
     print(">     -  enter favorites menu")
+    print(":n/:N -  apply previous navigation filter (if any) to navigation history/favorites")
+    print(":f/:F -  apply previous command filter (if any) to command history in execute/edit mode")
     print(",     -  go to the previously visited directory")
     print("+>    -  add current directory to favorites")
     print("->    -  remove a directory from favorites")
