@@ -9,6 +9,8 @@ contextSwitchDict = {"--execute" : "--edit", "--edit" : "--execute", "-f" : "-h"
 
 currentContext = "" # main context
 currentFilter = "" # should change each time the user filters the navigation/command history
+prevNavigationFilter = "" # stores the last navigation filter applied by user
+prevCommandsFilter = "" # stores the last commands filter applied by user
 
 syncWithFinder = False
 closeFinder = True # set this variable to False if Finder should stay open when sync is toggled to off via :s command
@@ -29,7 +31,10 @@ def execute():
     print("Welcome to navigation app!")
     while True:
         if userInput not in {"?", "?clip", "?ren"}:
-            out.displayGeneralOutput(prevDir, syncWithFinder) if len(prevCommand) == 0 else out.displayGeneralOutput(prevDir, syncWithFinder, prevCommand, commandResult)
+            if len(prevCommand) > 0:
+                out.displayGeneralOutput(prevDir, syncWithFinder, prevCommand, commandResult, prevNavigationFilter, prevCommandsFilter)
+            else:
+                out.displayGeneralOutput(prevDir, syncWithFinder, navigationFilter = prevNavigationFilter, commandsFilter = prevCommandsFilter)
         userInput = input()
         userInput = userInput.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history
         while True:
@@ -55,6 +60,8 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
     global syncWithFinder
     global currentContext
     global currentFilter
+    global prevNavigationFilter
+    global prevCommandsFilter
     handleOutput = 0
     shouldForwardData = False
     passedInput = ""
@@ -72,12 +79,32 @@ def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfe
         handleOutput = outcome[1] if result is not None else handleOutput
         shouldForwardData = outcome[2] if result is not None else shouldForwardData
         shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
+    elif userInput in [":n", ":N"]:
+        if len(prevNavigationFilter) > 0:
+            contextsDictKey = "<<" if userInput == ":n" else ">>"
+            outcome = setContext(contextsDict[contextsDictKey], prevNavigationFilter, handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
+            result = outcome[0]
+            handleOutput = outcome[1] if result is not None else handleOutput
+            shouldForwardData = outcome[2] if result is not None else shouldForwardData
+            shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
+        else:
+            print("No navigation filter previously entered.")
     elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
         outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
         result = outcome[0]
         handleOutput = outcome[1] if result is not None else handleOutput
         shouldForwardData = outcome[2] if result is not None else shouldForwardData
         shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
+    elif userInput in [":f", ":F"]:
+        if len(prevCommandsFilter) > 0:
+            contextsDictKey = ":<" if userInput == ":f" else "::"
+            outcome = setContext(contextsDict[contextsDictKey], prevCommandsFilter, handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
+            result = outcome[0]
+            handleOutput = outcome[1] if result is not None else handleOutput
+            shouldForwardData = outcome[2] if result is not None else shouldForwardData
+            shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
+        else:
+            print("No commands filter previously entered.")
     elif userInput == ":t":
         result = None
         newContext = contextSwitchDict[currentContext]
@@ -214,7 +241,16 @@ def setContext(newContext, userInput, outputHandling, shouldForwardInputOutput, 
     global syncWithFinder
     global currentContext
     global currentFilter
+    global prevNavigationFilter
+    global prevCommandsFilter
     assert newContext in validContexts, "Invalid context detected"
+    if len(currentFilter) > 0:
+        if currentContext in ["-fh", "-ff"]:
+            prevNavigationFilter = currentFilter
+        elif currentContext in ["--execute", "--edit"]:
+            prevCommandsFilter = currentFilter
+        else:
+            assert False, "Invalid filter keyword within current context"
     currentContext = newContext
     currentFilter = ""
     handleOutput = outputHandling
