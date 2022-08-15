@@ -3,163 +3,184 @@ import display as out, navigation as nav, commands as cmd, common, clipboard as 
 
 renaming_commands = {"ra", "ran", "rp", "rpn", "ri", "rin", "rd", "rr", "rrn"}
 renaming_translations = {"ra" : "a", "ran" : "A", "rp" : "p", "rpn" : "P", "ri" : "i", "rin" : "I", "rd" : "d", "rr" : "r", "rrn" : "R"}
-contextsDict = {":<" : "--execute", "::" : "--edit", "<" : "-h", "<<" : "-fh", ">" : "-f", ">>" : "-ff", "main" : ""}
-validContexts = {"--execute", "--edit", "-h", "-fh", "-f", "-ff", ""}
-contextSwitchDict = {"--execute" : "--edit", "--edit" : "--execute", "-f" : "-h", "-h" : "-f", "-fh" : "-ff", "-ff" : "-fh", "" : ""}
+contexts_dict = {":<" : "--execute", "::" : "--edit", "<" : "-h", "<<" : "-fh", ">" : "-f", ">>" : "-ff", "main" : ""}
+valid_contexts = {"--execute", "--edit", "-h", "-fh", "-f", "-ff", ""}
+context_switch_dict = {"--execute" : "--edit", "--edit" : "--execute", "-f" : "-h", "-h" : "-f", "-fh" : "-ff", "-ff" : "-fh", "" : ""}
 
-currentContext = "" # main context
-currentFilter = "" # should change each time the user filters the navigation/command history
-prevNavigationFilter = "" # stores the last navigation filter applied by user
-prevCommandsFilter = "" # stores the last commands filter applied by user
+''' status/action codes: -1 - goTo not successfully executed, 0 - no action performed (default), 1 - input to be forwarded to BASH, 2 - previous command and command result to be updated, 3 - no arguments, 4 - update previous directory and cd '''
+class Application:
+    def __init__(self):
+        self.currentContext = "" # main context
+        self.currentFilter = "" # should change each time the user filters the navigation/command history
+        self.prevNavigationFilter = "" # stores the last navigation filter applied by user
+        self.prevCommandsFilter = "" # stores the last commands filter applied by user
+        self.prevDir = os.getcwd()
+        self.prevCommand = ""
+        self.clipboard = clip.Clipboard()
+        self.recursiveTransfer = rt.RecursiveTransfer()
+        self.status = 0
+        self.passedInput = ""
+        self.passedOutput = ""
+        common.setPathAutoComplete()
+        nav.initNavMenus()
+        cmd.initCmdMenus()
 
-def execute():
-    common.setPathAutoComplete()
-    nav.initNavMenus()
-    cmd.initCmdMenus()
-    prevDir = os.getcwd()
-    prevCommand = ""
-    commandResult = ""
-    userInput = ""
-    forwardUserInput = False
-    clipboard = clip.Clipboard()
-    recursiveTransfer = rt.RecursiveTransfer()
-    os.system("clear")
-    print("Welcome to navigation app!")
-    while True:
-        if userInput not in {"?", "?clip", "?ren"}:
-            if len(prevCommand) > 0:
-                out.displayGeneralOutput(prevDir, prevCommand, commandResult, prevNavigationFilter, prevCommandsFilter)
-            else:
-                out.displayGeneralOutput(prevDir, navigationFilter = prevNavigationFilter, commandsFilter = prevCommandsFilter)
-        userInput = input()
-        userInput = userInput.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history
+    def execute(self):
+        commandResult = ""
+        userInput = ""
+        forwardUserInput = False
+        os.system("clear")
+        print("Welcome to navigation app!")
         while True:
-            os.system("clear")
-            result = handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfer)
-            if result[0] == 1:
-                userInput = result[1]
-                forwardUserInput = True
-            elif result[0] == 2:
-                prevCommand = result[1]
-                commandResult = result[2]
-            elif result[0] == 4:
-                prevDir = result[2]
-            if forwardUserInput == True:
-                forwardUserInput = False
-            else:
+            if userInput not in {"?", "?clip", "?ren"}:
+                if len(self.prevCommand) > 0:
+                    out.displayGeneralOutput(self.prevDir, self.prevCommand, commandResult, self.prevNavigationFilter, self.prevCommandsFilter)
+                else:
+                    out.displayGeneralOutput(self.prevDir, navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter)
+            userInput = input()
+            userInput = userInput.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history
+            while True:
+                os.system("clear")
+                self.handleUserInput(userInput)
+                if self.status == 1:
+                    userInput = self.passedInput
+                    forwardUserInput = True
+                elif self.status == 2:
+                    self.prevCommand = self.passedInput
+                    commandResult = self.passedOutput
+                elif self.status == 4:
+                    self.prevDir = self.passedOutput
+                if forwardUserInput == True:
+                    forwardUserInput = False
+                else:
+                    break
+            if userInput == "!":
                 break
-        if userInput == "!":
-            break
 
-""" return codes: -1 - goTo not successfully executed, 0 - no action performed (returned by default unless otherwise mentioned), 1 - forward input to BASH, 2 - update prevCommand and commandResult, 3 - no arguments, 4 - update prev dir and cd """
-def handleUserInput(userInput, prevDir, prevCommand, clipboard, recursiveTransfer):
-    global currentContext
-    global currentFilter
-    global prevNavigationFilter
-    global prevCommandsFilter
-    handleOutput = 0
-    shouldForwardData = False
-    passedInput = ""
-    passedOutput = ""
-    shouldSwitchToMainContext = True
-    if len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
-        outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
-        result = outcome[0]
-        handleOutput = outcome[1] if result is not None else handleOutput
-        shouldForwardData = outcome[2] if result is not None else shouldForwardData
-        shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
-    elif len(userInput) >= 1 and userInput[0] in ["<", ">"]:
-        outcome = setContext(contextsDict[userInput[0]], userInput[1:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
-        result = outcome[0]
-        handleOutput = outcome[1] if result is not None else handleOutput
-        shouldForwardData = outcome[2] if result is not None else shouldForwardData
-        shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
-    elif userInput in [":n", ":N"]:
-        if len(prevNavigationFilter) > 0:
-            contextsDictKey = "<<" if userInput == ":n" else ">>"
-            outcome = setContext(contextsDict[contextsDictKey], prevNavigationFilter, handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
-            result = outcome[0]
-            handleOutput = outcome[1] if result is not None else handleOutput
-            shouldForwardData = outcome[2] if result is not None else shouldForwardData
+    def handleUserInput(self, userInput):
+        self.status = 0
+        self.passedInput = ""
+        self.passedOutput = ""
+        shouldSwitchToMainContext = True
+        result = None # a valid result should contain: (status code, passed input, passed output)
+        if len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
+            result = self.setContext(contexts_dict[userInput[0:2]], userInput[2:])
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
-        else:
-            print("No navigation filter previously entered.")
-    elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
-        outcome = setContext(contextsDict[userInput[0:2]], userInput[2:], handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
-        result = outcome[0]
-        handleOutput = outcome[1] if result is not None else handleOutput
-        shouldForwardData = outcome[2] if result is not None else shouldForwardData
-        shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
-    elif userInput in [":f", ":F"]:
-        if len(prevCommandsFilter) > 0:
-            contextsDictKey = ":<" if userInput == ":f" else "::"
-            outcome = setContext(contextsDict[contextsDictKey], prevCommandsFilter, handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
-            result = outcome[0]
-            handleOutput = outcome[1] if result is not None else handleOutput
-            shouldForwardData = outcome[2] if result is not None else shouldForwardData
+        elif len(userInput) >= 1 and userInput[0] in ["<", ">"]:
+            result = self.setContext(contexts_dict[userInput[0]], userInput[1:])
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
-        else:
-            print("No commands filter previously entered.")
-    elif userInput == ":t":
-        result = None
-        newContext = contextSwitchDict[currentContext]
-        if len(newContext) > 0:
-            outcome = setContext(newContext, currentFilter, handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
-            result = outcome[0]
-            handleOutput = outcome[1] if result is not None else handleOutput
-            shouldForwardData = outcome[2] if result is not None else shouldForwardData
+        elif userInput in [":n", ":N"]:
+            if len(self.prevNavigationFilter) > 0:
+                contexts_dictKey = "<<" if userInput == ":n" else ">>"
+                result = self.setContext(contexts_dict[contexts_dictKey], self.prevNavigationFilter)
+                shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
+            else:
+                print("No navigation filter previously entered.")
+        elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
+            result = self.setContext(contexts_dict[userInput[0:2]], userInput[2:])
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
+        elif userInput in [":f", ":F"]:
+            if len(self.prevCommandsFilter) > 0:
+                contexts_dictKey = ":<" if userInput == ":f" else "::"
+                result = self.setContext(contexts_dict[contexts_dictKey], self.prevCommandsFilter)
+                shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
+            else:
+                print("No commands filter previously entered.")
+        elif userInput == ":t":
+            newContext = context_switch_dict[self.currentContext]
+            if len(newContext) > 0:
+                result = self.setContext(newContext, self.currentFilter)
+                shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
+            else:
+                print("Unable to toggle, not in the right menu!")
+        elif userInput == ",":
+            result = nav.goTo(self.prevDir, os.getcwd())
+            self.status = 4 if result[0] == 0 else self.status
+        elif userInput == ":-":
+            if len(self.prevCommand) > 0:
+                result = cmd.executeCommandWithStatus(self.prevCommand, True)
+            else:
+                print("No shell command previously executed")
+        elif userInput == ":":
+            result = cmd.editAndExecPrevCmd(self.prevCommand) if self.prevCommand != "" else cmd.editAndExecPrevCmd()
+            self.status = 2 if result[0] == 0 else self.status
+        elif userInput == "+>":
+            nav.addDirToFavorites()
+        elif userInput == "->":
+            result = nav.removeDirFromFavorites()
+            self.status = 1 if result[0] == 1 else self.status
+        elif userInput in [":clearnavigation", ":clearcommands"]:
+            handleClearMenu(userInput)
+        elif userInput in [":c", ":m", ":y", ":ec", ":dc"]:
+            handleClipboardInput(userInput, self.clipboard)
+        elif userInput in [":td", ":M", ":C", ":etd", ":dtd"]:
+            handleRecursiveTransferInput(userInput, self.recursiveTransfer)
+        elif userInput.startswith(":") and userInput[1:] in renaming_commands:
+            rn.rename(renaming_translations[userInput[1:]])
+        elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
+            print("Input cancelled, no action performed!")
+        elif userInput in ["?", "?clip", "?ren"]:
+            handleHelpRequest(userInput, out)
+        elif userInput == "!":
+            handleCloseApplication(self.prevCommand)
         else:
-            print("Unable to toggle, not in the right menu!")
-    elif userInput == ",":
-        result = nav.goTo(prevDir, os.getcwd())
-        handleOutput = 4 if result[0] == 0 else handleOutput
-        shouldForwardData = True
-    elif userInput == ":-":
-        if len(prevCommand) > 0:
-            result = cmd.executeCommandWithStatus(prevCommand, True)
-            shouldForwardData = True
-        else:
-            print("No shell command previously executed")
-    elif userInput == ":":
-        result = cmd.editAndExecPrevCmd(prevCommand) if prevCommand != "" else cmd.editAndExecPrevCmd()
-        handleOutput = 2 if result[0] == 0 else handleOutput
-        shouldForwardData = True
-    elif userInput == "+>":
-        nav.addDirToFavorites()
-    elif userInput == "->":
-        result = nav.removeDirFromFavorites()
-        handleOutput = 1 if result[0] == 1 else handleOutput
-        shouldForwardData = True
-    elif userInput in [":clearnavigation", ":clearcommands"]:
-        handleClearMenu(userInput)
-    elif userInput in [":c", ":m", ":y", ":ec", ":dc"]:
-        handleClipboardInput(userInput, clipboard)
-    elif userInput in [":td", ":M", ":C", ":etd", ":dtd"]:
-        handleRecursiveTransferInput(userInput, recursiveTransfer)
-    elif userInput.startswith(":") and userInput[1:] in renaming_commands:
-        rn.rename(renaming_translations[userInput[1:]])
-    elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
-        print("Input cancelled, no action performed!")
-    elif userInput in ["?", "?clip", "?ren"]:
-        handleHelpRequest(userInput, out)
-    elif userInput == "!":
-        handleCloseApplication(prevCommand)
-    else:
-        if len(userInput) > 0 and userInput[0] == ":":
-            result = cmd.executeCommandWithStatus(userInput[1:])
-            handleOutput = 2
-        else:
-            result = nav.goTo(userInput, prevDir)
-            handleOutput = 4 if result[0] == 0 else handleOutput
-        shouldForwardData = True
-    if shouldForwardData:
-        passedInput = result[1]
-        passedOutput = result[2]
-    if shouldSwitchToMainContext:
-        setContext(contextsDict["main"], "", handleOutput, shouldForwardData, prevCommand, prevDir, recursiveTransfer)
-    return (handleOutput, passedInput, passedOutput)
+            if len(userInput) > 0 and userInput[0] == ":":
+                result = cmd.executeCommandWithStatus(userInput[1:])
+                self.status = 2
+            else:
+                result = nav.goTo(userInput, self.prevDir)
+                self.status = 4 if result[0] == 0 else self.status
+        if result is not None:
+            self.passedInput = result[1]
+            self.passedOutput = result[2]
+        if shouldSwitchToMainContext:
+            self.setContext(contexts_dict["main"], "")
 
+    ''' Contexts are related to main menus:
+        - navigation history
+        - filtered navigation history
+        - favorites
+        - command history in execute mode (filtered or not)
+        - command history in edit mode (filtered or not)
+        - main navigation mode (no main menu): includes all sub-contexts: edit an individual command, help menu, move/copy, recursive move/copy, renaming files/dirs etc '''
+    def setContext(self, newContext, userInput):
+        assert newContext in valid_contexts, "Invalid context detected"
+        if len(self.currentFilter) > 0:
+            if self.currentContext in ["-fh", "-ff"]:
+                self.prevNavigationFilter = self.currentFilter
+            elif self.currentContext in ["--execute", "--edit"]:
+                self.prevCommandsFilter = self.currentFilter
+            else:
+                assert False, "Invalid filter keyword within current context"
+        self.currentContext = newContext
+        self.currentFilter = ""
+        result = None  # a valid result should contain: (status code, passed input, passed output)
+        if self.currentContext in ["--execute", "--edit"]:
+            self.currentFilter = userInput
+            result = cmd.visitCommandMenu(self.currentContext, self.currentFilter, self.prevCommand)
+            self.status = 2 if result[0] == 0 else 1 if result[0] == 1 else self.status
+        elif self.currentContext in ["-f", "-h"]:
+            result = nav.executeGoToFromMenu(self.currentContext, self.prevDir, userInput, self.prevCommand)
+            if len(userInput) > 0:
+                self.status = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else self.status #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
+            else:
+                self.status = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.status
+                if result[0] == -1:
+                    self.recursiveTransfer.setTargetDir(result[1])
+        elif self.currentContext in ["-fh", "-ff"]:
+            if len(userInput) > 0:
+                self.currentFilter = userInput
+                result = nav.executeGoToFromMenu(self.currentContext, self.prevDir, userInput, self.prevCommand)
+                self.status = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.status
+                if result[0] == -1:
+                    self.recursiveTransfer.setTargetDir(result[1])
+            else:
+                print("No filter keyword entered. Cannot filter ", end='')
+                print("navigation history.") if self.currentContext == "-fh" else print("favorites.")
+        return result
+
+
+''' Helper functions '''
 def handleHelpRequest(helpInput, out):
     if helpInput == "?":
         out.displayHelp()
@@ -214,57 +235,5 @@ def handleCloseApplication(previousCommand):
     print(previousCommand) if len(previousCommand) > 0 else print("none")
     print("")
 
-# contexts are related to main menus:
-# - navigation history
-# - filtered navigation history
-# - favorites
-# - command history in execute mode (filtered or not)
-# - command history in edit mode (filtered or not)
-# - main navigation mode (no main menu): includes all sub-contexts: edit an individual command, help menu, move/copy, recursive move/copy, renaming files/dirs etc
-def setContext(newContext, userInput, outputHandling, shouldForwardInputOutput, previousCommand, previousDirectory, recursiveTransfer):
-    global currentContext
-    global currentFilter
-    global prevNavigationFilter
-    global prevCommandsFilter
-    assert newContext in validContexts, "Invalid context detected"
-    if len(currentFilter) > 0:
-        if currentContext in ["-fh", "-ff"]:
-            prevNavigationFilter = currentFilter
-        elif currentContext in ["--execute", "--edit"]:
-            prevCommandsFilter = currentFilter
-        else:
-            assert False, "Invalid filter keyword within current context"
-    currentContext = newContext
-    currentFilter = ""
-    handleOutput = outputHandling
-    shouldForwardData = shouldForwardInputOutput
-    result = None
-    if currentContext in ["--execute", "--edit"]:
-        currentFilter = userInput
-        result = cmd.visitCommandMenu(currentContext, currentFilter, previousCommand)
-        handleOutput = 2 if result[0] == 0 else 1 if result[0] == 1 else handleOutput
-        shouldForwardData = True
-    elif currentContext in ["-f", "-h"]:
-        result = nav.executeGoToFromMenu(currentContext, previousDirectory, userInput, previousCommand)
-        if len(userInput) > 0:
-            handleOutput = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else handleOutput #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
-        else:
-            handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
-            if result[0] == -1:
-                recursiveTransfer.setTargetDir(result[1])
-        shouldForwardData = True
-    elif currentContext in ["-fh", "-ff"]:
-        if len(userInput) > 0:
-            currentFilter = userInput
-            result = nav.executeGoToFromMenu(currentContext, previousDirectory, userInput, previousCommand)
-            handleOutput = 4 if result[0] <= 0 else 1 if result[0] == 1 else handleOutput
-            shouldForwardData = True
-            if result[0] == -1:
-                recursiveTransfer.setTargetDir(result[1])
-        else:
-            print("No filter keyword entered. Cannot filter ", end='')
-            print("navigation history.") if currentContext == "-fh" else print("favorites.")
-
-    return (result, handleOutput, shouldForwardData)
-
-execute()
+application = Application()
+application.execute()
