@@ -99,6 +99,7 @@ class Application:
         elif userInput == ":-":
             if len(self.prevCommand) > 0:
                 result = cmd.executeCommandWithStatus(self.prevCommand, True)
+                self.status = 2 if result[0] == 0 else self.status # force updating previous command and its finishing status (although command is just repeated); the command might for example finish with errors although when previously executed it finished successfully (e.g. when removing a file and then attempting to remove it again)
             else:
                 print("No shell command previously executed")
         elif userInput == ":":
