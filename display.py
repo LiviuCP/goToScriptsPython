@@ -3,7 +3,7 @@ import sys, os
 max_nr_of_items = 50 #maximum number of files/dirs listed from current directory in navigation mode
 max_nr_of_chars = 25 #maximum number of characters to be displayed for each item from current directory in navigation mode
 
-def displayGeneralOutput(prevDir, syncWithFinder, command = "", result = "", navigationFilter = "", commandsFilter = ""):
+def displayGeneralOutput(prevDir, syncWithFinder, command = "", result = "", navigationFilter = "", commandsFilter = "", clipboardAction = "none", clipboardKeyword = "none", recursiveTargetDir = "none"):
     previousDirectory = "none" if len(prevDir) == 0 else prevDir
     commandResult = ""
     if len(command) == 0 and len(result) == 0:
@@ -37,6 +37,13 @@ def displayGeneralOutput(prevDir, syncWithFinder, command = "", result = "", nav
     print(navigationFilter) if len(navigationFilter) > 0 else print("none")
     print("Last used commands filter: ", end='')
     print(commandsFilter) if len(commandsFilter) > 0 else print("none")
+    print("Clipboard action: ", end='')
+    print(clipboardAction, end='') if len(clipboardAction) > 0 else print("none", end='')
+    print(" (keyword: ", end='')
+    print(clipboardKeyword, end='') if len(clipboardKeyword) > 0 else print("none", end='')
+    print(")")
+    print("Recursive transfer target directory: ", end='')
+    print(recursiveTargetDir) if len(recursiveTargetDir) > 0 else print("none")
     print("")
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")

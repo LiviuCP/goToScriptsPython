@@ -37,9 +37,9 @@ class Application:
         while True:
             if userInput not in {"?", "?clip", "?ren"}:
                 if len(self.prevCommand) > 0:
-                    out.displayGeneralOutput(self.prevDir, self.syncWithFinder, self.prevCommand, commandResult, self.prevNavigationFilter, self.prevCommandsFilter)
+                    out.displayGeneralOutput(self.prevDir, self.syncWithFinder, self.prevCommand, commandResult, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.recursiveTransfer.getTargetDir())
                 else:
-                    out.displayGeneralOutput(self.prevDir, self.syncWithFinder, navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter)
+                    out.displayGeneralOutput(self.prevDir, self.syncWithFinder, navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter, clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), recursiveTargetDir = self.recursiveTransfer.getTargetDir())
             userInput = input()
             userInput = userInput.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history
             while True:

@@ -53,6 +53,8 @@ class RecursiveTransfer:
             print("Please try again!")
             print()
             self.eraseTargetDir(True)
+    def getTargetDir(self):
+        return self.targetDir
     def transferItemsToTargetDir(self, copy = True):
         actionLabel = "copy" if copy == True else "move"
         if len(self.targetDir) == 0:

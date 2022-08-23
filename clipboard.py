@@ -95,3 +95,7 @@ class Clipboard:
         if status in [2, 4] or (status != 3 and self.action == "mv -iv"):
             self.erase(True)
         return status
+    def getActionLabel(self):
+        return "move" if self.action.startswith("mv") else "copy" if self.action.startswith("cp") else ""
+    def getKeyword(self):
+        return self.keyword
