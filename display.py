@@ -38,10 +38,11 @@ def displayGeneralOutput(prevDir, command = "", result = "", navigationFilter = 
     print("Last used commands filter: ", end='')
     print(commandsFilter) if len(commandsFilter) > 0 else print("none")
     print("Clipboard action: ", end='')
-    print(clipboardAction, end='') if len(clipboardAction) > 0 else print("none", end='')
-    print(" (keyword: ", end='')
-    print(clipboardKeyword, end='') if len(clipboardKeyword) > 0 else print("none", end='')
-    print(")")
+    if len(clipboardAction) > 0:
+        assert len(clipboardKeyword) > 0, "Invalid clipboard keyword"
+        print(clipboardAction + " (keyword: " + clipboardKeyword + ")")
+    else:
+        print("none")
     print("Recursive transfer target directory: ", end='')
     print(recursiveTargetDir) if len(recursiveTargetDir) > 0 else print("none")
     print("")
