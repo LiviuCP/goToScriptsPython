@@ -7,8 +7,6 @@ contexts_dict = {":<" : "--execute", "::" : "--edit", "<" : "-h", "<<" : "-fh", 
 valid_contexts = {"--execute", "--edit", "-h", "-fh", "-f", "-ff", ""}
 context_switch_dict = {"--execute" : "--edit", "--edit" : "--execute", "-f" : "-h", "-h" : "-f", "-fh" : "-ff", "-ff" : "-fh", "" : ""}
 
-closeFinder = True # set this variable to False if Finder should stay open when sync is toggled to off via :s command
-
 ''' status/action codes: -1 - goTo not successfully executed, 0 - no action performed (default), 1 - input to be forwarded to BASH, 2 - previous command and command result to be updated, 3 - no arguments, 4 - update previous directory and cd '''
 class Application:
     def __init__(self):
@@ -126,7 +124,7 @@ class Application:
         elif userInput in ["?", "?clip", "?ren"]:
             handleHelpRequest(userInput, out)
         elif userInput == ":s":
-            self.handleSyncWithFinder(closeFinder)
+            self.handleSyncWithFinder()
         elif userInput == "!":
             handleCloseApplication(self.prevCommand)
         else:
@@ -185,13 +183,13 @@ class Application:
                 print("navigation history.") if self.currentContext == "-fh" else print("favorites.")
         return result
 
-    def handleSyncWithFinder(self, closeFinder):
+    def handleSyncWithFinder(self):
         self.syncWithFinder = not self.syncWithFinder
         print("Finder synchronization enabled") if self.syncWithFinder == True else print("Finder synchronization disabled")
         if self.syncWithFinder == True:
             nav.doFinderSync()
-        elif closeFinder == True:
-            nav.doCloseFinder()
+        else:
+            nav.handleCloseFinderWhenSyncOff()
 
 ''' Helper functions '''
 def handleHelpRequest(helpInput, out):

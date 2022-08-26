@@ -19,3 +19,4 @@ delayBeforeFinderClose = 0.1 # delay applied before closing Finder via OSAScript
 delayBeforeFinderReopen = 0.1 # delay applied before re-opening Finder to prevent any unwanted behavior
 delayAfterFinderReopen = 0.9 # delay applied after re-opening Finder to avoid any unwanted behavior
 delayErrorFinderReopen = 1.8 # delay applied in case Finder cannot be re-opened due to an error to prevent an early re-open attempt (and a new and maybe more serious error)
+closeFinderWhenSyncOff = True # set this variable to False if Finder should stay open when sync is toggled to off via :s command

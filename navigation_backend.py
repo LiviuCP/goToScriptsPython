@@ -319,3 +319,6 @@ def getDelayAfterFinderReopen():
 
 def getDelayErrorFinderReopen():
     return navset.delayErrorFinderReopen
+
+def shouldCloseFinderWhenSyncOff():
+    return navset.closeFinderWhenSyncOff

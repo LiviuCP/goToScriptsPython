@@ -60,12 +60,13 @@ def doFinderSync():
     updateFinder = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
     os.system(updateFinder)
 
-def doCloseFinder():
-    setDelays = "delayBeforeClose=0.1;" + "\n"
-    closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
-    handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n" + "fi"
-    updateFinder = setDelays + closeFinder + handleClosingError
-    os.system(updateFinder)
+def handleCloseFinderWhenSyncOff():
+    if nav.shouldCloseFinderWhenSyncOff():
+        setDelays = "delayBeforeClose=0.1;" + "\n"
+        closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
+        handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n" + "fi"
+        updateFinder = setDelays + closeFinder + handleClosingError
+        os.system(updateFinder)
 
 """ navigation menu functions """
 def initNavMenus():
