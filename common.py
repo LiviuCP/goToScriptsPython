@@ -1,11 +1,8 @@
 """ Functions usable in any of the application modules """
 
 import os, sys, readline
+import system_settings as sysset
 from os.path import expanduser
-
-home_dir = expanduser("~") + "/"
-input_storage_file = home_dir + ".store_input"
-output_storage_file = home_dir + ".store_output"
 
 # if a valid absolute path is fed as argument the unchanged path (without any ending '/') is returned
 def getAbsoluteDirPath(dirPath):
@@ -13,15 +10,15 @@ def getAbsoluteDirPath(dirPath):
         pathToAdd = os.getcwd()
     else:
         pathToAdd = dirPath
-        with open(input_storage_file, "w") as inputStorage:
+        with open(sysset.input_storage_file, "w") as inputStorage:
             inputStorage.write(pathToAdd)
             inputStorage.close() # file needs to be closed otherwise the below executed BASH command might return unexpected results
             # build BASH command for retrieving the absolute path of the replacing dir (if exists)
-            command = "input=`head -1 " + input_storage_file + "`; "
-            command = command + "output=" + output_storage_file + "; "
+            command = "input=`head -1 " + sysset.input_storage_file + "`; "
+            command = command + "output=" + sysset.output_storage_file + "; "
             command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
             os.system(command)
-            with open(output_storage_file, "r") as outputStorage:
+            with open(sysset.output_storage_file, "r") as outputStorage:
                 pathToAdd = outputStorage.readline().strip('\n')
                 pathToAdd = "" if pathToAdd == ":4" else pathToAdd
     return pathToAdd

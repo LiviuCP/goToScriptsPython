@@ -1,49 +1,37 @@
 import sys, os, readline
 import common, navigation_backend as nav
-from os.path import expanduser, isdir
-
-home_dir = expanduser("~") + "/"
-input_storage_file = home_dir + ".store_input"
-output_storage_file = home_dir + ".store_output"
+from os.path import isdir
 
 """ core functions for visiting directories and Finder synchronization """
 def goTo(gtDirectory, prevDirectory, syncWithFinder):
     status = -1
     prevDir = os.getcwd()
-    directory = home_dir if len(gtDirectory) == 0 else gtDirectory
     # build and execute command
-    getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
-    cdCommand = "cd " + '\"' + "$directory" + '\"' + " 2> /dev/null;"
-    executionStatus = "echo $? > " + output_storage_file + ";"
-    writeCurrentDir = "pwd > " + input_storage_file + ";"
-    executeCommandWithStatus = getDir + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeCurrentDir
+    executeCommandWithStatus = nav.buildGoToCommand(gtDirectory)
     os.system(executeCommandWithStatus)
     # read command exit code and create the status message
-    with open(output_storage_file, "r") as outputStorage:
-        if outputStorage.readline().strip('\n') == "0":
-            with open(input_storage_file, "r") as inputStorage:
-                currentDir = inputStorage.readline().strip('\n')
-                if not common.hasPathInvalidCharacters(currentDir): # even if the directory is valid we should ensure it does not have characters like backslash (might cause undefined behavior)
-                    status = 0
-                    os.chdir(currentDir)
-                    if (prevDir != currentDir):
-                        print("Switched to new directory: " + currentDir)
-                        nav.updateNavigationHistory(currentDir)
-                        nav.consolidateHistory()
-                    else:
-                        print("Current directory remains unchanged: " + currentDir)
-                        prevDir = prevDirectory
-                    # update current directory in Finder if sync enabled
-                    if syncWithFinder == True:
-                        doFinderSync()
-        if not status is 0:
-            prevDir = prevDirectory # ensure the previously visited dir stays the same for consistency reasons (not actually used if the goTo execution is not successful)
-            print("Error when attempting to change directory! Possible causes: ")
-            print(" - chosen directory path does not exist or has been deleted")
-            print(" - chosen path is not a directory or the name has invalid characters")
-            print(" - insufficient access rights")
-            print(" - exception raised")
-            print("Please try again!")
+    currentDir = nav.getCurrentDirPath()
+    if len(currentDir) > 0 and not common.hasPathInvalidCharacters(currentDir): # even if the directory is valid we should ensure it does not have characters like backslash (might cause undefined behavior)
+        status = 0
+        os.chdir(currentDir)
+        if (prevDir != currentDir):
+            print("Switched to new directory: " + currentDir)
+            nav.updateNavigationHistory(currentDir)
+            nav.consolidateHistory()
+        else:
+            print("Current directory remains unchanged: " + currentDir)
+            prevDir = prevDirectory
+        # update current directory in Finder if sync enabled
+        if syncWithFinder == True:
+            doFinderSync()
+    if not status is 0:
+        prevDir = prevDirectory # ensure the previously visited dir stays the same for consistency reasons (not actually used if the goTo execution is not successful)
+        print("Error when attempting to change directory! Possible causes: ")
+        print(" - chosen directory path does not exist or has been deleted")
+        print(" - chosen path is not a directory or the name has invalid characters")
+        print(" - insufficient access rights")
+        print(" - exception raised")
+        print("Please try again!")
     return(status, "", prevDir)
 
 def doFinderSync():
@@ -225,6 +213,7 @@ def handleMissingDir(path, menu, previousDir, syncWithFinder):
         print("Enter the name and/or path of the replacing directory.")
         print("Enter < for mapping from history menu and > for mapping from favorites.")
         print("Enter ! to quit mapping.")
+        print("")
         replacingDir = input()
         if replacingDir == "<" or replacingDir == ">":
             menuName = "history" if replacingDir == "<" else "favorites"
@@ -247,31 +236,22 @@ def handleMissingDir(path, menu, previousDir, syncWithFinder):
             os.system("clear")
             print("Mapping aborted.")
         if doMapping == True:
-            with open(input_storage_file, "w") as inputStorage:
-                inputStorage.write(replacingDir)
-                inputStorage.close() # file needs to be closed otherwise the below executed BASH command might return unexpected results
-                # build BASH command for retrieving the absolute path of the replacing dir (if exists)
-                command = "input=`head -1 " + input_storage_file + "`; "
-                command = command + "output=" + output_storage_file + "; "
-                command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
-                os.system(command)
-                with open(output_storage_file, "r") as outputStorage:
-                    replacingDirPath = outputStorage.readline().strip('\n')
-                    if replacingDirPath == ":4":
-                        status = 4
-                        os.system("clear")
-                        print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted or you might not have the required access level.")
-                        print("Cannot perform mapping.")
-                    else:
-                        prevDir = os.getcwd() # prev dir to be updated to current dir in case of successful mapping
-                        mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
-                        os.system("clear")
-                        print("Missing directory: " + mappingResult[0])
-                        print("Replacing directory: " + mappingResult[1])
-                        print("")
-                        print("Mapping performed successfully, navigating to replacing directory ...")
-                        print("")
-                        goTo(mappingResult[1], prevDir, syncWithFinder)
+            replacingDirPath = nav.getReplacingDirPath(replacingDir)
+            if replacingDirPath == ":4":
+                status = 4
+                os.system("clear")
+                print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted, you might not have the required access level or an internal error occurred.")
+                print("Cannot perform mapping.")
+            else:
+                prevDir = os.getcwd() # prev dir to be updated to current dir in case of successful mapping
+                mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
+                os.system("clear")
+                print("Missing directory: " + mappingResult[0])
+                print("Replacing directory: " + mappingResult[1])
+                print("")
+                print("Mapping performed successfully, navigating to replacing directory ...")
+                print("")
+                goTo(mappingResult[1], prevDir, syncWithFinder)
     elif userChoice == "!":
         status = 2
         os.system("clear")

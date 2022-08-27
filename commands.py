@@ -1,26 +1,18 @@
 import os, readline
 import commands_backend as cmd, common
-from os.path import expanduser
-
-home_dir = expanduser("~") + "/"
-output_storage_file = home_dir + ".store_output" #used for communication with BASH
 
 """ core command execution function """
 def executeCommand(command):
     assert len(command) > 0, "Empty command has been provided"
     # build and execute BASH command
-    sourceConfigFileCmd = "source ~/.bashrc;" #include .bashrc to ensure the aliases and scripts work
-    getExitCodeCmd = "echo $? > " + output_storage_file #exit code (used by Python to determine if the command finished successfully or not)
-    bashCommandToExecute = sourceConfigFileCmd + "\n" + command + "\n" + getExitCodeCmd
+    bashCommandToExecute = cmd.buildShellCommand(command)
     os.system(bashCommandToExecute)
-    printedStatus = "with errors"
     # read command status code, create the status message and update the command history files
-    with open(output_storage_file, "r") as output:
-        if int(output.readline().strip('\n')) == 0:
-            printedStatus = "successfully"
-        if len(command) >= cmd.getMinCommandSize():
-            cmd.updateCommandHistory(command)
-            cmd.consolidateCommandHistory()
+    commandExecStatus = cmd.retrieveCommandExecStatus()
+    printedStatus = "successfully" if commandExecStatus == 0 else "with errors"
+    if len(command) >= cmd.getMinCommandSize():
+        cmd.updateCommandHistory(command)
+        cmd.consolidateCommandHistory()
     return (0, command, printedStatus)
 
 """ core command execution function wrappers """

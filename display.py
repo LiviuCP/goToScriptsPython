@@ -1,7 +1,5 @@
 import sys, os
-
-max_nr_of_items = 50 #maximum number of files/dirs listed from current directory in navigation mode
-max_nr_of_chars = 25 #maximum number of characters to be displayed for each item from current directory in navigation mode
+import navigation_settings as navset
 
 def displayGeneralOutput(prevDir, syncWithFinder, command = "", result = "", navigationFilter = "", commandsFilter = "", clipboardAction = "none", clipboardKeyword = "none", recursiveTargetDir = "none"):
     previousDirectory = "none" if len(prevDir) == 0 else prevDir
@@ -58,27 +56,27 @@ def displayGeneralOutput(prevDir, syncWithFinder, command = "", result = "", nav
     print("")
 
 def displayCurrentDirContent():
-    beginCharsToDisplay = max_nr_of_chars // 2 #first characters to be displayed for a filename exceeding max_nr_of_chars
-    endCharsToDisplay = beginCharsToDisplay - max_nr_of_chars #last characters to be displayed for a filename exceeding max_nr_of_chars
+    beginCharsToDisplay = navset.max_nr_of_item_name_chars // 2 #first characters to be displayed for a filename exceeding navset.max_nr_of_item_name_chars
+    endCharsToDisplay = beginCharsToDisplay - navset.max_nr_of_item_name_chars #last characters to be displayed for a filename exceeding navset.max_nr_of_item_name_chars
     dirContent = []
     printAllItems = True
     for dirItem in os.listdir("."):
         if dirItem[0] != ".": #exclude hidden files/directories
             if os.path.isdir(dirItem):
                 dirItem = dirItem + "/"
-                if len(dirItem)-1 > max_nr_of_chars:
+                if len(dirItem)-1 > navset.max_nr_of_item_name_chars:
                     dirItem = dirItem[0:beginCharsToDisplay] + "..." + dirItem[endCharsToDisplay-1:]
-            elif len(dirItem) > max_nr_of_chars:
+            elif len(dirItem) > navset.max_nr_of_item_name_chars:
                 dirItem = dirItem[0:beginCharsToDisplay] + "..." + dirItem[endCharsToDisplay:]
             dirContent.append(dirItem)
     dirContent.sort(key=lambda v: v.upper())
     nrOfItems = len(dirContent)
-    if nrOfItems > max_nr_of_items:
+    if nrOfItems > navset.max_nr_of_displayed_items:
         printAllItems = False
-        dirContent = dirContent[:max_nr_of_items]
+        dirContent = dirContent[:navset.max_nr_of_displayed_items]
     printDirContentToColumns(dirContent)
     if printAllItems == False:
-        print("Number of items contained in the directory (" + str(nrOfItems) + ") exceeds the displayed ones (" + str(max_nr_of_items) + ")! Type :ls -p | less to display all directory items.")
+        print("Number of items contained in the directory (" + str(nrOfItems) + ") exceeds the displayed ones (" + str(navset.max_nr_of_displayed_items) + ")! Type :ls -p | less to display all directory items.")
     else:
         print("Number of items contained in the directory: " + str(nrOfItems))
 

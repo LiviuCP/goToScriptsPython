@@ -1,5 +1,5 @@
 import sys, os
-import shared_cmd_functions as cs, nav_cmd_common as nvcdcmn, commands_settings as cmdset
+import shared_cmd_functions as cs, nav_cmd_common as nvcdcmn, commands_settings as cmdset, system_settings as sysset
 
 """ command history menu init/access functions """
 def initCmdMenus():
@@ -82,3 +82,17 @@ def isSensitiveCommand(command):
 
 def getMinCommandSize():
     return cmdset.min_command_size
+
+""" command execution helper functions """
+def buildShellCommand(command):
+    assert len(command) > 0, "Empty command argument detected"
+    sourceConfigFileCmd = "source ~/.bashrc;" #include .bashrc to ensure the aliases and scripts work
+    getExitCodeCmd = "echo $? > " + sysset.output_storage_file #exit code (used by Python to determine if the command finished successfully or not)
+    shellCommandToExecute = sourceConfigFileCmd + "\n" + command + "\n" + getExitCodeCmd
+    return shellCommandToExecute
+
+def retrieveCommandExecStatus():
+    status = -1
+    with open(sysset.output_storage_file, "r") as output:
+        status = int(output.readline().strip('\n'))
+    return status
