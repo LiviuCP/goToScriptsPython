@@ -307,3 +307,17 @@ def mapMissingDir(pathToReplace, replacingPath):
             nvcdcmn.writeBackToPermHist(eHistDict, navset.e_str_hist_file, navset.e_num_hist_file)
         consolidateHistory()
     return (pathToReplace, replacingPath)
+
+def getReplacingDirPath(replacingDir):
+    replacingDirPath = ":4"
+    with open(input_storage_file, "w") as inputStorage:
+        inputStorage.write(replacingDir)
+        inputStorage.close() # file needs to be closed otherwise the below executed BASH command might return unexpected results
+        # build BASH command for retrieving the absolute path of the replacing dir (if exists)
+        command = "input=`head -1 " + input_storage_file + "`; "
+        command = command + "output=" + output_storage_file + "; "
+        command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
+        os.system(command)
+        with open(output_storage_file, "r") as outputStorage:
+            replacingDirPath = outputStorage.readline().strip('\n')
+    return replacingDirPath

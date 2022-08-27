@@ -200,6 +200,7 @@ def handleMissingDir(path, menu, previousDir):
         print("Enter the name and/or path of the replacing directory.")
         print("Enter < for mapping from history menu and > for mapping from favorites.")
         print("Enter ! to quit mapping.")
+        print("")
         replacingDir = input()
         if replacingDir == "<" or replacingDir == ">":
             menuName = "history" if replacingDir == "<" else "favorites"
@@ -222,31 +223,22 @@ def handleMissingDir(path, menu, previousDir):
             os.system("clear")
             print("Mapping aborted.")
         if doMapping == True:
-            with open(input_storage_file, "w") as inputStorage:
-                inputStorage.write(replacingDir)
-                inputStorage.close() # file needs to be closed otherwise the below executed BASH command might return unexpected results
-                # build BASH command for retrieving the absolute path of the replacing dir (if exists)
-                command = "input=`head -1 " + input_storage_file + "`; "
-                command = command + "output=" + output_storage_file + "; "
-                command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
-                os.system(command)
-                with open(output_storage_file, "r") as outputStorage:
-                    replacingDirPath = outputStorage.readline().strip('\n')
-                    if replacingDirPath == ":4":
-                        status = 4
-                        os.system("clear")
-                        print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted or you might not have the required access level.")
-                        print("Cannot perform mapping.")
-                    else:
-                        prevDir = os.getcwd() # prev dir to be updated to current dir in case of successful mapping
-                        mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
-                        os.system("clear")
-                        print("Missing directory: " + mappingResult[0])
-                        print("Replacing directory: " + mappingResult[1])
-                        print("")
-                        print("Mapping performed successfully, navigating to replacing directory ...")
-                        print("")
-                        goTo(mappingResult[1], prevDir)
+            replacingDirPath = nav.getReplacingDirPath(replacingDir)
+            if replacingDirPath == ":4":
+                status = 4
+                os.system("clear")
+                print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted, you might not have the required access level or an internal error occurred.")
+                print("Cannot perform mapping.")
+            else:
+                prevDir = os.getcwd() # prev dir to be updated to current dir in case of successful mapping
+                mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
+                os.system("clear")
+                print("Missing directory: " + mappingResult[0])
+                print("Replacing directory: " + mappingResult[1])
+                print("")
+                print("Mapping performed successfully, navigating to replacing directory ...")
+                print("")
+                goTo(mappingResult[1], prevDir)
     elif userChoice == "!":
         status = 2
         os.system("clear")
