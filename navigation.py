@@ -1,46 +1,34 @@
 import sys, os, readline
 import common, navigation_backend as nav
-from os.path import expanduser, isdir
-
-home_dir = expanduser("~") + "/"
-input_storage_file = home_dir + ".store_input"
-output_storage_file = home_dir + ".store_output"
+from os.path import isdir
 
 """ core function for visiting directories """
 def goTo(gtDirectory, prevDirectory):
     status = -1
     prevDir = os.getcwd()
-    directory = home_dir if len(gtDirectory) == 0 else gtDirectory
     # build and execute command
-    getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
-    cdCommand = "cd " + '\"' + "$directory" + '\"' + " 2> /dev/null;"
-    executionStatus = "echo $? > " + output_storage_file + ";"
-    writeCurrentDir = "pwd > " + input_storage_file + ";"
-    executeCommandWithStatus = getDir + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeCurrentDir
+    executeCommandWithStatus = nav.buildGoToCommand(gtDirectory)
     os.system(executeCommandWithStatus)
     # read command exit code and create the status message
-    with open(output_storage_file, "r") as outputStorage:
-        if outputStorage.readline().strip('\n') == "0":
-            with open(input_storage_file, "r") as inputStorage:
-                currentDir = inputStorage.readline().strip('\n')
-                if not common.hasPathInvalidCharacters(currentDir): # even if the directory is valid we should ensure it does not have characters like backslash (might cause undefined behavior)
-                    status = 0
-                    os.chdir(currentDir)
-                    if (prevDir != currentDir):
-                        print("Switched to new directory: " + currentDir)
-                        nav.updateNavigationHistory(currentDir)
-                        nav.consolidateHistory()
-                    else:
-                        print("Current directory remains unchanged: " + currentDir)
-                        prevDir = prevDirectory
-        if not status is 0:
-            prevDir = prevDirectory # ensure the previously visited dir stays the same for consistency reasons (not actually used if the goTo execution is not successful)
-            print("Error when attempting to change directory! Possible causes: ")
-            print(" - chosen directory path does not exist or has been deleted")
-            print(" - chosen path is not a directory or the name has invalid characters")
-            print(" - insufficient access rights")
-            print(" - exception raised")
-            print("Please try again!")
+    currentDir = nav.getCurrentDirPath()
+    if len(currentDir) > 0 and not common.hasPathInvalidCharacters(currentDir): # even if the directory is valid we should ensure it does not have characters like backslash (might cause undefined behavior)
+        status = 0
+        os.chdir(currentDir)
+        if (prevDir != currentDir):
+            print("Switched to new directory: " + currentDir)
+            nav.updateNavigationHistory(currentDir)
+            nav.consolidateHistory()
+        else:
+            print("Current directory remains unchanged: " + currentDir)
+            prevDir = prevDirectory
+    if not status is 0:
+        prevDir = prevDirectory # ensure the previously visited dir stays the same for consistency reasons (not actually used if the goTo execution is not successful)
+        print("Error when attempting to change directory! Possible causes: ")
+        print(" - chosen directory path does not exist or has been deleted")
+        print(" - chosen path is not a directory or the name has invalid characters")
+        print(" - insufficient access rights")
+        print(" - exception raised")
+        print("Please try again!")
     return(status, "", prevDir)
 
 """ navigation menu functions """

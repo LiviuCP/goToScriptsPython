@@ -321,3 +321,21 @@ def getReplacingDirPath(replacingDir):
         with open(output_storage_file, "r") as outputStorage:
             replacingDirPath = outputStorage.readline().strip('\n')
     return replacingDirPath
+
+""" Functions related to goto process """
+def buildGoToCommand(gtDirectory):
+    directory = navset.home_dir if len(gtDirectory) == 0 else gtDirectory
+    getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
+    cdCommand = "cd " + '\"' + "$directory" + '\"' + " 2> /dev/null;"
+    executionStatus = "echo $? > " + output_storage_file + ";"
+    writeCurrentDir = "pwd > " + input_storage_file + ";"
+    executeCommandWithStatus = getDir + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeCurrentDir
+    return executeCommandWithStatus
+
+def getCurrentDirPath():
+    currentDirPath = ""
+    with open(output_storage_file, "r") as outputStorage:
+        if outputStorage.readline().strip('\n') == "0":
+            with open(input_storage_file, "r") as inputStorage:
+                currentDirPath = inputStorage.readline().strip('\n')
+    return currentDirPath
