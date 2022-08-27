@@ -15,3 +15,6 @@ hist_file = home_dir + ".goto_history" # consolidated navigation history file
 fav_file = home_dir + ".goto_favorites" # navigation favorites file
 log_dir = home_dir + ".goToLogs/" # contains all daily log navigation files
 l_hist_file = log_dir + datetime.datetime.now().strftime("%Y%m%d") # daily log file, contains all paths visited that day
+max_nr_of_item_name_chars = 25 # maximum number of characters to display for the file/dir name
+max_nr_of_path_chars = 75 # maximum number of characters to display for a path (of a directory)
+max_nr_of_displayed_items = 50 # maximum number of files/dirs listed from current directory in navigation mode

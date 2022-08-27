@@ -1,8 +1,5 @@
 import sys, os
-import common, nav_cmd_common as nvcdcmn, shared_nav_functions as ns, navigation_settings as navset
-
-input_storage_file = navset.home_dir + ".store_input"
-output_storage_file = navset.home_dir + ".store_output"
+import common, nav_cmd_common as nvcdcmn, shared_nav_functions as ns, navigation_settings as navset, system_settings as sysset
 
 """ navigation history/favorites menu init/access functions """
 def initNavMenus():
@@ -10,7 +7,7 @@ def initNavMenus():
     if not os.path.exists(navset.log_dir):
         os.makedirs(navset.log_dir)
     with open(navset.r_hist_file, "a") as rHist, open(navset.p_str_hist_file, "a") as pStrHist, open(navset.p_num_hist_file, "a") as pNumHist, open(navset.e_str_hist_file, "a") as eStrHist, open(navset.e_num_hist_file, "a") as eNumHist, \
-         open(navset.l_hist_file, "a"), open (navset.fav_file, "a"), open(input_storage_file, "a"), open(output_storage_file, "a"):
+         open(navset.l_hist_file, "a"), open (navset.fav_file, "a"), open(sysset.input_storage_file, "a"), open(sysset.output_storage_file, "a"):
         rHist.close() # close, in use by next functions
         pStrHist.close() # close, in use by next functions
         pNumHist.close() # close, in use by next functions
@@ -310,15 +307,15 @@ def mapMissingDir(pathToReplace, replacingPath):
 
 def getReplacingDirPath(replacingDir):
     replacingDirPath = ":4"
-    with open(input_storage_file, "w") as inputStorage:
+    with open(sysset.input_storage_file, "w") as inputStorage:
         inputStorage.write(replacingDir)
         inputStorage.close() # file needs to be closed otherwise the below executed BASH command might return unexpected results
         # build BASH command for retrieving the absolute path of the replacing dir (if exists)
-        command = "input=`head -1 " + input_storage_file + "`; "
-        command = command + "output=" + output_storage_file + "; "
+        command = "input=`head -1 " + sysset.input_storage_file + "`; "
+        command = command + "output=" + sysset.output_storage_file + "; "
         command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
         os.system(command)
-        with open(output_storage_file, "r") as outputStorage:
+        with open(sysset.output_storage_file, "r") as outputStorage:
             replacingDirPath = outputStorage.readline().strip('\n')
     return replacingDirPath
 
@@ -327,15 +324,15 @@ def buildGoToCommand(gtDirectory):
     directory = navset.home_dir if len(gtDirectory) == 0 else gtDirectory
     getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
     cdCommand = "cd " + '\"' + "$directory" + '\"' + " 2> /dev/null;"
-    executionStatus = "echo $? > " + output_storage_file + ";"
-    writeCurrentDir = "pwd > " + input_storage_file + ";"
+    executionStatus = "echo $? > " + sysset.output_storage_file + ";"
+    writeCurrentDir = "pwd > " + sysset.input_storage_file + ";"
     executeCommandWithStatus = getDir + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeCurrentDir
     return executeCommandWithStatus
 
 def getCurrentDirPath():
     currentDirPath = ""
-    with open(output_storage_file, "r") as outputStorage:
+    with open(sysset.output_storage_file, "r") as outputStorage:
         if outputStorage.readline().strip('\n') == "0":
-            with open(input_storage_file, "r") as inputStorage:
+            with open(sysset.input_storage_file, "r") as inputStorage:
                 currentDirPath = inputStorage.readline().strip('\n')
     return currentDirPath
