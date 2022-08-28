@@ -43,10 +43,8 @@ def editAndExecPrevCmd(previousCommand = ""):
     commandToExecute = commandToExecute.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the command history
     readline.set_pre_input_hook() # ensure any further input is no longer pre-filled
     os.system("clear")
-    if len(commandToExecute) == 0 or commandToExecute[len(commandToExecute)-1] == ':':
-        print("Command aborted. You returned to navigation menu.")
-        status = 2 #aborted by user
-    else:
+    commandLength = len(commandToExecute)
+    if commandLength > 0 and commandToExecute[commandLength-1] != ':':
         commandType = "Edited" if previousCommand != "" else "Entered"
         print(commandType + " command is being executed: " + commandToExecute)
         print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
@@ -55,6 +53,9 @@ def editAndExecPrevCmd(previousCommand = ""):
         print(commandType + " command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
         passedInput = result[1]
         passedOutput = result[2]
+    else:
+        print("Command aborted. You returned to navigation menu.")
+        status = 2 #aborted by user
     return (status, passedInput, passedOutput)
 
 """ command menus functions """
@@ -124,12 +125,12 @@ def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
     # process user choice
     choiceResult = cmd.chooseCommand(userInput) if len(filterKey) == 0 else cmd.chooseFilteredCommand(userInput, filteredHistEntries)
     commandHistoryEntry = choiceResult[0]
-    if commandHistoryEntry == ":1" or commandHistoryEntry == ":2":
+    if commandHistoryEntry in [":1", ":2"]:
         status = int(commandHistoryEntry[1])
         passedInput = choiceResult[1]
         if status == 2:
             print("You exited the command menu!")
-    elif commandHistoryEntry != ":3" and commandHistoryEntry != ":4":
+    elif commandHistoryEntry not in [":3", ":4"]:
         if mode == "--execute":
             commandToExecute = commandHistoryEntry
             if cmd.isSensitiveCommand(commandToExecute):

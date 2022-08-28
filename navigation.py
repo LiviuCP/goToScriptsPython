@@ -69,7 +69,7 @@ def executeGoToFromMenu(menuChoice, previousDir, syncWithFinder, userInput = "",
     passedOutput = previousDir
     dirPath = menuVisitResult[0]
     menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "filtered history" if menuChoice == "-fh" else "filtered favorites"
-    if dirPath == ":1" or dirPath == ":4":
+    if dirPath in [":1", ":4"]:
         status = int(dirPath[1])
         passedInput = menuVisitResult[1]
         if dirPath == ":4":
@@ -237,12 +237,7 @@ def handleMissingDir(path, menu, previousDir, syncWithFinder):
             print("Mapping aborted.")
         if doMapping == True:
             replacingDirPath = nav.getReplacingDirPath(replacingDir)
-            if replacingDirPath == ":4":
-                status = 4
-                os.system("clear")
-                print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted, you might not have the required access level or an internal error occurred.")
-                print("Cannot perform mapping.")
-            else:
+            if replacingDirPath != ":4":
                 prevDir = os.getcwd() # prev dir to be updated to current dir in case of successful mapping
                 mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
                 os.system("clear")
@@ -252,6 +247,11 @@ def handleMissingDir(path, menu, previousDir, syncWithFinder):
                 print("Mapping performed successfully, navigating to replacing directory ...")
                 print("")
                 goTo(mappingResult[1], prevDir, syncWithFinder)
+            else:
+                status = 4
+                os.system("clear")
+                print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted, you might not have the required access level or an internal error occurred.")
+                print("Cannot perform mapping.")
     elif userChoice == "!":
         status = 2
         os.system("clear")
