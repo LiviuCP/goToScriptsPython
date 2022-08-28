@@ -3,12 +3,10 @@ import navigation_settings as navset
 
 def displayGeneralOutput(prevDir, command = "", result = "", navigationFilter = "", commandsFilter = "", clipboardAction = "none", clipboardKeyword = "none", recursiveTargetDir = "none"):
     previousDirectory = "none" if len(prevDir) == 0 else prevDir
+    lastCommand = "none"
     commandResult = ""
-    if len(command) == 0 and len(result) == 0:
-        lastCommand = 'none'
-    elif len(result) == 0 or len(command) == 0:
-        lastCommand = 'Error in displaying last command and its result!'
-    else:
+    if len(command) > 0:
+        assert len(result) > 0, "Invalid command result"
         lastCommand = command
         commandResult = result
     print("")
