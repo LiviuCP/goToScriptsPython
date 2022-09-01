@@ -8,12 +8,12 @@ def executeCommand(command):
     bashCommandToExecute = cmd.buildShellCommand(command)
     os.system(bashCommandToExecute)
     # read command status code, create the status message and update the command history files
-    commandExecStatus = cmd.retrieveCommandExecStatus()
-    printedStatus = "successfully" if commandExecStatus == 0 else "with errors"
+    commandExecResult = cmd.retrieveCommandExecResult()
+    finishingStatus = "successfully" if commandExecResult == 0 else "with errors"
     if len(command) >= cmd.getMinCommandSize():
         cmd.updateCommandHistory(command)
         cmd.consolidateCommandHistory()
-    return (0, command, printedStatus)
+    return (0, command, finishingStatus)
 
 """ core command execution function wrappers """
 def executeCommandWithStatus(command = "", repeatPrev = False):
@@ -22,8 +22,9 @@ def executeCommandWithStatus(command = "", repeatPrev = False):
     print(commandType + " command is being executed: " + command)
     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
     result = executeCommand(command)
+    finishingStatus = result[2]
     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-    print(commandType + " command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
+    print(commandType + " command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
     return result
 
 def editAndExecPrevCmd(previousCommand = ""):
@@ -49,10 +50,11 @@ def editAndExecPrevCmd(previousCommand = ""):
         print(commandType + " command is being executed: " + commandToExecute)
         print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
         result = executeCommand(commandToExecute)
+        finishingStatus = result[2]
         print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-        print(commandType + " command finished " + result[2] + "! Scroll up to check output (if any) if it exceeds the screen.")
+        print(commandType + " command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
         passedInput = result[1]
-        passedOutput = result[2]
+        passedOutput = finishingStatus
     else:
         print("Command aborted. You returned to navigation menu.")
         status = 2 #aborted by user

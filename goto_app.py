@@ -18,7 +18,7 @@ class Application:
         self.prevCommand = ""
         self.clipboard = clip.Clipboard()
         self.recursiveTransfer = rt.RecursiveTransfer()
-        self.status = 0
+        self.appStatus = 0
         self.passedInput = ""
         self.passedOutput = ""
         common.setPathAutoComplete()
@@ -26,7 +26,7 @@ class Application:
         cmd.initCmdMenus()
 
     def execute(self):
-        commandResult = ""
+        prevCommandFinishingStatus = "" # finishing status of last command (success / with errors)
         userInput = ""
         forwardUserInput = False
         os.system("clear")
@@ -34,7 +34,7 @@ class Application:
         while True:
             if userInput not in {"?", "?clip", "?ren"}:
                 if len(self.prevCommand) > 0:
-                    out.displayGeneralOutput(self.prevDir, self.prevCommand, commandResult, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.recursiveTransfer.getTargetDir())
+                    out.displayGeneralOutput(self.prevDir, self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.recursiveTransfer.getTargetDir())
                 else:
                     out.displayGeneralOutput(self.prevDir, navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter, clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), recursiveTargetDir = self.recursiveTransfer.getTargetDir())
             userInput = input()
@@ -42,13 +42,13 @@ class Application:
             while True:
                 os.system("clear")
                 self.handleUserInput(userInput)
-                if self.status == 1:
+                if self.appStatus == 1:
                     userInput = self.passedInput
                     forwardUserInput = True
-                elif self.status == 2:
+                elif self.appStatus == 2:
                     self.prevCommand = self.passedInput
-                    commandResult = self.passedOutput
-                elif self.status == 4:
+                    prevCommandFinishingStatus = self.passedOutput
+                elif self.appStatus == 4:
                     self.prevDir = self.passedOutput
                 if forwardUserInput == True:
                     forwardUserInput = False
@@ -58,7 +58,7 @@ class Application:
                 break
 
     def handleUserInput(self, userInput):
-        self.status = 0
+        self.appStatus = 0
         self.passedInput = ""
         self.passedOutput = ""
         shouldSwitchToMainContext = True
@@ -95,21 +95,21 @@ class Application:
                 print("Unable to toggle, not in the right menu!")
         elif userInput == ",":
             result = nav.goTo(self.prevDir, os.getcwd())
-            self.status = 4 if result[0] == 0 else self.status
+            self.appStatus = 4 if result[0] == 0 else self.appStatus
         elif userInput == ":-":
             if len(self.prevCommand) > 0:
                 result = cmd.executeCommandWithStatus(self.prevCommand, True)
-                self.status = 2 if result[0] == 0 else self.status # force updating previous command and its finishing status (although command is just repeated); the command might for example finish with errors although when previously executed it finished successfully (e.g. when removing a file and then attempting to remove it again)
+                self.appStatus = 2 if result[0] == 0 else self.appStatus # force updating previous command and its finishing status (although command is just repeated); the command might for example finish with errors although when previously executed it finished successfully (e.g. when removing a file and then attempting to remove it again)
             else:
                 print("No shell command previously executed")
         elif userInput == ":":
             result = cmd.editAndExecPrevCmd(self.prevCommand) if self.prevCommand != "" else cmd.editAndExecPrevCmd()
-            self.status = 2 if result[0] == 0 else self.status
+            self.appStatus = 2 if result[0] == 0 else self.appStatus
         elif userInput == "+>":
             nav.addDirToFavorites()
         elif userInput == "->":
             result = nav.removeDirFromFavorites()
-            self.status = 1 if result[0] == 1 else self.status
+            self.appStatus = 1 if result[0] == 1 else self.appStatus
         elif userInput in [":clearnavigation", ":clearcommands"]:
             handleClearMenu(userInput)
         elif userInput in [":c", ":m", ":y", ":ec", ":dc"]:
@@ -127,10 +127,10 @@ class Application:
         else:
             if len(userInput) > 0 and userInput[0] == ":":
                 result = cmd.executeCommandWithStatus(userInput[1:])
-                self.status = 2
+                self.appStatus = 2
             else:
                 result = nav.goTo(userInput, self.prevDir)
-                self.status = 4 if result[0] == 0 else self.status
+                self.appStatus = 4 if result[0] == 0 else self.appStatus
         if result is not None:
             self.passedInput = result[1]
             self.passedOutput = result[2]
@@ -159,20 +159,20 @@ class Application:
         if self.currentContext in ["--execute", "--edit"]:
             self.currentFilter = userInput
             result = cmd.visitCommandMenu(self.currentContext, self.currentFilter, self.prevCommand)
-            self.status = 2 if result[0] == 0 else 1 if result[0] == 1 else self.status
+            self.appStatus = 2 if result[0] == 0 else 1 if result[0] == 1 else self.appStatus
         elif self.currentContext in ["-f", "-h"]:
             result = nav.executeGoToFromMenu(self.currentContext, self.prevDir, userInput, self.prevCommand)
             if len(userInput) > 0:
-                self.status = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else self.status #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
+                self.appStatus = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else self.appStatus #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
             else:
-                self.status = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.status
+                self.appStatus = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.appStatus
                 if result[0] == -1:
                     self.recursiveTransfer.setTargetDir(result[1])
         elif self.currentContext in ["-fh", "-ff"]:
             if len(userInput) > 0:
                 self.currentFilter = userInput
                 result = nav.executeGoToFromMenu(self.currentContext, self.prevDir, userInput, self.prevCommand)
-                self.status = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.status
+                self.appStatus = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.appStatus
                 if result[0] == -1:
                     self.recursiveTransfer.setTargetDir(result[1])
             else:

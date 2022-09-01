@@ -6,10 +6,8 @@ from os.path import isdir
 def goTo(gtDirectory, prevDirectory):
     status = -1
     prevDir = os.getcwd()
-    # build and execute command
-    executeCommandWithStatus = nav.buildGoToCommand(gtDirectory)
-    os.system(executeCommandWithStatus)
-    # read command exit code and create the status message
+    goToCommand = nav.buildGoToCommand(gtDirectory)
+    os.system(goToCommand)
     currentDir = nav.getCurrentDirPath()
     if len(currentDir) > 0 and not common.hasPathInvalidCharacters(currentDir): # even if the directory is valid we should ensure it does not have characters like backslash (might cause undefined behavior)
         status = 0
