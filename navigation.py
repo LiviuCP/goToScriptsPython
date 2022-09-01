@@ -5,10 +5,8 @@ from os.path import isdir
 """ core function for visiting directories """
 def goTo(gtDirectory, prevDirectory):
     status = -1
-    prevDir = os.getcwd()
-    goToCommand = nav.buildGoToCommand(gtDirectory)
-    os.system(goToCommand)
-    currentDir = nav.getCurrentDirPath()
+    prevDir = os.getcwd() # current directory path (should become previous dir after goto)
+    currentDir = nav.retrieveTargetDirPath(gtDirectory) # target directory path (should become current directory after goto)
     if len(currentDir) > 0 and not common.hasPathInvalidCharacters(currentDir): # even if the directory is valid we should ensure it does not have characters like backslash (might cause undefined behavior)
         status = 0
         os.chdir(currentDir)

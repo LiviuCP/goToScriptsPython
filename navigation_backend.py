@@ -320,19 +320,19 @@ def getReplacingDirPath(replacingDir):
     return replacingDirPath
 
 """ Functions related to goto process """
-def buildGoToCommand(gtDirectory):
+def retrieveTargetDirPath(gtDirectory):
+    # build a command that validates the goto process and helps retrieve the full path of the target directory
     directory = navset.home_dir if len(gtDirectory) == 0 else gtDirectory
     getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
     cdCommand = "cd " + '\"' + "$directory" + '\"' + " 2> /dev/null;"
     executionStatus = "echo $? > " + sysset.output_storage_file + ";"
-    writeCurrentDir = "pwd > " + sysset.input_storage_file + ";"
-    executeCommandWithStatus = getDir + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeCurrentDir
-    return executeCommandWithStatus
-
-def getCurrentDirPath():
-    currentDirPath = ""
+    writeTargetDir = "pwd > " + sysset.input_storage_file + ";"
+    goToCommand = getDir + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeTargetDir
+    # execute command and recover the target directory path
+    os.system(goToCommand)
+    targetDirPath = ""
     with open(sysset.output_storage_file, "r") as outputStorage:
         if outputStorage.readline().strip('\n') == "0":
             with open(sysset.input_storage_file, "r") as inputStorage:
-                currentDirPath = inputStorage.readline().strip('\n')
-    return currentDirPath
+                targetDirPath = inputStorage.readline().strip('\n')
+    return targetDirPath
