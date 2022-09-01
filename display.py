@@ -1,14 +1,14 @@
 import sys, os
 import navigation_settings as navset
 
-def displayGeneralOutput(prevDir, syncWithFinder, command = "", result = "", navigationFilter = "", commandsFilter = "", clipboardAction = "none", clipboardKeyword = "none", recursiveTargetDir = "none"):
+def displayGeneralOutput(prevDir, syncWithFinder, prevCommand = "", prevCommandFinishingStatus = "", navigationFilter = "", commandsFilter = "", clipboardAction = "none", clipboardKeyword = "none", recursiveTargetDir = "none"):
     previousDirectory = "none" if len(prevDir) == 0 else prevDir
     lastCommand = "none"
-    commandResult = ""
-    if len(command) > 0:
-        assert len(result) > 0, "Invalid command result"
-        lastCommand = command
-        commandResult = result
+    lastCommandFinishingStatus = ""
+    if len(prevCommand) > 0:
+        assert len(prevCommandFinishingStatus) > 0, "Invalid command finishing status"
+        lastCommand = prevCommand
+        lastCommandFinishingStatus = prevCommandFinishingStatus
     print("")
     print("*********************************************************************************************************************************************************")
     print("")
@@ -24,7 +24,7 @@ def displayGeneralOutput(prevDir, syncWithFinder, command = "", result = "", nav
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Last executed shell command", end='')
-    print(" (finished " + commandResult + "):") if commandResult != "" else print(":")
+    print(" (finished " + lastCommandFinishingStatus + "):") if lastCommandFinishingStatus != "" else print(":")
     print(lastCommand)
     print("")
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")

@@ -91,8 +91,8 @@ def buildShellCommand(command):
     shellCommandToExecute = sourceConfigFileCmd + "\n" + command + "\n" + getExitCodeCmd
     return shellCommandToExecute
 
-def retrieveCommandExecStatus():
-    status = -1
+def retrieveCommandExecResult():
+    result = -1
     with open(sysset.output_storage_file, "r") as output:
-        status = int(output.readline().strip('\n'))
-    return status
+        result = int(output.readline().strip('\n'))
+    return result
