@@ -34,9 +34,9 @@ class Application:
         while True:
             if userInput not in {"?", "?clip", "?ren"}:
                 if len(self.prevCommand) > 0:
-                    out.displayGeneralOutput(self.prevDir, self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.recursiveTransfer.getTargetDir())
+                    out.displayGeneralOutput(self.prevDir, self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir())
                 else:
-                    out.displayGeneralOutput(self.prevDir, navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter, clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), recursiveTargetDir = self.recursiveTransfer.getTargetDir())
+                    out.displayGeneralOutput(self.prevDir, navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter, clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir())
             userInput = input()
             userInput = userInput.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history
             while True:

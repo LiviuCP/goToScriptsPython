@@ -1,7 +1,7 @@
 import sys, os
 import navigation_settings as navset
 
-def displayGeneralOutput(prevDir, prevCommand = "", prevCommandFinishingStatus = "", navigationFilter = "", commandsFilter = "", clipboardAction = "none", clipboardKeyword = "none", recursiveTargetDir = "none"):
+def displayGeneralOutput(prevDir, prevCommand = "", prevCommandFinishingStatus = "", navigationFilter = "", commandsFilter = "", clipboardAction = "", clipboardKeyword = "", clipboardSourceDir = "", recursiveTargetDir = ""):
     previousDirectory = "none" if len(prevDir) == 0 else prevDir
     lastCommand = "none"
     lastCommandFinishingStatus = ""
@@ -36,9 +36,12 @@ def displayGeneralOutput(prevDir, prevCommand = "", prevCommandFinishingStatus =
     print("Clipboard action: ", end='')
     if len(clipboardAction) > 0:
         assert len(clipboardKeyword) > 0, "Invalid clipboard keyword"
+        assert len(clipboardSourceDir) > 0, "Invalid clipboard source dir"
         print(clipboardAction + " (keyword: " + clipboardKeyword + ")")
     else:
         print("none")
+    print("Clipboard source directory: ", end='')
+    print(clipboardSourceDir) if len(clipboardSourceDir) > 0 else print("none")
     print("Recursive transfer target directory: ", end='')
     print(recursiveTargetDir) if len(recursiveTargetDir) > 0 else print("none")
     print("")
