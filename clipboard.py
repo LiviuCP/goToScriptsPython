@@ -99,3 +99,5 @@ class Clipboard:
         return "move" if self.action.startswith("mv") else "copy" if self.action.startswith("cp") else ""
     def getKeyword(self):
         return self.keyword
+    def getSourceDir(self):
+        return self.sourceDir
