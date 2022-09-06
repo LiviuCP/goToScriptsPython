@@ -66,6 +66,7 @@ def initCmdMenus():
 
 def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
     def displayCmdHistMenu(mode):
+        cmd.consolidateCommandHistory() # normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
         print("COMMANDS LIST")
         print("")
         print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
