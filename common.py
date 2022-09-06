@@ -1,13 +1,15 @@
 """ Functions usable in any of the application modules """
 
 import os, sys, readline
-import system_settings as sysset
+import system_functionality as sysfunc, system_settings as sysset
 from os.path import expanduser
 
 # if a valid absolute path is fed as argument the unchanged path (without any ending '/') is returned
 def getAbsoluteDirPath(dirPath):
+    syncResult = sysfunc.syncCurrentDir()
+    assert not syncResult[1], "Current directory fallback not allowed"
     if len(dirPath) == 0:
-        pathToAdd = os.getcwd()
+        pathToAdd = syncResult[0]
     else:
         pathToAdd = dirPath
         with open(sysset.input_storage_file, "w") as inputStorage:

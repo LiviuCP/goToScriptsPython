@@ -55,8 +55,6 @@ d. Before shutting down the machine, in order to prevent forceful terminal closu
 
 3) Sometimes when having the Finder re-opened the window is in an inactive state and the user cannot move between directories by using the arrow keys. To correct this initiate a new re-opening in the current directory by entering '.' and pressing ENTER. Also it is possible to use the :s option for disabling terminal syncronisation if you don't necessarily want to see the directory content in Finder.
 
-4) On some Linux systems sometimes the persistent command history section vanishes from the command history menu after executing a command. Unfortunately I haven't managed to find the root cause of this bug and I suspect it might be related to the Python library version used on that system (it occurred on OpenSUSE 15.1 so far). If this happens please exit and re-enter the app. It also happens that when executing a new command the history "magically" recovers.
-
 If any other bugs are discovered please feel free to report them on my Github page: https://github.com/LiviuCP.
 
 5. FUNCTIONALITY
@@ -399,7 +397,21 @@ Notes:
    - at least one of the items cannot be renamed due to parameters that are not fit for its original name size. For example if 2 characters were required to be removed at index 5 of FileA this operation would not be valid for the simple reason that there is nothing at this index. Even if the other items are eligible (say FileAbcdefgh) the operation is not allowed because each visible item needs to be renamed.
    - also if no visible items are present in the current directory an error will be triggered prior to entering the interactive menu.
 
-9. MISCELLANEOUS
+9. FALLBACK FOR CURRENT DIRECTORY
+
+In rare situations the current directory might become unavailable. This might happen for example when it has been deleted externally (e.g. by using a separate terminal) or when the permissions have been altered.
+
+When this is the case the application uses a fallback mechanism that replaces the current dir with a preset fallback directory. It is highly recommended to use the home dir as fallback however if you would like to use another folder this can be setup in system_settings.py. However you should make sure the fallback dir is valid and accessible at any time.
+
+The fallback mechanism works as follows: when the user tries to execute an operation (e.g. go to another folder) the application performs a sync in which it checks the current directory is reachable. If the current dir is available it continues the operation as per normal process. However if the current dir is not reachable it changes it to the fallback directory and warns the user that the requested operation could not be performed. The user can then try again or choose to execute another operation by taking into account the current directory change.
+
+To be noted:
+- the clipboard and recursive transfer data are reset at fallback meaning the user will need to re-initiate these processes (with new parameters if required)
+- entering the help menus and exiting the application is possible at any time. In these situations a "silent fallback" is performed. This process is made known to the user by displaying the "(fallback)" keyword along with the path of the current directory.
+
+The fallback mechanism has been designed for increasing the resiliency of the application by aiding in preventing unwanted crashes. Due to the complexity of the application there might be some places (sub-menus) where it hasn't been implemented (in this case the app might crash), yet in practice it should be seldom required as in most of the situations the current directory should be fully available.
+
+10. MISCELLANEOUS
 
 1) It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the navigation favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :clearnavigation and hit ENTER in order to clear the navigation history. For command history type :clearcommands and hit ENTER.
 

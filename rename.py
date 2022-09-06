@@ -1,11 +1,11 @@
-import os, datetime, common, rename_backend as rn, display as out
+import os, datetime, common, system_functionality as sysfunc, rename_backend as rn, display as out
 
 def rename(chosenOption):
-    def displayRenameInfo(chosenOption, valueToAdd = "", position = -1, nrOfRemovedCharacters = 0):
+    def displayRenameInfo(currentDir, chosenOption, valueToAdd = "", position = -1, nrOfRemovedCharacters = 0):
         assert chosenOption in rn.available_options, "The option argument is invalid"
         os.system("clear")
         print("1. Current directory:")
-        print(os.getcwd())
+        print(currentDir)
         print("")
         print("2. Items contained (hidden ones are excluded):")
         print("")
@@ -26,7 +26,7 @@ def rename(chosenOption):
     - insert/replace/delete position (-1 if no insert or abort)
     - number of deleted/replaced characters (0 if no such operation or abort)
     """
-    def promptForRenameParameters(chosenOption):
+    def promptForRenameParameters(currentDir, chosenOption):
         assert chosenOption in rn.available_options, "The option argument is invalid"
         # defaults
         shouldAbort = False
@@ -37,32 +37,32 @@ def rename(chosenOption):
         shouldAbort = False
         if chosenOption != 'd':
             promptForValueToAdd = "Enter the " + ("numeric value" if isNumValueRequired else "fixed text string") + " to be added to " + ("first" if isNumValueRequired else "each") + " item name: "
-            displayRenameInfo(chosenOption, valueToAdd, position, nrOfRemovedCharacters)
+            displayRenameInfo(currentDir, chosenOption, valueToAdd, position, nrOfRemovedCharacters)
             requestedInput = common.getInputWithNumCondition(promptForValueToAdd, isNumValueRequired, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
                                                          "Invalid input! A positive numeric value is required")
             shouldAbort = (len(requestedInput) == 0)
             if not shouldAbort:
                 valueToAdd = requestedInput
         if not shouldAbort and chosenOption in rn.position_requiring_options:
-            displayRenameInfo(chosenOption, valueToAdd, position, nrOfRemovedCharacters)
+            displayRenameInfo(currentDir, chosenOption, valueToAdd, position, nrOfRemovedCharacters)
             requestedInput = common.getInputWithNumCondition("Enter the position within the file name: ", True, lambda userInput: len(userInput) > 0 and int(userInput) < 0, \
                                                          "Invalid input! A non-negative numeric value is required")
             shouldAbort = (len(requestedInput) == 0)
             if not shouldAbort:
                 position = int(requestedInput)
         if not shouldAbort and chosenOption in rn.string_removal_options:
-            displayRenameInfo(chosenOption, valueToAdd, position, nrOfRemovedCharacters)
+            displayRenameInfo(currentDir, chosenOption, valueToAdd, position, nrOfRemovedCharacters)
             requestedInput = common.getInputWithNumCondition("Enter the number of characters to be removed: ", True, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
                                                          "Invalid input! A positive numeric value is required")
             shouldAbort = (len(requestedInput) == 0)
             if not shouldAbort:
                 nrOfRemovedCharacters = int(requestedInput)
         return (shouldAbort, valueToAdd, position, nrOfRemovedCharacters)
-    def simulateRenaming(renamingMap, chosenOption, buildParams):
+    def simulateRenaming(currentDir, renamingMap, chosenOption, buildParams):
         assert len(renamingMap) > 0, "Empty renaming map detected"
         assert chosenOption in rn.available_options, "The option argument is invalid"
         assert len(buildParams) == 3, "The number of renaming map build parameters is not correct"
-        displayRenameInfo(chosenOption, buildParams[0], buildParams[1], buildParams[2])
+        displayRenameInfo(currentDir, chosenOption, buildParams[0], buildParams[1], buildParams[2])
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         print("Renaming of all items (except hidden ones) is about to proceed!")
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -100,26 +100,32 @@ def rename(chosenOption):
                         renamingMap[entry] = ""
                         renamingDone = True
             sortAscending = not sortAscending #change direction
+    syncResult = sysfunc.syncCurrentDir()
+    assert not syncResult[1], "Current directory fallback not allowed"
     assert chosenOption in rn.available_options, "The option argument is invalid"
     if rn.areRenameableItemsInCurrentDir():
         shouldRename = False
         status = 0 # default status, no errors
-        renamingParams = promptForRenameParameters(chosenOption)
+        renamingParams = promptForRenameParameters(syncResult[0], chosenOption)
         assert len(renamingParams) == 4, "Incorrect number of tuple values"
         os.system("clear")
-        if not renamingParams[0]:
+        syncResult = sysfunc.syncCurrentDir() # sync required after user entered the renaming params (in case the current dir became inaccessible in the meantime)
+        if not syncResult[1] and not renamingParams[0]:
             buildParams = (renamingParams[1], renamingParams[2], renamingParams[3])
             renamingMap = dict()
             status = rn.buildRenamingMap(chosenOption, buildParams, renamingMap)
             assert status in range(3), "Unknown status code for renaming map build"
             if status == 0:
-                simulateRenaming(renamingMap, chosenOption, buildParams) # give the user a hint about how the renamed files will look like; a renaming decision is then expected from user
+                simulateRenaming(syncResult[0], renamingMap, chosenOption, buildParams) # give the user a hint about how the renamed files will look like; a renaming decision is then expected from user
                 decision = common.getInputWithTextCondition("Would you like to continue? (y - yes, n - no (exit)) ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
                                                             "Invalid choice selected. Please try again")
                 os.system("clear")
-                if decision.lower() == 'y':
+                syncResult = sysfunc.syncCurrentDir() # sync required after user decided for renaming (or not) after simulation (in case the current dir became inaccessible in the meantime)
+                if not syncResult[1] and decision.lower() == 'y':
                     shouldRename = True
-        if shouldRename:
+        if syncResult[1]:
+            out.printFallbackMessage()
+        elif shouldRename:
             doRenameItems(renamingMap)
             print("Items renamed")
         elif status > 0:

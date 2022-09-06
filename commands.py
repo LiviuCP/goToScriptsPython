@@ -1,5 +1,5 @@
 import os, readline
-import commands_backend as cmd, common
+import commands_backend as cmd, system_functionality as sysfunc, common, display as out
 
 """ core command execution function """
 def executeCommand(command):
@@ -45,7 +45,10 @@ def editAndExecPrevCmd(previousCommand = ""):
     readline.set_pre_input_hook() # ensure any further input is no longer pre-filled
     os.system("clear")
     commandLength = len(commandToExecute)
-    if commandLength > 0 and commandToExecute[commandLength-1] != ':':
+    syncResult = sysfunc.syncCurrentDir() #in case current dir gets unreachable before user enters input ...
+    if syncResult[1]:
+        out.displayFallbackMessage()
+    elif commandLength > 0 and commandToExecute[commandLength-1] != ':':
         commandType = "Edited" if previousCommand != "" else "Entered"
         print(commandType + " command is being executed: " + commandToExecute)
         print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
@@ -84,9 +87,9 @@ def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
         print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
         print("")
         cmd.displayFormattedFilteredCmdHistContent(content, totalNrOfMatches)
-    def displayPageFooter(filterKey = ""):
+    def displayPageFooter(currentDir, filterKey = ""):
         print("")
-        print("Current directory: " + os.getcwd())
+        print("Current directory: " + currentDir)
         print("Last executed shell command: ", end='')
         print(previousCommand) if len(previousCommand) > 0 else print("none")
         print("")
@@ -99,6 +102,8 @@ def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
         print("")
         print("Enter ! to quit.")
         print("")
+    syncResult = sysfunc.syncCurrentDir()
+    assert not syncResult[1], "Current dir fallback not allowed"
     status = 0 # default status (normal execution)
     passedInput = ""
     passedOutput = ""
@@ -110,7 +115,7 @@ def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
         userInput = ""
     elif len(filterKey) == 0:
         displayCmdHistMenu(mode)
-        displayPageFooter()
+        displayPageFooter(syncResult[0])
         userInput = input()
         os.system("clear")
     else:
@@ -122,13 +127,16 @@ def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
             userInput = ""
         else:
             displayFilteredCmdHistMenu(filteredHistEntries, mode, totalNrOfMatches)
-            displayPageFooter(appliedFilterKey)
+            displayPageFooter(syncResult[0], appliedFilterKey)
             userInput = input()
             os.system("clear")
     # process user choice
     choiceResult = cmd.chooseCommand(userInput) if len(filterKey) == 0 else cmd.chooseFilteredCommand(userInput, filteredHistEntries)
     commandHistoryEntry = choiceResult[0]
-    if commandHistoryEntry in [":1", ":2"]:
+    syncResult = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice 
+    if syncResult[1]:
+        out.displayFallbackMessage()
+    elif commandHistoryEntry in [":1", ":2"]:
         status = int(commandHistoryEntry[1])
         passedInput = choiceResult[1]
         if status == 2:
@@ -141,7 +149,7 @@ def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
                 print(commandToExecute)
                 print("")
                 print("Current directory: ")
-                print(os.getcwd())
+                print(syncResult[0])
                 print("")
                 print("Are you sure you want to continue?")
                 print("")
