@@ -1,5 +1,5 @@
 import os
-import display as out, navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt, rename as rn
+import navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt, rename as rn, system_functionality as sysfunc, display as out
 
 renaming_commands = {"ra", "ran", "rp", "rpn", "ri", "rin", "rd", "rr", "rrn"}
 renaming_translations = {"ra" : "a", "ran" : "A", "rp" : "p", "rpn" : "P", "ri" : "i", "rin" : "I", "rd" : "d", "rr" : "r", "rrn" : "R"}
@@ -14,7 +14,8 @@ class Application:
         self.currentFilter = "" # should change each time the user filters the navigation/command history
         self.prevNavigationFilter = "" # stores the last navigation filter applied by user
         self.prevCommandsFilter = "" # stores the last commands filter applied by user
-        self.prevDir = os.getcwd()
+        syncResult = sysfunc.syncCurrentDir() # TODO: at next refactoring phase check if status code should remain 0 for fallback or a dedicated status code should be chosen (maybe 5?)
+        self.prevDir = syncResult[0]
         self.prevCommand = ""
         self.clipboard = clip.Clipboard()
         self.recursiveTransfer = rt.RecursiveTransfer()
@@ -64,7 +65,14 @@ class Application:
         self.passedOutput = ""
         shouldSwitchToMainContext = True
         result = None # a valid result should contain: (status code, passed input, passed output)
-        if len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
+        fallbackPerformed = False
+        if userInput not in ["!", "?", "?ren", "?clip"]:
+            syncResult = sysfunc.syncCurrentDir()
+            fallbackPerformed = syncResult[1]
+        if fallbackPerformed:
+            out.printFallbackMessage()
+            self.handleFallbackPerformed()
+        elif len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
             result = self.setContext(contexts_dict[userInput[0:2]], userInput[2:])
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t") #return to main context only if the user hasn't chosen to toggle
         elif len(userInput) >= 1 and userInput[0] in ["<", ">"]:
@@ -95,7 +103,7 @@ class Application:
             else:
                 print("Unable to toggle, not in the right menu!")
         elif userInput == ",":
-            result = nav.goTo(self.prevDir, os.getcwd(), self.syncWithFinder)
+            result = nav.goTo(self.prevDir, os.getcwd(), self.syncWithFinder) # fallback already checked, so getcwd() should be safe
             self.appStatus = 4 if result[0] == 0 else self.appStatus
         elif userInput == ":-":
             if len(self.prevCommand) > 0:
@@ -183,6 +191,10 @@ class Application:
                 print("navigation history.") if self.currentContext == "-fh" else print("favorites.")
         return result
 
+    def handleFallbackPerformed(self):
+        self.clipboard.erase()
+        self.recursiveTransfer.eraseTargetDir()
+
     def handleSyncWithFinder(self):
         self.syncWithFinder = not self.syncWithFinder
         print("Finder synchronization enabled") if self.syncWithFinder == True else print("Finder synchronization disabled")
@@ -241,7 +253,7 @@ def handleClearMenu(userInput):
 def handleCloseApplication(previousCommand):
     print("You exited the navigation app.")
     print("")
-    print("Last visited directory: " + os.getcwd())
+    out.printCurrentDir("Last visited")
     print("Last executed shell command: ", end='')
     print(previousCommand) if len(previousCommand) > 0 else print("none")
     print("")

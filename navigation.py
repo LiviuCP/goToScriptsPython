@@ -1,11 +1,13 @@
 import sys, os, readline
-import common, navigation_backend as nav
+import common, navigation_backend as nav, system_functionality as sysfunc, display as out
 from os.path import isdir
 
 """ core functions for visiting directories and Finder synchronization """
 def goTo(gtDirectory, prevDirectory, syncWithFinder):
     status = -1
-    prevDir = os.getcwd() # current directory path (should become previous dir after goto)
+    syncResult = sysfunc.syncCurrentDir()
+    assert not syncResult[1], "Current dir fallback not allowed"
+    prevDir = syncResult[0] # current directory path (should become previous dir after goto)
     currentDir = nav.retrieveTargetDirPath(gtDirectory) # target directory path (should become current directory after goto)
     if len(currentDir) > 0 and not common.hasPathInvalidCharacters(currentDir): # even if the directory is valid we should ensure it does not have characters like backslash (might cause undefined behavior)
         status = 0
@@ -65,7 +67,10 @@ def executeGoToFromMenu(menuChoice, previousDir, syncWithFinder, userInput = "",
     passedOutput = previousDir
     dirPath = menuVisitResult[0]
     menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "filtered history" if menuChoice == "-fh" else "filtered favorites"
-    if dirPath in [":1", ":4"]:
+    syncResult = sysfunc.syncCurrentDir()
+    if syncResult[1]:
+        out.printFallbackMessage()
+    elif dirPath in [":1", ":4"]:
         status = int(dirPath[1])
         passedInput = menuVisitResult[1]
         if dirPath == ":4":
@@ -108,7 +113,7 @@ def executeGoToFromMenu(menuChoice, previousDir, syncWithFinder, userInput = "",
 
 def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
     def displayHistMenu():
-        nav.consolidateHistory() #normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
+        nav.consolidateHistory() # normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
         print("VISITED DIRECTORIES")
         print("")
         print("-- RECENTLY VISITED --")
@@ -127,10 +132,10 @@ def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
         print("FILTERED VISITED DIRECTORIES") if choice == "-fh" else print("FILTERED FAVORITE DIRECTORIES")
         print("")
         nav.displayFormattedFilteredContent(content, totalNrOfMatches)
-    def displayPageFooter(choice, filterKey = ""):
+    def displayPageFooter(currentDir, choice, filterKey = ""):
         toggleDict = {"-h" : "FAVORITE DIRECTORIES", "-f" : "VISITED DIRECTORIES", "-fh" : "FILTERED FAVORITE DIRECTORIES", "-ff" : "FILTERED VISITED DIRECTORIES"}
         print("")
-        print("Current directory: " + os.getcwd())
+        print("Current directory: " + currentDir)
         print("Last executed shell command: ", end='')
         print(previousCommand) if len(previousCommand) > 0 else print("none")
         print("")
@@ -146,6 +151,8 @@ def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
         print("")
         print("Enter ! to quit.")
         print("")
+    syncResult = sysfunc.syncCurrentDir()
+    assert not syncResult[1], "Current dir fallback not allowed"
     assert menuChoice in ["-f", "-ff", "-h", "-fh"], "Wrong menu option provided"
     filteredEntries = []
     if menuChoice in ["-fh", "-ff"]:
@@ -157,14 +164,14 @@ def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
         os.system("clear")
         if len(filteredEntries) > 0:
             displayFilteredMenu(menuChoice, filteredEntries, totalNrOfMatches)
-            displayPageFooter(menuChoice, appliedFilterKey)
+            displayPageFooter(syncResult[0], menuChoice, appliedFilterKey)
             userInput = input()
             os.system("clear")
     elif len(userInput) == 0:
         os.system("clear")
         if not nav.isMenuEmpty(menuChoice):
             displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
-            displayPageFooter(menuChoice)
+            displayPageFooter(syncResult[0], menuChoice)
             userInput = input()
             os.system("clear")
     choiceResult = nav.choosePath(menuChoice, userInput, filteredEntries)
@@ -179,6 +186,8 @@ The status returned by this method can have following values:
 4 - replacing directory to which mapping is requested does not exist
 """
 def handleMissingDir(path, menu, previousDir, syncWithFinder):
+    syncResult = sysfunc.syncCurrentDir()
+    assert not syncResult[1], "Current dir fallback not allowed"
     assert len(path) > 0, "Empty 'missing path' argument detected"
     assert menu in ["-h", "-f"], "Invalid menu type option passed as argument"
     status = 0 # default status, successful missing directory path mapping or removal
@@ -195,8 +204,11 @@ def handleMissingDir(path, menu, previousDir, syncWithFinder):
     print("! to quit")
     print("")
     userChoice = input()
+    syncResult = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible right before the user entered the choice
+    if syncResult[1]:
+        out.printFallbackMessage()
     # remove directory from history, don't map to anything
-    if userChoice == "!r":
+    elif userChoice == "!r":
         removedPath = nav.removeMissingDir(missingDirPath)
         os.system("clear")
         print("Entry " + removedPath + " has been removed from the menus.")
@@ -211,10 +223,18 @@ def handleMissingDir(path, menu, previousDir, syncWithFinder):
         print("Enter ! to quit mapping.")
         print("")
         replacingDir = input()
-        if replacingDir == "<" or replacingDir == ">":
+        syncResult = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible during the mapping process before user entered any mapping input
+        if syncResult[1]:
+            doMapping = False
+            out.printFallbackMessage()
+        elif replacingDir == "<" or replacingDir == ">":
             menuName = "history" if replacingDir == "<" else "favorites"
             menuVisitResult = visitNavigationMenu("-h" if replacingDir == "<" else "-f")
-            if menuVisitResult[0] == ":4":
+            syncResult = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible during the mapping process while in history/favorites menu
+            if syncResult[1]:
+                doMapping = False
+                out.printFallbackMessage()
+            elif menuVisitResult[0] == ":4":
                 status = 4
                 doMapping = False
                 print("There are no entries in the " + menuName + " menu. Cannot perform mapping.")
@@ -234,7 +254,7 @@ def handleMissingDir(path, menu, previousDir, syncWithFinder):
         if doMapping == True:
             replacingDirPath = nav.getReplacingDirPath(replacingDir)
             if replacingDirPath != ":4":
-                prevDir = os.getcwd() # prev dir to be updated to current dir in case of successful mapping
+                prevDir = syncResult[0] # prev dir to be updated to current dir in case of successful mapping
                 mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
                 os.system("clear")
                 print("Missing directory: " + mappingResult[0])
@@ -274,23 +294,25 @@ def addDirToFavorites(dirPath = ""):
         print("Cannot add to favorites.")
 
 def removeDirFromFavorites():
-    def displayFavoritesEntryRemovalDialog():
+    def displayFavoritesEntryRemovalDialog(currentDir):
         print("REMOVE DIRECTORY FROM FAVORITES")
         print('')
         nav.displayFormattedFavoritesContent()
         print('')
-        print("Current directory: " + os.getcwd())
+        print("Current directory: " + currentDir)
         print('')
         print("Enter the number of the directory to be removed from favorites.")
         print("Enter ! to quit this dialog.")
         print('')
+    syncResult = sysfunc.syncCurrentDir()
+    assert not syncResult[1], "Current dir fallback not allowed"
     status = 0 # default status, successful removal or aborted by user
     userInput = ""
     if nav.isFavEmpty():
         print("There are no entries in the favorites menu.")
         status = 4
     else:
-        displayFavoritesEntryRemovalDialog()
+        displayFavoritesEntryRemovalDialog(syncResult[0])
         userInput = input()
         os.system("clear")
         if nav.isValidInput(userInput):

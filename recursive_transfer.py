@@ -1,4 +1,4 @@
-import os, display as out
+import os, system_functionality as sysfunc, display as out
 from os.path import expanduser, isdir
 
 home_dir = expanduser("~") + "/"
@@ -13,6 +13,8 @@ class RecursiveTransfer:
         if displayMessage == True:
             print("The target directory has been erased.")
     def displayTargetDir(self):
+        syncResult = sysfunc.syncCurrentDir()
+        assert not syncResult[1], "Current directory fallback not allowed"
         if len(self.targetDir) == 0:
             print("No target directory has been setup.")
         elif not os.path.isdir(self.targetDir):
@@ -21,11 +23,13 @@ class RecursiveTransfer:
         else:
             print("The target directory path for recursive move/copy is: " + self.targetDir)
             print("Can start transfer operations from current dir: ", end='')
-            print("NO") if self.targetDir == os.getcwd() else print("YES")
+            print("NO") if self.targetDir == syncResult[0] else print("YES")
     def setTargetDir(self, directory = ""):
+        syncResult = sysfunc.syncCurrentDir()
+        assert not syncResult[1], "Current directory fallback not allowed"
         isValidDir = False
         if len(directory) == 0:
-            self.targetDir = os.getcwd()
+            self.targetDir = syncResult[0]
             isValidDir = True
         else:
             # build and execute command
@@ -56,18 +60,20 @@ class RecursiveTransfer:
     def getTargetDir(self):
         return self.targetDir
     def transferItemsToTargetDir(self, copy = True):
+        syncResult = sysfunc.syncCurrentDir()
+        assert not syncResult[1], "Current directory fallback not allowed"
         actionLabel = "copy" if copy == True else "move"
         if len(self.targetDir) == 0:
             print("No target directory has been setup.")
         elif not os.path.isdir(self.targetDir):
             print("Invalid target directory: " + self.targetDir)
             print("Please setup a valid target directory!")
-        elif self.targetDir == os.getcwd():
+        elif self.targetDir == syncResult[0]:
             print("The source and target directory are the same.")
             print("Cannot enter recursive " + actionLabel + " mode.")
         else:
             os.system("clear")
-            print("Recursive " + actionLabel + " mode enabled")
+            print("Entered recursive " + actionLabel + " mode")
             print()
             print("*********************************************************************************************************************************************************")
             print()
@@ -75,7 +81,7 @@ class RecursiveTransfer:
             keyword = ""
             while True:
                 print("1. Current directory:")
-                print(os.getcwd())
+                print(syncResult[0])
                 print()
                 print("2. Items contained (hidden ones are excluded):")
                 print()
@@ -91,12 +97,19 @@ class RecursiveTransfer:
                 print()
                 keyword = input("Enter keyword: ")
                 os.system("clear")
-                if len(keyword) == 0:
-                    print("Recursive " + actionLabel + " mode disabled")
-                    break
+                syncResult = sysfunc.syncCurrentDir() # handle the situation when current dir becomes inaccessible during recursive transferring process
+                if syncResult[1]:
+                    out.printFallbackMessage("Recursive " + actionLabel + " mode aborted!")
+                elif not os.path.isdir(self.targetDir):
+                    print("Recursive " + actionLabel + " mode aborted!")
+                    print("Invalid target directory (probably deleted): " + self.targetDir)
+                elif len(keyword) == 0:
+                    print("Exited recursive " + actionLabel + " mode")
                 else:
                     command = action + " " + keyword + ' \"' + self.targetDir + '\";'
                     os.system(command)
                     print()
                     print("*********************************************************************************************************************************************************")
                     print()
+                    continue
+                break

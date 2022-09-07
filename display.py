@@ -1,7 +1,9 @@
 import sys, os
-import navigation_settings as navset
+import system_functionality as sysfunc, navigation_settings as navset
 
 def displayGeneralOutput(prevDir, syncWithFinder, prevCommand = "", prevCommandFinishingStatus = "", navigationFilter = "", commandsFilter = "", clipboardAction = "", clipboardKeyword = "", clipboardSourceDir = "", recursiveTargetDir = ""):
+    syncResult = sysfunc.syncCurrentDir()
+    assert not syncResult[1], "Current dir fallback not allowed"
     previousDirectory = "none" if len(prevDir) == 0 else prevDir
     lastCommand = "none"
     lastCommandFinishingStatus = ""
@@ -12,7 +14,7 @@ def displayGeneralOutput(prevDir, syncWithFinder, prevCommand = "", prevCommandF
     print("")
     print("*********************************************************************************************************************************************************")
     print("")
-    print("Current directory: " + os.getcwd())
+    print("Current directory: " + syncResult[0])
     print("Previous directory: " + previousDirectory)
     print("")
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
@@ -134,7 +136,7 @@ def displayHelp():
     print("Multiple search filters are allowed for navigation history, favorites and command history filtering (only results matching all filters are being displayed).")
     print("Use comma to separate the filters. Regex is supported.")
     print("")
-    print("Current directory: " + os.getcwd())
+    printCurrentDir()
     print("")
     print("Enter the path of the directory you want to visit (press ENTER to return to the home dir).")
     print("Enter ! to quit navigation mode.")
@@ -166,7 +168,7 @@ def displayClipboardHelp():
     print("")
     print("Press ? to check general help instructions.")
     print("")
-    print("Current directory: " + os.getcwd())
+    printCurrentDir()
     print("")
     print("Enter the path of the directory you want to visit (press ENTER to return to the home dir).")
     print("Enter ! to quit navigation mode.")
@@ -196,8 +198,19 @@ def displayRenamingHelp():
     print("")
     print("Press ? to check general help instructions.")
     print("")
-    print("Current directory: " + os.getcwd())
+    printCurrentDir()
     print("")
     print("Enter the path of the directory you want to visit (press ENTER to return to the home dir).")
     print("Enter ! to quit navigation mode.")
     print("")
+
+def printCurrentDir(label = "Current"):
+    currentDirSyncResult = sysfunc.syncCurrentDir()
+    fallbackLabel = "(fallback)" if currentDirSyncResult[1] else ""
+    print(label + " directory " + fallbackLabel + ": " + currentDirSyncResult[0])
+
+def printFallbackMessage(header = "Unable to perform operation!"):
+    print(header)
+    print("Current directory no longer reachable (probably deleted). It has been replaced by fallback directory.")
+    print("")
+    print("Please retry by considering the new current directory.")
