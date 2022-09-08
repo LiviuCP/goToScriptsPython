@@ -36,7 +36,7 @@ Following should be noted for each supported OS:
 
 Unlike the non-Python (BASH-only) version of the script it is NOT possible to obtain synchronization between terminal and graphical explorer if the terminal is embedded in an explorer window (as on OpenSUSE). This is due to the fact that the script runs in a sub-shell of the terminal. If you require this synchronization please use the BASH-only scripts (see section 8. for more details)
 
-2) On the MacOS version the terminal can be synchronized with the Finder window. This occurs as follows: when a valid path is entered in the terminal the Finder will close and the re-open in the directory for which the path has been entered. This occurs no matter if the path is the same with the old one or not and this behavior has been implemented as the user might sometimes need to refresh the Finder window. The possible reason for requiring Finder refresh is mentioned in section 4. By default the sync feature is disabled but it can be enabled by entering :s (+hit ENTER) in the navigation menu. To disable it enter :s again and hit the RETURN key.
+2) On the MacOS version the terminal can be synchronized with the Finder window. This occurs as follows: when a valid path is entered in the terminal the Finder will close and the re-open in the directory for which the path has been entered. This occurs no matter if the path is the same with the old one or not and this behavior has been implemented as the user might sometimes need to refresh the Finder window. The possible reason for requiring Finder refresh is mentioned in section 4. By default the sync feature is disabled but it can be enabled by entering :s (+hit ENTER) in the navigation menu. To disable it enter :s again and hit the RETURN key. It is possible to enable synchronization at application startup by setting the finder_sync_enabled setting to True in system_settings.py. Also when closing the application the Finder sync is disabled and the Finder window is closed.
 
 3. INSTALLATION
 
@@ -401,13 +401,14 @@ Notes:
 
 In rare situations the current directory might become unavailable. This might happen for example when it has been deleted externally (e.g. by using a separate terminal) or when the permissions have been altered.
 
-When this is the case the application uses a fallback mechanism that replaces the current dir with a preset fallback directory. It is highly recommended to use the home dir as fallback however if you would like to use another folder this can be setup in system_settings.py. However you should make sure the fallback dir is valid and accessible at any time.
+When this is the case the application uses a fallback mechanism that replaces the current dir with a preset fallback directory. It is highly recommended to use the home dir as fallback, yet if you would like to use another folder this can be setup in system_settings.py. However you should make sure the fallback dir is valid and accessible at any time.
 
-The fallback mechanism works as follows: when the user tries to execute an operation (e.g. go to another folder) the application performs a sync in which it checks the current directory is reachable. If the current dir is available it continues the operation as per normal process. However if the current dir is not reachable it changes it to the fallback directory and warns the user that the requested operation could not be performed. The user can then try again or choose to execute another operation by taking into account the current directory change.
+The fallback mechanism works as follows: when the user tries to execute an operation (e.g. go to another folder) the application performs a sync process. First it is being checked that the current directory is reachable. Then if the current dir is available it continues the operation as per normal process. However if the current dir is not reachable it changes it to the fallback directory and warns the user that the requested operation could not be performed. The user can try again afterwards or choose to execute another operation by taking the current directory change into account.
 
 To be noted:
-- the clipboard and recursive transfer data are reset at fallback meaning the user will need to re-initiate these processes (with new parameters if required)
-- entering the help menus and exiting the application is possible at any time. In these situations a "silent fallback" is performed. This process is made known to the user by displaying the "(fallback)" keyword along with the path of the current directory.
+- the clipboard and recursive transfer are reset at fallback meaning the user will need to re-initiate these processes (with new parameters if required)
+- entering the help menus and exiting the application is still possible at any time. In these situations a "silent fallback" is performed. This process is made known to the user by displaying the "(fallback)" keyword along with the path of the current directory.
+- on MacOS if Finder synchronization is enabled, when a fallback is performed the sync is automatically disabled and the Finder window is closed
 
 The fallback mechanism has been designed for increasing the resiliency of the application by aiding in preventing unwanted crashes. Due to the complexity of the application there might be some places (sub-menus) where it hasn't been implemented (in this case the app might crash), yet in practice it should be seldom required as in most of the situations the current directory should be fully available.
 
