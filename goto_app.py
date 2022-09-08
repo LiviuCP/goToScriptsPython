@@ -22,7 +22,7 @@ class Application:
         self.appStatus = 0
         self.passedInput = ""
         self.passedOutput = ""
-        self.syncWithFinder = False
+        self.syncWithFinder = sysfunc.isFinderSyncEnabled()
         common.setPathAutoComplete()
         nav.initNavMenus()
         cmd.initCmdMenus()
@@ -33,7 +33,16 @@ class Application:
         forwardUserInput = False
         os.system("clear")
         print("Welcome to navigation app!")
+        if self.syncWithFinder:
+            nav.doFinderSync()
         while True:
+            finderSyncEnabled = sysfunc.isFinderSyncEnabled()
+            if finderSyncEnabled:
+                assert self.syncWithFinder, "Invalid Finder sync setting" # this assert could only fire if Finder sync had not been enabled through Application (entering ":s" or init)
+            elif self.syncWithFinder:
+                # current dir fallback scenario (Finder should be closed)
+                self.syncWithFinder = finderSyncEnabled
+                nav.handleCloseFinderWhenSyncOff()
             if userInput not in {"?", "?clip", "?ren"}:
                 if len(self.prevCommand) > 0:
                     out.displayGeneralOutput(self.prevDir, self.syncWithFinder, self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir())
@@ -132,9 +141,9 @@ class Application:
         elif userInput in ["?", "?clip", "?ren"]:
             handleHelpRequest(userInput, out)
         elif userInput == ":s":
-            self.handleSyncWithFinder()
+            self.toggleSyncWithFinder()
         elif userInput == "!":
-            handleCloseApplication(self.prevCommand)
+            handleCloseApplication(self.prevCommand, self.syncWithFinder)
         else:
             if len(userInput) > 0 and userInput[0] == ":":
                 result = cmd.executeCommandWithStatus(userInput[1:])
@@ -195,10 +204,11 @@ class Application:
         self.clipboard.erase()
         self.recursiveTransfer.eraseTargetDir()
 
-    def handleSyncWithFinder(self):
-        self.syncWithFinder = not self.syncWithFinder
+    def toggleSyncWithFinder(self):
+        sysfunc.setFinderSyncEnabled(not self.syncWithFinder)
+        self.syncWithFinder = sysfunc.isFinderSyncEnabled()
         print("Finder synchronization enabled") if self.syncWithFinder == True else print("Finder synchronization disabled")
-        if self.syncWithFinder == True:
+        if self.syncWithFinder:
             nav.doFinderSync()
         else:
             nav.handleCloseFinderWhenSyncOff()
@@ -250,7 +260,9 @@ def handleClearMenu(userInput):
     else:
         assert False, "Invalid clear menu option"
 
-def handleCloseApplication(previousCommand):
+def handleCloseApplication(previousCommand, shouldCloseFinder):
+    if shouldCloseFinder:
+        nav.handleCloseFinderWhenSyncOff() # Finder synchronization is no longer applicable therefore Finder should be closed
     print("You exited the navigation app.")
     print("")
     out.printCurrentDir("Last visited")

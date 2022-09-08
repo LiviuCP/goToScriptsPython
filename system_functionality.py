@@ -11,5 +11,12 @@ def syncCurrentDir():
     except FileNotFoundError as e:
         currentDir = sysset.fallback_dir.rstrip('/')
         os.chdir(currentDir)
+        sysset.finder_sync_enabled = False
         fallbackPerformed = True
     return (currentDir, fallbackPerformed)
+
+def setFinderSyncEnabled(enabled):
+    sysset.finder_sync_enabled = enabled
+
+def isFinderSyncEnabled():
+    return sysset.finder_sync_enabled

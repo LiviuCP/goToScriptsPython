@@ -339,16 +339,16 @@ def retrieveTargetDirPath(gtDirectory):
 
 """ Functions related to Finder synchronization """
 def getDelayBeforeFinderClose():
-    return navset.delayBeforeFinderClose
+    return sysset.delay_before_finder_close
 
 def getDelayBeforeFinderReopen():
-    return navset.delayBeforeFinderReopen
+    return sysset.delay_before_finder_reopen
 
 def getDelayAfterFinderReopen():
-    return navset.delayAfterFinderReopen
+    return sysset.delay_after_finder_reopen
 
 def getDelayErrorFinderReopen():
-    return navset.delayErrorFinderReopen
+    return sysset.delay_error_finder_reopen
 
 def shouldCloseFinderWhenSyncOff():
-    return navset.closeFinderWhenSyncOff
+    return sysset.close_finder_when_sync_off
