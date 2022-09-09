@@ -131,6 +131,7 @@ def visitCommandMenu(mode, filterKey = "", previousCommand = ""):
             userInput = input()
             os.system("clear")
     # process user choice
+    userInput = userInput.strip()
     choiceResult = cmd.chooseCommand(userInput) if len(filterKey) == 0 else cmd.chooseFilteredCommand(userInput, filteredHistEntries)
     commandHistoryEntry = choiceResult[0]
     syncResult = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice 
