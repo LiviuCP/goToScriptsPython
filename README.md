@@ -408,7 +408,7 @@ The fallback mechanism works as follows: when the user tries to execute an opera
 To be noted:
 - the clipboard and recursive transfer are reset at fallback meaning the user will need to re-initiate these processes (with new parameters if required)
 - entering the help menus and exiting the application is still possible at any time. In these situations a "silent fallback" is performed. This process is made known to the user by displaying the "(fallback)" keyword along with the path of the current directory.
-- on MacOS if Finder synchronization is enabled, when a fallback is performed the sync is automatically disabled and the Finder window is closed
+- on MacOS if Finder synchronization is enabled, when a fallback is performed the sync is preserved and the Finder opens in the fallback directory
 
 The fallback mechanism has been designed for increasing the resiliency of the application by aiding in preventing unwanted crashes. Due to the complexity of the application there might be some places (sub-menus) where it hasn't been implemented (in this case the app might crash), yet in practice it should be seldom required as in most of the situations the current directory should be fully available.
 
