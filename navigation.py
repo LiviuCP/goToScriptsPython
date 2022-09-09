@@ -149,6 +149,8 @@ def visitNavigationMenu(menuChoice, userInput = "", previousCommand = ""):
             displayPageFooter(syncResult[0], menuChoice)
             userInput = input()
             os.system("clear")
+    # process user choice
+    userInput = userInput.strip()
     choiceResult = nav.choosePath(menuChoice, userInput, filteredEntries)
     return choiceResult
 
