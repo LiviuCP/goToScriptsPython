@@ -36,13 +36,15 @@ class Application:
         if self.syncWithFinder:
             nav.doFinderSync()
         while True:
-            finderSyncEnabled = sysfunc.isFinderSyncEnabled()
-            if finderSyncEnabled:
+            if sysfunc.isFinderSyncEnabled():
                 assert self.syncWithFinder, "Invalid Finder sync setting" # this assert could only fire if Finder sync had not been enabled through Application (entering ":s" or init)
             elif self.syncWithFinder:
-                # current dir fallback scenario (Finder should be closed)
-                self.syncWithFinder = finderSyncEnabled
+                # current dir fallback scenario (Finder should be closed and if possible re-opened to fallback dir)
                 nav.handleCloseFinderWhenSyncOff()
+                sysfunc.setFinderSyncEnabled(self.syncWithFinder)
+                self.syncWithFinder = sysfunc.isFinderSyncEnabled()
+                if self.syncWithFinder:
+                    nav.doFinderSync()
             if userInput not in {"?", "?clip", "?ren"}:
                 if len(self.prevCommand) > 0:
                     out.displayGeneralOutput(self.prevDir, self.syncWithFinder, self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir())
