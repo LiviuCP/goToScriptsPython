@@ -8,7 +8,7 @@ def syncCurrentDir():
     currentDir = ""
     try:
         currentDir = os.getcwd()
-    except FileNotFoundError as e:
+    except BaseException as e:
         currentDir = sysset.fallback_dir.rstrip('/')
         os.chdir(currentDir)
         sysset.finder_sync_enabled = False
