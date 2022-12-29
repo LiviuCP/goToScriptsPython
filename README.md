@@ -45,7 +45,7 @@ Use the master or linuxScript branch to download the Linux version and macOsScri
 a. Ensure you have Python 3 installed (on Mac OS install Anaconda). Check whether /usr/bin/python3 exists. Minimum required Python version is 3.6.
 b. Create an alias for /usr/bin/python3 [absolute_path_of_cloned_repo]/goto_app.py in .bashrc. On Mac OS after installing Anaconda it is sufficient to enter keyword python instead of /usr/bin/python3 in the alias.
 c. Open a new terminal window/tab and start using the functionality by executing the command alias mentioned at previous point.
-d. Before shutting down the machine, in order to prevent forceful terminal closure, exit the script by entering the exit key (character '!') and pressing ENTER. Do not close by using CTRL+C as this will trigger a keyboard interrupt error.
+d. Before shutting down the machine, in order to prevent forceful terminal closure, exit the script by entering the exit key (character '!') and pressing ENTER. Alternatively the CTRL+C or CTRL+D keyboard combination can be used.
 
 4. KNOWN ISSUES/BUGS
 
@@ -416,4 +416,4 @@ The fallback mechanism has been designed for increasing the resiliency of the ap
 
 1) It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the navigation favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :clearnavigation and hit ENTER in order to clear the navigation history. For command history type :clearcommands and hit ENTER.
 
-2) Unlike the equivalent BASH-only scripts (that can be downloaded from the goToScripts repo: https://github.com/LiviuCP/gotoScripts.git), when exiting the Python script (either by entering ! or CTRL+C) the current directory is not retained but the terminal will revert to the original directory that was current when launching the goto_app.py. Also when executing CTRL+C for script exit a Python error will occur due to keyboard interrupt. This is not something to worry about but the more elegant exit solution is by using the '!' key followed by ENTER.
+2) Unlike the equivalent BASH-only scripts (that can be downloaded from the goToScripts repo: https://github.com/LiviuCP/gotoScripts.git), when exiting the Python script (either by entering ! or CTRL+C / CTRL+D) the current directory is not retained but the terminal will revert to the original directory that was current when launching the goto_app.py.
