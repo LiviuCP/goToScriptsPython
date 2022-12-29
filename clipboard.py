@@ -27,18 +27,25 @@ class Clipboard:
         print("3. Clipboard action: ", end='')
         print(actionLabel)
         print()
-        self.keyword = input("Enter keyword: ")
+        keyInterruptOccurred = False
+        try:
+            self.keyword = input("Enter keyword: ")
+        except (KeyboardInterrupt, EOFError):
+            keyInterruptOccurred = True
         os.system("clear")
-        if len(self.keyword) == 0:
-            self.erase()
-            print("No keyword input. Clipboard erased.")
-            print("Please try again.")
-            status = 1
-        else:
+        if len(self.keyword) > 0 and not keyInterruptOccurred:
             self.sourceDir = syncResult[0]
             print("The " + actionLabel + " command has been successfully built.")
             print("Keyword: " + self.keyword)
             print("Please choose the destination directory and paste when ready.")
+        else:
+            self.erase()
+            status = 1
+            if keyInterruptOccurred:
+                print("Operation aborted by user. Clipboard erased.")
+            else:
+                print("No keyword input. Clipboard erased.")
+                print("Please try again.")
         return status
     def display(self):
         syncResult = sysfunc.syncCurrentDir()

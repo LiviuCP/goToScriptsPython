@@ -29,34 +29,36 @@ def rename(chosenOption):
     def promptForRenameParameters(currentDir, chosenOption):
         assert chosenOption in rn.available_options, "The option argument is invalid"
         # defaults
-        shouldAbort = False
         valueToAdd = ""
         position = -1
         nrOfRemovedCharacters = 0
         isNumValueRequired = True if chosenOption in rn.number_adding_options else False
         shouldAbort = False
-        if chosenOption != 'd':
-            promptForValueToAdd = "Enter the " + ("numeric value" if isNumValueRequired else "fixed text string") + " to be added to " + ("first" if isNumValueRequired else "each") + " item name: "
-            displayRenameInfo(currentDir, chosenOption, valueToAdd, position, nrOfRemovedCharacters)
-            requestedInput = common.getInputWithNumCondition(promptForValueToAdd, isNumValueRequired, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
-                                                         "Invalid input! A positive numeric value is required")
-            shouldAbort = (len(requestedInput) == 0)
-            if not shouldAbort:
-                valueToAdd = requestedInput
-        if not shouldAbort and chosenOption in rn.position_requiring_options:
-            displayRenameInfo(currentDir, chosenOption, valueToAdd, position, nrOfRemovedCharacters)
-            requestedInput = common.getInputWithNumCondition("Enter the position within the file name: ", True, lambda userInput: len(userInput) > 0 and int(userInput) < 0, \
-                                                         "Invalid input! A non-negative numeric value is required")
-            shouldAbort = (len(requestedInput) == 0)
-            if not shouldAbort:
-                position = int(requestedInput)
-        if not shouldAbort and chosenOption in rn.string_removal_options:
-            displayRenameInfo(currentDir, chosenOption, valueToAdd, position, nrOfRemovedCharacters)
-            requestedInput = common.getInputWithNumCondition("Enter the number of characters to be removed: ", True, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
-                                                         "Invalid input! A positive numeric value is required")
-            shouldAbort = (len(requestedInput) == 0)
-            if not shouldAbort:
-                nrOfRemovedCharacters = int(requestedInput)
+        try:
+            if chosenOption != 'd':
+                promptForValueToAdd = "Enter the " + ("numeric value" if isNumValueRequired else "fixed text string") + " to be added to " + ("first" if isNumValueRequired else "each") + " item name: "
+                displayRenameInfo(currentDir, chosenOption, valueToAdd, position, nrOfRemovedCharacters)
+                requestedInput = common.getInputWithNumCondition(promptForValueToAdd, isNumValueRequired, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
+                                                                 "Invalid input! A positive numeric value is required")
+                shouldAbort = (len(requestedInput) == 0)
+                if not shouldAbort:
+                    valueToAdd = requestedInput
+            if not shouldAbort and chosenOption in rn.position_requiring_options:
+                displayRenameInfo(currentDir, chosenOption, valueToAdd, position, nrOfRemovedCharacters)
+                requestedInput = common.getInputWithNumCondition("Enter the position within the file name: ", True, lambda userInput: len(userInput) > 0 and int(userInput) < 0, \
+                                                                 "Invalid input! A non-negative numeric value is required")
+                shouldAbort = (len(requestedInput) == 0)
+                if not shouldAbort:
+                    position = int(requestedInput)
+            if not shouldAbort and chosenOption in rn.string_removal_options:
+                displayRenameInfo(currentDir, chosenOption, valueToAdd, position, nrOfRemovedCharacters)
+                requestedInput = common.getInputWithNumCondition("Enter the number of characters to be removed: ", True, lambda userInput: len(userInput) > 0 and int(userInput) <= 0, \
+                                                                 "Invalid input! A positive numeric value is required")
+                shouldAbort = (len(requestedInput) == 0)
+                if not shouldAbort:
+                    nrOfRemovedCharacters = int(requestedInput)
+        except (KeyboardInterrupt, EOFError):
+            shouldAbort = True
         return (shouldAbort, valueToAdd, position, nrOfRemovedCharacters)
     def simulateRenaming(currentDir, renamingMap, chosenOption, buildParams):
         assert len(renamingMap) > 0, "Empty renaming map detected"
@@ -117,12 +119,15 @@ def rename(chosenOption):
             assert status in range(3), "Unknown status code for renaming map build"
             if status == 0:
                 simulateRenaming(syncResult[0], renamingMap, chosenOption, buildParams) # give the user a hint about how the renamed files will look like; a renaming decision is then expected from user
-                decision = common.getInputWithTextCondition("Would you like to continue? (y - yes, n - no (exit)) ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
-                                                            "Invalid choice selected. Please try again")
+                try:
+                    decision = common.getInputWithTextCondition("Would you like to continue? (y - yes, n - no (exit)) ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
+                                                                "Invalid choice selected. Please try again")
+                    syncResult = sysfunc.syncCurrentDir() # sync required after user decided for renaming (or not) after simulation (in case the current dir became inaccessible in the meantime)
+                    if not syncResult[1] and decision.lower() == 'y':
+                        shouldRename = True
+                except (KeyboardInterrupt, EOFError):
+                    shouldRename = False
                 os.system("clear")
-                syncResult = sysfunc.syncCurrentDir() # sync required after user decided for renaming (or not) after simulation (in case the current dir became inaccessible in the meantime)
-                if not syncResult[1] and decision.lower() == 'y':
-                    shouldRename = True
         if syncResult[1]:
             out.printFallbackMessage()
         elif shouldRename:

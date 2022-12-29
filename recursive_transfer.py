@@ -95,7 +95,11 @@ class RecursiveTransfer:
                 print("5. Previously used keyword: ", end='')
                 print(keyword) if keyword != "" else print("none")
                 print()
-                keyword = input("Enter keyword: ")
+                keyInterruptOccurred = False
+                try:
+                    keyword = input("Enter keyword: ")
+                except (KeyboardInterrupt, EOFError):
+                    keyInterruptOccurred = True
                 os.system("clear")
                 syncResult = sysfunc.syncCurrentDir() # handle the situation when current dir becomes inaccessible during recursive transferring process
                 if syncResult[1]:
@@ -103,7 +107,7 @@ class RecursiveTransfer:
                 elif not os.path.isdir(self.targetDir):
                     print("Recursive " + actionLabel + " mode aborted!")
                     print("Invalid target directory (probably deleted): " + self.targetDir)
-                elif len(keyword) == 0:
+                elif len(keyword) == 0 or keyInterruptOccurred:
                     print("Exited recursive " + actionLabel + " mode")
                 else:
                     command = action + " " + keyword + ' \"' + self.targetDir + '\";'
