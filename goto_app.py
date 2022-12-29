@@ -50,24 +50,30 @@ class Application:
                     out.displayGeneralOutput(self.prevDir, self.syncWithFinder, self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir())
                 else:
                     out.displayGeneralOutput(self.prevDir, self.syncWithFinder, navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter, clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir())
-            userInput = input()
-            userInput = userInput.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history
-            while True:
+            keyInterruptOccurred = False
+            try:
+                userInput = input()
+                userInput = userInput.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history
+                while True:
+                    os.system("clear")
+                    self.handleUserInput(userInput)
+                    if self.appStatus == 1:
+                        userInput = self.passedInput
+                        forwardUserInput = True
+                    elif self.appStatus == 2:
+                        self.prevCommand = self.passedInput
+                        prevCommandFinishingStatus = self.passedOutput
+                    elif self.appStatus == 4:
+                        self.prevDir = self.passedOutput
+                    if forwardUserInput == True:
+                        forwardUserInput = False
+                    else:
+                        break
+            except (KeyboardInterrupt, EOFError): # CTRL + C, CTRL + D (latter one causes EOFError)
+                keyInterruptOccurred = True
                 os.system("clear")
-                self.handleUserInput(userInput)
-                if self.appStatus == 1:
-                    userInput = self.passedInput
-                    forwardUserInput = True
-                elif self.appStatus == 2:
-                    self.prevCommand = self.passedInput
-                    prevCommandFinishingStatus = self.passedOutput
-                elif self.appStatus == 4:
-                    self.prevDir = self.passedOutput
-                if forwardUserInput == True:
-                    forwardUserInput = False
-                else:
-                    break
-            if userInput == "!":
+                handleCloseApplication(self.prevCommand, self.syncWithFinder)
+            if userInput == "!" or keyInterruptOccurred:
                 break
 
     def handleUserInput(self, userInput):
