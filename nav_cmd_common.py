@@ -120,7 +120,10 @@ def buildFilteredHistory(filteredContent, filterKeyword, pStrHistFile, maxFilter
         filter = filter.lstrip()
         filter = filter.rstrip()
         #only valid (non-empty) filters are taken into consideration
-        if len(filter) > 0:
+        currentFilterLength = len(filter)
+        if currentFilterLength > 0:
+            if currentFilterLength > 1 and "-" == filter[0]:
+                filter = "^((?!" + filter[1:] + ").)*$" # search for entries that DON'T contain the search keyword
             validFilters.append(filter.lower())
     if len(validFilters) > 0:
         with open(pStrHistFile, 'r') as pStrHist:
