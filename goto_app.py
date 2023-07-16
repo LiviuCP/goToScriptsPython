@@ -110,6 +110,14 @@ class Application:
         elif userInput == ",":
             result = nav.goTo(self.prevDir, os.getcwd()) # fallback already checked, so getcwd() should be safe
             self.appStatus = 4 if result[0] == 0 else self.appStatus
+        elif len(userInput) >= 1 and userInput[0] == ";":
+            ancestorDirPath = common.computeAncestorDirRelativePath(userInput[1:])
+            if len(ancestorDirPath) > 0:
+                result = nav.goTo(ancestorDirPath, self.prevDir)
+                self.appStatus = 4 if result[0] == 0 else self.appStatus
+            else:
+                print("Invalid ancestor directory depth provided!")
+                print("A positive integer is required for determining the directory path.")
         elif userInput == ":-":
             if len(self.prevCommand) > 0:
                 result = cmd.executeCommandWithStatus(self.prevCommand, True)

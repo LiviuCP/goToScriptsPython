@@ -114,3 +114,13 @@ def hasPathInvalidCharacters(path):
             hasInvalidCharacters = True
             break
     return hasInvalidCharacters
+
+""" Computes the relative path of an ancestor directory based on depth of its location (e.g. depth 2 would be ../.. meaning 2 steps below) """
+def computeAncestorDirRelativePath(depth):
+    path = ""
+    if len(depth) > 0 and depth.isdecimal():
+        stepsCount = int(depth)
+        while stepsCount > 0:
+            path = path + "../"
+            stepsCount = stepsCount - 1
+    return path

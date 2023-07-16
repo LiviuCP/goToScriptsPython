@@ -113,6 +113,7 @@ def displayHelp():
     print(":n/:N -  apply previous navigation filter (if any) to navigation history/favorites")
     print(":f/:F -  apply previous command filter (if any) to command history in execute/edit mode")
     print(",     -  go to the previously visited directory")
+    print(";[d]  -  go to ancestor directory located at depth d (e.g. ;3 is equivalent to entering relative path ../../..)")
     print("+>    -  add current directory to favorites")
     print("->    -  remove a directory from favorites")
     print("")

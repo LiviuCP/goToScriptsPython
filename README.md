@@ -98,11 +98,26 @@ It is possible to navigate to a specific entry without accessing the menus by en
 
 If you cannot find a entry simply enter the required path(s) to navigate to the directory you wish to visit. It is not required to exit the history and favorites menus in order to do this. Any input other than the given range of numbers or the quit (!) is considered regular navigation input. I call this the "input forwarding feature". This feature is present in other menus too.
 
-5.3. Visiting the previous directory
+5.3. Special options for visiting directories
+
+5.3.1. Visiting the previous directory
 
 From the navigation menu enter the comma character (,) and press ENTER in order to achieve this. You can run this function as many times as you wish. The system will toggle between the two directories.
 
 Note: when first entering navigation mode the previous directory is the same with the current directory. This is the directory from which the Python script is being executed.
+
+5.3.2. Visiting an ancestor directory
+
+From the navigation menu enter the ; character followed by a positive integer representing the depth (relative to current folder) at which the chosen ancestor directory is located. For instance, the user can switch to the grandparent directory by entering ;2 (which is equivalent to entering ../.. as relative path).
+
+A concrete example would be:
+- current directory is /home/MyUserName/Documents/Utils/Recent
+- the user enters ;3 in the navigation menu
+- new current directory becomes /home/MyUserName
+
+Notes:
+- if the provided depth is larger than the number of current directory ancestors (including root), then the maximum depth is considered and the user switches to root directory. In the above example, entering ;5 would be the same as entering ;6 or ;1000 (the user navigates to /)
+- the user needs to enter a positive integer after ; (otherwise an error message is displayed and the current directory remains unchanged). Neither non-digit characters, negative numbers or number 0 are accepted. Entering nothing after ; is invalid as well. Trailing spaces are ignored.
 
 5.4. Adding a directory to favorites
 
