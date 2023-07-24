@@ -258,6 +258,8 @@ Most recently visited directory paths or executed commands are mentioned here. I
 
 The entries are stored "in order" but duplicates are not allowed. If the maximum number of entries has been reached, the least recently visited path/executed command is taken out (circular buffer behavior). Unlike persistent history (see next section), the entries are NOT displayed to the user in a sorted fashion but instead they are shown in reverse order of their access (first entry is the last visited directory or executed command).
 
+A subset of the recent history is the quick history, see section 6.8.
+
 6.2. Persistent history
 
 All paths except the ones from excluded history are mentioned here along with the number of visits. When a new directory is visited the first time on the current day the number of visits is incremented. Further visits on the same day are not taken into account. This prevents unrealistic reporting which might occur if a directory has been entered many times during a day and then remains unvisited for a long time.
@@ -342,6 +344,18 @@ Note:
 - also the functionality does not get applied when repeating the previously executed shell command by entering the special option :- from navigation menu
 
 I strongly recommend using this option and carefully checking the command string prior to choosing the 'y' option. The principle "better safe than sorry" has a good application in this situation.
+
+6.8. Quick history
+
+The quick history is a subset of the recent history. Currently this is only available for navigation but it might get implemented for commands as well in a future changeset.
+
+The quick navigation history is displayed within main navigation menu and contains the last visited directories. The number of displayed entries cannot exceed the size of the recent history (instead it can be smaller resulting in a subset). It is recommended to keep the count as small as possible in order to be able to identify the required entry (or its missing) rapidly (hence quick history) and then navigate to the directory.
+
+The navigation to the chosen entry is performed by entering < followed by entry number (same as when navigating to a consolidated history entry without accessing the history menu itself).
+
+By default the quick navigation history is disabled, so it doesn't clutter the main menu unnecessarily. To enable it, enter option :qn from main navigation menu or one of the submenus. To disable it, enter the same option again. Please note that the quick history is persistent during the entire session unless disabled. It goes off when exiting the script.
+
+To modify the number of displayed entries, please change the variable q_hist_max_entries from navigation_settings.py to the desired value (default is 5 and it is recommended to keep it small).
 
 7. HANDLING MISSING DIRECTORIES
 

@@ -22,6 +22,7 @@ class Application:
         self.appStatus = 0
         self.passedInput = ""
         self.passedOutput = ""
+        self.shouldDisplayQuickNavHist = False
         common.setPathAutoComplete()
         nav.initNavMenus()
         cmd.initCmdMenus()
@@ -35,9 +36,9 @@ class Application:
         while True:
             if userInput not in {"?", "?clip", "?ren"}:
                 if len(self.prevCommand) > 0:
-                    out.displayGeneralOutput(self.prevDir, self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir())
+                    out.displayGeneralOutput(self.prevDir, self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.shouldDisplayQuickNavHist)
                 else:
-                    out.displayGeneralOutput(self.prevDir, navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter, clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir())
+                    out.displayGeneralOutput(self.prevDir, navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter, clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir(), shouldDisplayQuickNavHist = self.shouldDisplayQuickNavHist)
             keyInterruptOccurred = False
             try:
                 userInput = input()
@@ -142,6 +143,8 @@ class Application:
             rn.rename(renaming_translations[userInput[1:]])
         elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
             print("Input cancelled, no action performed!")
+        elif userInput == ":qn":
+            self.handleQuickNavigationHistory()
         elif userInput in ["?", "?clip", "?ren"]:
             handleHelpRequest(userInput, out)
         elif userInput == "!":
@@ -204,6 +207,9 @@ class Application:
     def handleFallbackPerformed(self):
         self.clipboard.erase()
         self.recursiveTransfer.eraseTargetDir()
+    def handleQuickNavigationHistory(self):
+        self.shouldDisplayQuickNavHist = not self.shouldDisplayQuickNavHist
+        print("Quick navigation history enabled!") if self.shouldDisplayQuickNavHist else print("Quick navigation history disabled!")
 
 ''' Helper functions '''
 def handleHelpRequest(helpInput, out):
