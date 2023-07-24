@@ -57,7 +57,6 @@ def clearCommandHistory():
 def consolidateCommandHistory():
     with open(cmdset.c_r_hist_file, 'r') as crHist, open(cmdset.c_p_str_hist_file, 'r') as cpStrHist, open(cmdset.c_hist_file, 'w') as cHist:
         crHistEntries = crHist.readlines()
-        crHistEntries.sort()
         cpStrHistEntries = []
         limit = 0
         for entry in cpStrHist.readlines():
