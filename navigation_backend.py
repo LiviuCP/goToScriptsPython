@@ -102,7 +102,7 @@ def consolidateHistory():
             limit = limit + 1
             if (limit == navset.p_hist_max_entries):
                 break
-        for entry in sorted(rHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
+        for entry in rHistDict.items():
             hist.write(entry[0] + '\n')
         for entry in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
             hist.write(entry[0] + '\n')

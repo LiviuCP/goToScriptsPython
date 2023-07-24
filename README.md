@@ -80,7 +80,7 @@ Notes:
 1) If no argument is entered the user home directory will be visited.
 2) If the same directory as the current one is entered the previous dir will remain unchanged.
 
-5.2. The history and favorites menus
+5.2. The navigation history and favorites menus
 
 Enter navigation mode, then enter < for history or > for favorites.
 
@@ -92,7 +92,7 @@ The favorites menu contains the directories the user previously added to the lis
 
 When choosing an entry (enter the number and press ENTER) from one of the two menus the chosen directory is automatically visited. If entering ',' before the number the parent directory of the folder contained within the entry is visited.
 
-The menus are sorted alphabetically for easy identification of the required entry. 
+The history menu (most visited directories section) and favorites are sorted alphabetically for easy identification of the required entry. The recent history section is displayed in a stack-like mode, namely the most recently visited directory is on the first position (see also section 6.1).
 
 It is possible to navigate to a specific entry without accessing the menus by entering operator < (for history) or > (for favorites) followed by the entry number in navigation mode. This is a great way of speeding up the access if the user knows "by heart" the entry number of the path to be visited. For example if directory /home/myUserName/Documents has entry number 2 in Favorites the user can enter >2 in navigation mode to visit it. No spaces should be entered between operator and the number. If the string after the operator is not a valid entry number the substring starting with the character after the operator will be considered a directory path and the script will attempt to visit it. If the path is invalid an error will be triggered.
 
@@ -137,7 +137,9 @@ To repeat the last executed command just enter the :- characters and press ENTER
 
 To enter a new command by editing the previously executed one just enter : and press ENTER.
 
-It is also possible to enter the command history menu by typing :< and pressing ENTER. Similar to navigation history by entering a valid number the chosen command is executed.
+It is also possible to enter the command history menu by typing :< and pressing ENTER. Similar to navigation history, by entering a valid number the chosen command is executed.
+
+Same as for navigation history, the commands history has two sections: recently executed commands and most executed commands. The most executed commands are sorted alphabetically, while the recent commands are stacked (see section 6.1).
 
 The command history can also be accessed in edit mode by entering :: and pressing ENTER. In edit mode when the number of a command is entered the string of the command is displayed for editing. After editing and pressing ENTER the new command will be executed. The command execution can be aborted by entering : at the end of the string and pressing ENTER.
 
@@ -254,7 +256,9 @@ The command history only tracks the commands initiated in navigation mode, namel
 
 Most recently visited directory paths or executed commands are mentioned here. It has a limited number of entries (which is specified by a variable from navigation_settings.py / commands_settings.py) and older content is continually overridden.
 
-The entries are stored "in order" but duplicates are not allowed. If the maximum number of entries has been reached the least recently visited path/executed command is taken out (circular buffer behavior). The entries are displayed to the user in a sorted fashion so they can easily be found and visited/executed.
+The entries are stored "in order" but duplicates are not allowed. If the maximum number of entries has been reached, the least recently visited path/executed command is taken out (circular buffer behavior). Unlike persistent history (see next section), the entries are NOT displayed to the user in a sorted fashion but instead they are shown in reverse order of their access (first entry is the last visited directory or executed command).
+
+A subset of the recent history is the quick history, see section 6.8.
 
 6.2. Persistent history
 
@@ -340,6 +344,18 @@ Note:
 - also the functionality does not get applied when repeating the previously executed shell command by entering the special option :- from navigation menu
 
 I strongly recommend using this option and carefully checking the command string prior to choosing the 'y' option. The principle "better safe than sorry" has a good application in this situation.
+
+6.8. Quick history
+
+The quick history is a subset of the recent history. Currently this is only available for navigation but it might get implemented for commands as well in a future changeset.
+
+The quick navigation history is displayed within main navigation menu and contains the last visited directories. The number of displayed entries cannot exceed the size of the recent history (instead it can be smaller resulting in a subset). It is recommended to keep the count as small as possible in order to be able to identify the required entry (or its missing) rapidly (hence quick history) and then navigate to the directory.
+
+The navigation to the chosen entry is performed by entering < followed by entry number (same as when navigating to a consolidated history entry without accessing the history menu itself).
+
+By default the quick navigation history is disabled, so it doesn't clutter the main menu unnecessarily. To enable it, enter option :qn from main navigation menu or one of the submenus. To disable it, enter the same option again. Please note that the quick history is persistent during the entire session unless disabled. It goes off when exiting the script.
+
+To modify the number of displayed entries, please change the variable q_hist_max_entries from navigation_settings.py to the desired value (default is 5 and it is recommended to keep it small).
 
 7. HANDLING MISSING DIRECTORIES
 

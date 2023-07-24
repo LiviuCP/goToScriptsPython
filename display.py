@@ -1,7 +1,7 @@
 import sys, os
-import system_functionality as sysfunc, navigation_settings as navset
+import system_functionality as sysfunc, shared_nav_functions as ns, navigation_settings as navset
 
-def displayGeneralOutput(prevDir, syncWithFinder, prevCommand = "", prevCommandFinishingStatus = "", navigationFilter = "", commandsFilter = "", clipboardAction = "", clipboardKeyword = "", clipboardSourceDir = "", recursiveTargetDir = ""):
+def displayGeneralOutput(prevDir, syncWithFinder, prevCommand = "", prevCommandFinishingStatus = "", navigationFilter = "", commandsFilter = "", clipboardAction = "", clipboardKeyword = "", clipboardSourceDir = "", recursiveTargetDir = "", shouldDisplayQuickNavHist = False):
     syncResult = sysfunc.syncCurrentDir()
     assert not syncResult[1], "Current dir fallback not allowed"
     previousDirectory = "none" if len(prevDir) == 0 else prevDir
@@ -29,6 +29,8 @@ def displayGeneralOutput(prevDir, syncWithFinder, prevCommand = "", prevCommandF
     print(" (finished " + lastCommandFinishingStatus + "):") if lastCommandFinishingStatus != "" else print(":")
     print(lastCommand)
     print("")
+    if shouldDisplayQuickNavHist:
+        displayQuickNavigationHistory()
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Last used navigation filter: ", end='')
@@ -83,6 +85,15 @@ def displayCurrentDirContent():
     else:
         print("Number of items contained in the directory: " + str(nrOfItems))
 
+def displayQuickNavigationHistory():
+    print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+    print("")
+    print("Last visited directories:")
+    print("")
+    with open(navset.r_hist_file, "r") as rHist:
+        ns.displayFormattedNavFileContent(rHist.readlines(), 0, navset.q_hist_max_entries)
+    print("")
+
 # to be updated: number of columns should be dynamically determined depending on screen size and number of files/dirs contained in current dir
 def printDirContentToColumns(content):
     nrColumns = 4
@@ -115,6 +126,7 @@ def displayHelp():
     print("::    -  enter command history menu to edit a previous command (add keyword to get filtered entries)")
     print("<     -  enter history menu")
     print(">     -  enter favorites menu")
+    print(":qn   -  enable/disable quick navigation history")
     print(":n/:N -  apply previous navigation filter (if any) to navigation history/favorites")
     print(":f/:F -  apply previous command filter (if any) to command history in execute/edit mode")
     print(",     -  go to the previously visited directory")

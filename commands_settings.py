@@ -15,4 +15,18 @@ c_p_hist_max_entries = 15 # maximum number of entries (commands + visits) to be 
 max_filtered_c_hist_entries = 5 # maximum number of commands to be displayed when filtering persistent commands history
 min_command_size = 10 # minimum number of characters an executed shell command should have to be stored in recent and persistent commands history
 
-sensitive_commands_keywords = {"rmdir ", "rm ", "mv ", "cp "} # commands containing these substrings are treated as sensitive and the user will be prompted to confirm execution in some scenarios
+# commands containing these substrings are treated as sensitive and the user will be prompted to confirm execution in some scenarios
+sensitive_commands_keywords = {
+    "rmdir ",
+    "rm ",
+    "mv ",
+    "cp ",
+    "sudo ",
+    "reset ",
+    "apply ",
+    "checkout ",
+    "stash",
+    "push",
+    "pull",
+    "merge"
+}
