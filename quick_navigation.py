@@ -6,7 +6,7 @@ def displayFormattedQuickNavigationHistory():
 
 # a positive result guarantees validity of user provided quick navigation history entry
 def isValidEntryNr(userInput):
-    isEntryNrValid = False
+    isValid = False
     quickNavEntry = userInput.strip(' ')
     if quickNavEntry.isdigit():
         quickNavEntryNr = int(quickNavEntry)
@@ -14,5 +14,5 @@ def isValidEntryNr(userInput):
             rHistEntriesCount = 0
             with open(navset.r_hist_file, "r") as rHist:
                 rHistEntriesCount = len(rHist.readlines())
-            isEntryNrValid = quickNavEntryNr <= rHistEntriesCount
-    return isEntryNrValid
+            isValid = quickNavEntryNr <= rHistEntriesCount
+    return isValid
