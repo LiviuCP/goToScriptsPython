@@ -83,8 +83,15 @@ class Application:
             #return to main context only if the user hasn't chosen to toggle or no quick navigation has been attempted (same for the below cases)
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif len(userInput) >= 1 and userInput[0] == ">":
-            result = self.setContext(contexts_dict[userInput[0]], userInput[1:])
-            shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
+            navHistInput = userInput[1:].lstrip(' ')
+            isInputOk = True
+            if len(navHistInput) > 0:
+                isInputOk = nav.isValidFavoritesEntryNr(navHistInput)
+                if not isInputOk:
+                    print("Invalid favorites entry number!")
+            if isInputOk:
+                result = self.setContext(contexts_dict[userInput[0]], navHistInput)
+                shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif len(userInput) >= 1 and userInput[0] == "<":
             navHistInput = userInput[1:].lstrip(' ')
             isInputOk = True
@@ -232,7 +239,6 @@ class Application:
         else:
             print("Quick history is disabled. Please enable it and try again!")
         return isQuickNavPossible
-
     def handleHelpRequest(self, helpInput, out):
         if helpInput == "?":
             out.displayHelp(self.isQuickNavHistEnabled)

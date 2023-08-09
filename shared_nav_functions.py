@@ -1,7 +1,7 @@
-""" functions shared within navigation_backend.py and not used elsewhere """
+""" functions shared between navigation_backend.py and quick_navigation.py and not used elsewhere """
 
 import os
-import navigation_settings as navset
+import common, navigation_settings as navset
 from pathlib import Path
 
 def sortFavorites(favFile):
@@ -16,6 +16,16 @@ def sortFavorites(favFile):
         with open(favFile, "w") as fav:
             for entry in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0])):
                 fav.write(entry[0] + '\n')
+
+def isValidFavoritesEntryNr(userInput):
+    isValid = True
+    if userInput.isdigit():
+        userInput = int(userInput)
+        if userInput > common.getNumberOfLines(navset.fav_file) or userInput == 0:
+            isValid = False
+    else:
+        isValid = False
+    return isValid
 
 def removePathFromTempHistoryFile(histFile, path):
     assert len(histFile) > 0 and os.path.isfile(histFile), "Invalid consolidated history file"

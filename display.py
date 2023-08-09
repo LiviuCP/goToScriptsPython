@@ -136,7 +136,7 @@ def displayHelp(isQuickNavHistEnabled = False):
     print("?clip -  display help for clipboard and recursive operations")
     print("?ren  -  display help for renaming all items from current directory that are not hidden")
     print("")
-    print("For direct navigation to a history or favorites menu entry please enter < or > followed by a number (no spaces allowed).")
+    print("For direct navigation to a quick history (after enabling it, see above) or favorites menu entry please enter < or > followed by a number.")
     print("For filtering navigation history (excluding favorites) please enter << followed by a search keyword.")
     print("For filtering favorites please enter >> followed by a search keyword.")
     print("Multiple search filters are allowed for navigation history, favorites and command history filtering (only results matching all filters are being displayed).")

@@ -157,32 +157,26 @@ def removePathFromFavorites(userInput):
         consolidateHistory()
     pathToRemove = ""
     # remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once
-    with open(navset.fav_file, "r") as fav:
-        favFileContent = fav.readlines()
-        pathToRemove = favFileContent[int(userInput)-1]
-        favFileContent.remove(pathToRemove)
-        fav.close()
-        with open(navset.fav_file, "w") as fav:
-            for entry in favFileContent:
-                fav.write(entry)
-            fav.close() # close, in use by sortFavorites()
-            ns.sortFavorites(navset.fav_file)
-            pathToRemove = pathToRemove.strip('\n')
-            nrOfRemovedPathVisits = ns.removePathFromPermHistoryFile(navset.e_str_hist_file, navset.e_num_hist_file, pathToRemove)
-            # move to persistent history if at least once visited
-            if nrOfRemovedPathVisits > 0:
-                addToPersistentHistory()
+    if ns.isValidFavoritesEntryNr(userInput):
+        with open(navset.fav_file, "r") as fav:
+            favFileContent = fav.readlines()
+            pathToRemove = favFileContent[int(userInput)-1]
+            favFileContent.remove(pathToRemove)
+            fav.close()
+            with open(navset.fav_file, "w") as fav:
+                for entry in favFileContent:
+                    fav.write(entry)
+                fav.close() # close, in use by sortFavorites()
+                ns.sortFavorites(navset.fav_file)
+                pathToRemove = pathToRemove.strip('\n')
+                nrOfRemovedPathVisits = ns.removePathFromPermHistoryFile(navset.e_str_hist_file, navset.e_num_hist_file, pathToRemove)
+                # move to persistent history if at least once visited
+                if nrOfRemovedPathVisits > 0:
+                    addToPersistentHistory()
     return pathToRemove
 
-def isValidInput(userInput):
-    isValid = True
-    if userInput.isdigit():
-        userInput = int(userInput)
-        if userInput > common.getNumberOfLines(navset.fav_file) or userInput == 0:
-            isValid = False
-    else:
-        isValid = False
-    return isValid
+def isValidFavoritesEntryNr(userInput):
+    return ns.isValidFavoritesEntryNr(userInput)
 
 def displayFormattedFavoritesContent():
     with open(navset.fav_file, "r") as fav:
