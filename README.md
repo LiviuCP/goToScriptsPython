@@ -90,13 +90,15 @@ The history menu keeps track of the:
 
 The favorites menu contains the directories the user previously added to the list of preferred folders. It is not limited in number of entries, however it's recommended to use it for storing the so called entry-point directories (like Desktop, Pictures, Documents, etc). It can also be used for storing paths to temporarily mounted filesystems (like SD cards). If accessing a temporary filesystem make sure it is mounted before doing any access attempt.
 
-When choosing an entry (enter the number and press ENTER) from one of the two menus the chosen directory is automatically visited. If entering ',' before the number the parent directory of the folder contained within the entry is visited.
+When choosing an entry (enter the number and press ENTER) from one of the two menus, the chosen directory is automatically visited. If entering ',' before the number, the parent directory of the folder contained within the entry is visited.
 
-The history menu (most visited directories section) and favorites are sorted alphabetically for easy identification of the required entry. The recent history section is displayed in a stack-like mode, namely the most recently visited directory is on the first position (see also section 6.1).
+The history menu (more precisely the most visited directories section) and favorites are sorted alphabetically for easy identification of the required entry. The recent history section is displayed in a stack-like mode, namely the most recently visited directory is on the first position (see also section 6.1).
 
-It is possible to navigate to a specific entry without accessing the menus by entering operator < (for history) or > (for favorites) followed by the entry number in navigation mode. This is a great way of speeding up the access if the user knows "by heart" the entry number of the path to be visited. For example if directory /home/myUserName/Documents has entry number 2 in Favorites the user can enter >2 in navigation mode to visit it. No spaces should be entered between operator and the number. If the string after the operator is not a valid entry number the substring starting with the character after the operator will be considered a directory path and the script will attempt to visit it. If the path is invalid an error will be triggered.
+If you cannot find a entry, simply enter the required path(s) to navigate to the directory you wish to visit. It is not required to exit the history/favorites menu in order to do this. Any input other than the given range of numbers or special options like the quit character (!) is considered regular navigation input. I call this the "input forwarding feature". This feature is present in other menus too.
 
-If you cannot find a entry simply enter the required path(s) to navigate to the directory you wish to visit. It is not required to exit the history and favorites menus in order to do this. Any input other than the given range of numbers or the quit (!) is considered regular navigation input. I call this the "input forwarding feature". This feature is present in other menus too.
+It is possible to navigate to a specific favorites entry without displaying the list of preferred directories. This can be done by entering operator > followed by the entry number (while on main navigation page or in another menu). For example, if directory /home/myUserName/Documents is entry number 2 in Favorites, then the user can enter >2 and hit the return key to visit it. If the string after the operator is not a valid entry number (which needs to be a positive integer between 1 and the number of favorite paths), then an error will be triggered.
+
+The same rapid access mode can also be obtained with navigation history (by entering < followed by entry number), yet in this case the quick history needs to be enabled. Same as for favorite directories, if the entry number is invalid (either not in range or containing invalid characters) an error will be triggered. For more details, please check the quick history section (6.8).
 
 5.3. Special options for visiting directories
 
@@ -349,11 +351,17 @@ I strongly recommend using this option and carefully checking the command string
 
 The quick history is a subset of the recent history. Currently this is only available for navigation but it might get implemented for commands as well in a future changeset.
 
-The quick navigation history is displayed within main navigation menu and contains the last visited directories. The number of displayed entries cannot exceed the size of the recent history (instead it can be smaller resulting in a subset). It is recommended to keep the count as small as possible in order to be able to identify the required entry (or its missing) rapidly (hence quick history) and then navigate to the directory.
+The quick navigation history is displayed within main navigation menu (including help menus) and contains the last visited directories. The number of displayed entries cannot exceed the size of the recent history (instead it can be smaller resulting in a subset). It is recommended to keep the count as small as possible in order to be able to identify the required entry (or its missing) rapidly (hence quick history) and then navigate to the directory.
 
-The navigation to the chosen entry is performed by entering < followed by entry number (same as when navigating to a consolidated history entry without accessing the history menu itself).
+The navigation to the chosen entry is performed by entering < followed by entry number. Please note that the number should be valid, i.e. it needs to be a valid integer pointing to one of the listed entries. If the entry number is out-of-range or contains invalid characters, then an error will be triggered. The input is NOT forwarded as regular navigation input.
 
-By default the quick navigation history is disabled, so it doesn't clutter the main menu unnecessarily. To enable it, enter option :qn from main navigation menu or one of the submenus. To disable it, enter the same option again. Please note that the quick history is persistent during the entire session unless disabled. It goes off when exiting the script.
+By default the quick navigation history is disabled, so it doesn't clutter the main menu unnecessarily. To enable it, enter option :qn from main navigation page or another menu. To disable it, enter the same option again. Please note that the quick history is persistent during the entire session unless disabled. It goes off when exiting the script.
+
+Another caveat is that the quick navigation history can only be used from the places where the listing of last visited entries is visible. These are:
+- the main navigation page
+- the help sub-menus (which also considered a part of the main navigation context)
+
+If the user attempts to access a quick entry from another context (e.g. enters <2 while in the filtered navigation history menu), then an error is triggered mentioning that the context is not appropriate. The context is automatically switched to main navigation page, and the user can re-enter the quick navigation choice. This time the navigation should be successful unless the quick history is disabled or the entry is invalid. The reason for implementing this menu-based restriction is that it needs to be ensured the user is fully aware of the chosen entry (which is not be displayed in any context other than the main one). This would be of utmost importance if a similar quick menu is implemented for commands.
 
 To modify the number of displayed entries, please change the variable q_hist_max_entries from navigation_settings.py to the desired value (default is 5 and it is recommended to keep it small).
 

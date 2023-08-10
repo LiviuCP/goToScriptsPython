@@ -317,11 +317,15 @@ def removeDirFromFavorites():
         displayFavoritesEntryRemovalDialog(syncResult[0])
         userInput = input()
         os.system("clear")
-        if nav.isValidInput(userInput):
-            removedPath = nav.removePathFromFavorites(userInput)
-            print("Entry " + removedPath + " removed from favorites menu.")
-        elif userInput == '!':
+        if userInput == '!':
             print("No entry removed from favorites menu.")
         else:
-            status = 1 # forward user input as regular input
+            removedPath = nav.removePathFromFavorites(userInput)
+            if len(removedPath) > 0:
+                print("Entry " + removedPath + " removed from favorites menu.")
+            else:
+                status = 1 # forward user input as regular input
     return (status, userInput, "")
+
+def isValidFavoritesEntryNr(userInput):
+    return nav.isValidFavoritesEntryNr(userInput)

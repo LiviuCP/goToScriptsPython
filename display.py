@@ -1,7 +1,7 @@
 import sys, os
-import system_functionality as sysfunc, shared_nav_functions as ns, navigation_settings as navset
+import system_functionality as sysfunc, quick_navigation as qnav, navigation_settings as navset
 
-def displayGeneralOutput(prevDir, syncWithFinder, prevCommand = "", prevCommandFinishingStatus = "", navigationFilter = "", commandsFilter = "", clipboardAction = "", clipboardKeyword = "", clipboardSourceDir = "", recursiveTargetDir = "", shouldDisplayQuickNavHist = False):
+def displayGeneralOutput(prevDir, syncWithFinder, prevCommand = "", prevCommandFinishingStatus = "", navigationFilter = "", commandsFilter = "", clipboardAction = "", clipboardKeyword = "", clipboardSourceDir = "", recursiveTargetDir = "", isQuickNavHistEnabled = False):
     syncResult = sysfunc.syncCurrentDir()
     assert not syncResult[1], "Current dir fallback not allowed"
     previousDirectory = "none" if len(prevDir) == 0 else prevDir
@@ -29,7 +29,7 @@ def displayGeneralOutput(prevDir, syncWithFinder, prevCommand = "", prevCommandF
     print(" (finished " + lastCommandFinishingStatus + "):") if lastCommandFinishingStatus != "" else print(":")
     print(lastCommand)
     print("")
-    if shouldDisplayQuickNavHist:
+    if isQuickNavHistEnabled:
         displayQuickNavigationHistory()
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
@@ -88,10 +88,9 @@ def displayCurrentDirContent():
 def displayQuickNavigationHistory():
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
-    print("Last visited directories:")
+    print("Last visited directories (enter < followed by entry number to re-visit):")
     print("")
-    with open(navset.r_hist_file, "r") as rHist:
-        ns.displayFormattedNavFileContent(rHist.readlines(), 0, navset.q_hist_max_entries)
+    qnav.displayFormattedQuickNavigationHistory()
     print("")
 
 # to be updated: number of columns should be dynamically determined depending on screen size and number of files/dirs contained in current dir
@@ -108,7 +107,7 @@ def printDirContentToColumns(content):
         print('{0:<40s} {1:<40s} {2:<40s} {3:<40s}'.format(content[baseIndex], content[baseIndex + 1], content[baseIndex + 2], content[baseIndex + 3]))
     print("")
 
-def displayHelp():
+def displayHelp(isQuickNavHistEnabled = False):
     os.system("clear")
     print("Navigation functions")
     print("")
@@ -143,7 +142,7 @@ def displayHelp():
     print("?clip -  display help for clipboard and recursive operations")
     print("?ren  -  display help for renaming all items from current directory that are not hidden")
     print("")
-    print("For direct navigation to a history or favorites menu entry please enter < or > followed by a number (no spaces allowed).")
+    print("For direct navigation to a quick history (after enabling it, see above) or favorites menu entry please enter < or > followed by a number.")
     print("For filtering navigation history (excluding favorites) please enter << followed by a search keyword.")
     print("For filtering favorites please enter >> followed by a search keyword.")
     print("Multiple search filters are allowed for navigation history, favorites and command history filtering (only results matching all filters are being displayed).")
@@ -151,11 +150,13 @@ def displayHelp():
     print("")
     printCurrentDir()
     print("")
+    if isQuickNavHistEnabled:
+        displayQuickNavigationHistory()
     print("Enter the path of the directory you want to visit (press ENTER to return to the home dir).")
     print("Enter ! to quit navigation mode.")
     print("")
 
-def displayClipboardHelp():
+def displayClipboardHelp(isQuickNavHistEnabled = False):
     os.system("clear")
     print("Clipboard functions")
     print("")
@@ -183,11 +184,13 @@ def displayClipboardHelp():
     print("")
     printCurrentDir()
     print("")
+    if isQuickNavHistEnabled:
+        displayQuickNavigationHistory()
     print("Enter the path of the directory you want to visit (press ENTER to return to the home dir).")
     print("Enter ! to quit navigation mode.")
     print("")
 
-def displayRenamingHelp():
+def displayRenamingHelp(isQuickNavHistEnabled = False):
     os.system("clear")
     print("Renaming functions")
     print("")
@@ -213,6 +216,8 @@ def displayRenamingHelp():
     print("")
     printCurrentDir()
     print("")
+    if isQuickNavHistEnabled:
+        displayQuickNavigationHistory()
     print("Enter the path of the directory you want to visit (press ENTER to return to the home dir).")
     print("Enter ! to quit navigation mode.")
     print("")
