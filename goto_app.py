@@ -133,8 +133,10 @@ class Application:
                 result = nav.goTo(ancestorDirPath, self.prevDir)
                 self.appStatus = 4 if result[0] == 0 else self.appStatus
             else:
-                print("Invalid ancestor directory depth provided!")
-                print("A positive integer is required for determining the directory path.")
+                print("Invalid ancestor directory data provided!")
+                print("")
+                print("A single ';' character followed by a positive integer (ancestor depth) is required for determining the ancestor directory path.")
+                print("No other character types are allowed.")
         elif userInput == ":-":
             if len(self.prevCommand) > 0:
                 result = cmd.executeCommandWithStatus(self.prevCommand, True)
