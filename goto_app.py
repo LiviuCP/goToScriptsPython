@@ -105,7 +105,7 @@ class Application:
                 result = self.setContext(contexts_dict[userInput[0]], navHistInput)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif len(userInput) >= 1 and userInput[0] == "<":
-            navHistInput = userInput[1:].lstrip(' ')
+            navHistInput = userInput[1:]
             isInputOk = True
             if len(navHistInput) > 0:
                 isInputOk = self.isQuickNavigationPossible(navHistInput)
@@ -119,6 +119,11 @@ class Application:
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
             else:
                 print("No navigation filter previously entered.")
+        elif len(userInput) >= 2 and userInput[0:2] == ",,":
+            navHistInput = userInput[2:]
+            if self.isQuickNavigationPossible(navHistInput):
+                result = self.setContext(contexts_dict["<"], "," + navHistInput)
+                shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
             result = self.setContext(contexts_dict[userInput[0:2]], userInput[2:])
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
@@ -145,8 +150,10 @@ class Application:
                 result = nav.goTo(ancestorDirPath, self.prevDir, self.syncWithFinder)
                 self.appStatus = 4 if result[0] == 0 else self.appStatus
             else:
-                print("Invalid ancestor directory depth provided!")
-                print("A positive integer is required for determining the directory path.")
+                print("Invalid ancestor directory data provided!")
+                print("")
+                print("A single ';' character followed by a positive integer (ancestor depth) is required for determining the ancestor directory path.")
+                print("No other character types are allowed.")
         elif userInput == ":-":
             if len(self.prevCommand) > 0:
                 result = cmd.executeCommandWithStatus(self.prevCommand, True)
@@ -242,15 +249,14 @@ class Application:
         self.isQuickNavHistEnabled = not self.isQuickNavHistEnabled
         print("Quick navigation history enabled!") if self.isQuickNavHistEnabled else print("Quick navigation history disabled!")
     def isQuickNavigationPossible(self, navHistInput):
-        assert len(navHistInput) > 0, "Empty quick navigation history input!"
         isQuickNavPossible = False
         if len(self.currentContext) > 0: #quick history is only accessible from main navigation page (including help menus) - it should be visible when accessed!
-            print("Quick navigation history not accessible from current context. Please try again")
+            print("Quick navigation history not accessible from current context. Please try again!")
         elif self.isQuickNavHistEnabled:
             if qnav.isValidEntryNr(navHistInput):
                 isQuickNavPossible = True
             else:
-                print("Invalid quick history entry number!")
+                print("Invalid quick history entry number! Please try again.")
         else:
             print("Quick history is disabled. Please enable it and try again!")
         return isQuickNavPossible
@@ -323,7 +329,7 @@ def handleCloseApplication(previousCommand, shouldCloseFinder):
 #any input starting with < and continuing with a character different from < is considered a quick navigation history request (no matter if valid or not, e.g. <a is invalid)
 def isQuickNavigationRequested(userInput):
     userInput = userInput.strip(' ')
-    isQuickNavHistInput = len(userInput) > 1 and userInput[0] == "<" and userInput[1] != "<"
+    isQuickNavHistInput = len(userInput) > 1 and ((userInput[0] == "<" and userInput[1] != "<") or userInput[0:2] == ",,")
     return isQuickNavHistInput
 
 application = Application()

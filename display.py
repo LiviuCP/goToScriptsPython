@@ -88,7 +88,7 @@ def displayCurrentDirContent():
 def displayQuickNavigationHistory():
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
-    print("Last visited directories (enter < followed by entry number to re-visit):")
+    print("Last visited directories (enter < or ,, followed by entry number to re-visit the directory or its parent):")
     print("")
     qnav.displayFormattedQuickNavigationHistory()
     print("")
