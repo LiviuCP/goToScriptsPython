@@ -93,7 +93,7 @@ class Application:
                 result = self.setContext(contexts_dict[userInput[0]], navHistInput)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif len(userInput) >= 1 and userInput[0] == "<":
-            navHistInput = userInput[1:].lstrip(' ')
+            navHistInput = userInput[1:]
             isInputOk = True
             if len(navHistInput) > 0:
                 isInputOk = self.isQuickNavigationPossible(navHistInput)
@@ -108,9 +108,7 @@ class Application:
             else:
                 print("No navigation filter previously entered.")
         elif len(userInput) >= 2 and userInput[0:2] == ",,":
-            navHistInput = userInput[2:].lstrip(' ')
-            #empty entry numbers get the value 0 (invalid entry number) so the quick navigation history input can be processed correctly
-            navHistInput = "0" if len(navHistInput) == 0 else navHistInput
+            navHistInput = userInput[2:]
             if self.isQuickNavigationPossible(navHistInput):
                 result = self.setContext(contexts_dict["<"], "," + navHistInput)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
@@ -236,7 +234,6 @@ class Application:
         self.isQuickNavHistEnabled = not self.isQuickNavHistEnabled
         print("Quick navigation history enabled!") if self.isQuickNavHistEnabled else print("Quick navigation history disabled!")
     def isQuickNavigationPossible(self, navHistInput):
-        assert len(navHistInput) > 0, "Empty quick navigation history input!"
         isQuickNavPossible = False
         if len(self.currentContext) > 0: #quick history is only accessible from main navigation page (including help menus) - it should be visible when accessed!
             print("Quick navigation history not accessible from current context. Please try again!")
