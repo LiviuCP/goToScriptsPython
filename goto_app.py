@@ -15,8 +15,8 @@ class Application:
         self.prevNavigationFilter = "" # stores the last navigation filter applied by user
         self.prevCommandsFilter = "" # stores the last commands filter applied by user
         syncResult = sysfunc.syncCurrentDir() # TODO: at next refactoring phase check if status code should remain 0 for fallback or a dedicated status code should be chosen (maybe 5?)
-        self.prevDir = syncResult[0]
         self.prevCommand = ""
+        self.nav = nav.Navigation(syncResult[0])
         self.clipboard = clip.Clipboard()
         self.recursiveTransfer = rt.RecursiveTransfer()
         self.appStatus = 0
@@ -24,7 +24,6 @@ class Application:
         self.passedOutput = ""
         self.isQuickNavHistEnabled = False
         common.setPathAutoComplete()
-        nav.initNavMenus()
         cmd.initCmdMenus()
 
     def execute(self):
@@ -36,9 +35,9 @@ class Application:
         while True:
             if userInput not in {"?", "?clip", "?ren"}:
                 if len(self.prevCommand) > 0:
-                    out.displayGeneralOutput(self.prevDir, self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.isQuickNavHistEnabled)
+                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.isQuickNavHistEnabled)
                 else:
-                    out.displayGeneralOutput(self.prevDir, navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter, clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir(), isQuickNavHistEnabled = self.isQuickNavHistEnabled)
+                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter, clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir(), isQuickNavHistEnabled = self.isQuickNavHistEnabled)
             keyInterruptOccurred = False
             try:
                 userInput = input()
@@ -52,8 +51,6 @@ class Application:
                     elif self.appStatus == 2:
                         self.prevCommand = self.passedInput
                         prevCommandFinishingStatus = self.passedOutput
-                    elif self.appStatus == 4:
-                        self.prevDir = self.passedOutput
                     if forwardUserInput == True:
                         forwardUserInput = False
                     else:
@@ -130,12 +127,12 @@ class Application:
             else:
                 print("Unable to toggle, not in the right menu!")
         elif userInput == ",":
-            result = nav.goTo(self.prevDir, os.getcwd()) # fallback already checked, so getcwd() should be safe
+            result = self.nav.goTo(self.nav.getPreviousDirectory())
             self.appStatus = 4 if result[0] == 0 else self.appStatus
         elif len(userInput) >= 1 and userInput[0] == ";":
             ancestorDirPath = common.computeAncestorDirRelativePath(userInput[1:])
             if len(ancestorDirPath) > 0:
-                result = nav.goTo(ancestorDirPath, self.prevDir)
+                result = self.nav.goTo(ancestorDirPath)
                 self.appStatus = 4 if result[0] == 0 else self.appStatus
             else:
                 print("Invalid ancestor directory data provided!")
@@ -177,7 +174,7 @@ class Application:
                 result = cmd.executeCommandWithStatus(userInput[1:])
                 self.appStatus = 2
             else:
-                result = nav.goTo(userInput, self.prevDir)
+                result = self.nav.goTo(userInput)
                 self.appStatus = 4 if result[0] == 0 else self.appStatus
         if result is not None:
             self.passedInput = result[1]
@@ -209,7 +206,7 @@ class Application:
             result = cmd.visitCommandMenu(self.currentContext, self.currentFilter, self.prevCommand)
             self.appStatus = 2 if result[0] == 0 else 1 if result[0] == 1 else self.appStatus
         elif self.currentContext in ["-f", "-h"]:
-            result = nav.executeGoToFromMenu(self.currentContext, self.prevDir, userInput, self.prevCommand)
+            result = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.prevCommand)
             if len(userInput) > 0:
                 self.appStatus = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else self.appStatus #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
             else:
@@ -219,7 +216,7 @@ class Application:
         elif self.currentContext in ["-fh", "-ff"]:
             if len(userInput) > 0:
                 self.currentFilter = userInput
-                result = nav.executeGoToFromMenu(self.currentContext, self.prevDir, userInput, self.prevCommand)
+                result = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.prevCommand)
                 self.appStatus = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.appStatus
                 if result[0] == -1:
                     self.recursiveTransfer.setTargetDir(result[1])
