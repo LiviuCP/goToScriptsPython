@@ -15,27 +15,26 @@ class Application:
         self.prevNavigationFilter = "" # stores the last navigation filter applied by user
         self.prevCommandsFilter = "" # stores the last commands filter applied by user
         syncResult = sysfunc.syncCurrentDir() # TODO: at next refactoring phase check if status code should remain 0 for fallback or a dedicated status code should be chosen (maybe 5?)
-        self.prevCommand = ""
         self.nav = nav.Navigation(syncResult[0])
+        self.cmd = cmd.Commands()
         self.clipboard = clip.Clipboard()
         self.recursiveTransfer = rt.RecursiveTransfer()
         self.appStatus = 0
         self.passedInput = ""
-        self.passedOutput = ""
         self.isQuickNavHistEnabled = False
         common.setPathAutoComplete()
-        cmd.initCmdMenus()
 
     def execute(self):
-        prevCommandFinishingStatus = "" # finishing status of last command (success / with errors)
         userInput = ""
         forwardUserInput = False
         os.system("clear")
         print("Welcome to navigation app!")
         while True:
+            prevCommand = self.cmd.getPreviousCommand()
             if userInput not in {"?", "?clip", "?ren"}:
-                if len(self.prevCommand) > 0:
-                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.isQuickNavHistEnabled)
+                if len(prevCommand) > 0:
+                    prevCommandFinishingStatus = "successfully" if self.cmd.getPreviousCommandSuccess() else "with errors"
+                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.isQuickNavHistEnabled)
                 else:
                     out.displayGeneralOutput(self.nav.getPreviousDirectory(), navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter, clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir(), isQuickNavHistEnabled = self.isQuickNavHistEnabled)
             keyInterruptOccurred = False
@@ -48,9 +47,6 @@ class Application:
                     if self.appStatus == 1:
                         userInput = self.passedInput
                         forwardUserInput = True
-                    elif self.appStatus == 2:
-                        self.prevCommand = self.passedInput
-                        prevCommandFinishingStatus = self.passedOutput
                     if forwardUserInput == True:
                         forwardUserInput = False
                     else:
@@ -58,14 +54,13 @@ class Application:
             except (KeyboardInterrupt, EOFError): # CTRL + C, CTRL + D (latter one causes EOFError)
                 keyInterruptOccurred = True
                 os.system("clear")
-                handleCloseApplication(self.prevCommand)
+                handleCloseApplication(prevCommand)
             if userInput == "!" or keyInterruptOccurred:
                 break
 
     def handleUserInput(self, userInput):
         self.appStatus = 0
         self.passedInput = ""
-        self.passedOutput = ""
         shouldSwitchToMainContext = True
         result = None # a valid result should contain: (status code, passed input, passed output)
         fallbackPerformed = False
@@ -140,13 +135,15 @@ class Application:
                 print("A single ';' character followed by a positive integer (ancestor depth) is required for determining the ancestor directory path.")
                 print("No other character types are allowed.")
         elif userInput == ":-":
-            if len(self.prevCommand) > 0:
-                result = cmd.executeCommandWithStatus(self.prevCommand, True)
+            prevCommand = self.cmd.getPreviousCommand()
+            if len(prevCommand) > 0:
+                result = self.cmd.executeCommandWithStatus(prevCommand, True)
                 self.appStatus = 2 if result[0] == 0 else self.appStatus # force updating previous command and its finishing status (although command is just repeated); the command might for example finish with errors although when previously executed it finished successfully (e.g. when removing a file and then attempting to remove it again)
             else:
                 print("No shell command previously executed")
         elif userInput == ":":
-            result = cmd.editAndExecPrevCmd(self.prevCommand) if self.prevCommand != "" else cmd.editAndExecPrevCmd()
+            prevCommand = self.cmd.getPreviousCommand()
+            result = self.cmd.editAndExecPrevCmd(prevCommand) if len(prevCommand) > 0 else self.cmd.editAndExecPrevCmd()
             self.appStatus = 2 if result[0] == 0 else self.appStatus
         elif userInput == "+>":
             nav.addDirToFavorites()
@@ -168,17 +165,16 @@ class Application:
         elif userInput in ["?", "?clip", "?ren"]:
             self.handleHelpRequest(userInput, out)
         elif userInput == "!":
-            handleCloseApplication(self.prevCommand)
+            handleCloseApplication(self.cmd.getPreviousCommand())
         else:
             if len(userInput) > 0 and userInput[0] == ":":
-                result = cmd.executeCommandWithStatus(userInput[1:])
+                result = self.cmd.executeCommandWithStatus(userInput[1:])
                 self.appStatus = 2
             else:
                 result = self.nav.goTo(userInput)
                 self.appStatus = 4 if result[0] == 0 else self.appStatus
         if result is not None:
             self.passedInput = result[1]
-            self.passedOutput = result[2]
         if shouldSwitchToMainContext:
             self.setContext(contexts_dict["main"], "")
 
@@ -201,12 +197,13 @@ class Application:
         self.currentContext = newContext
         self.currentFilter = ""
         result = None  # a valid result should contain: (status code, passed input, passed output)
+        prevCommand = self.cmd.getPreviousCommand()
         if self.currentContext in ["--execute", "--edit"]:
             self.currentFilter = userInput
-            result = cmd.visitCommandMenu(self.currentContext, self.currentFilter, self.prevCommand)
+            result = self.cmd.visitCommandMenu(self.currentContext, self.currentFilter, prevCommand)
             self.appStatus = 2 if result[0] == 0 else 1 if result[0] == 1 else self.appStatus
         elif self.currentContext in ["-f", "-h"]:
-            result = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.prevCommand)
+            result = self.nav.executeGoToFromMenu(self.currentContext, userInput, prevCommand)
             if len(userInput) > 0:
                 self.appStatus = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else self.appStatus #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
             else:
@@ -216,7 +213,7 @@ class Application:
         elif self.currentContext in ["-fh", "-ff"]:
             if len(userInput) > 0:
                 self.currentFilter = userInput
-                result = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.prevCommand)
+                result = self.nav.executeGoToFromMenu(self.currentContext, userInput, prevCommand)
                 self.appStatus = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.appStatus
                 if result[0] == -1:
                     self.recursiveTransfer.setTargetDir(result[1])
