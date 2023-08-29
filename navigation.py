@@ -34,7 +34,7 @@ class Navigation:
             print(" - insufficient access rights")
             print(" - exception raised")
             print("Please try again!")
-        return(status, "", self.previousDirectory)
+        return(status, "", "")
 
     """ visit directory by choosing an entry from a navigation menu (history, favorites, filtered menus) """
     # negative statuses are special statuses and will be retrieved in conjunction with special characters preceding valid entry numbers (like + -> status -1); path is forwarded as input and used by main app
@@ -43,7 +43,6 @@ class Navigation:
         menuVisitResult = self.__visitNavigationMenu(menuChoice, userInput, previousCommand)
         status = 0 # default status, normal execution or missing dir successful removal/mapping
         passedInput = ""
-        passedOutput = self.previousDirectory
         dirPath = menuVisitResult[0]
         menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "filtered history" if menuChoice == "-fh" else "filtered favorites"
         syncResult = sysfunc.syncCurrentDir()
@@ -73,9 +72,6 @@ class Navigation:
                     if handleResult[0] == 1:
                         status = 1 #forward user input
                         passedInput = handleResult[1]
-                        passedOutput = handleResult[2]
-                    elif handleResult[0] == 0:
-                        passedOutput = handleResult[2] # previous directory in case mapping was successful
             elif menuVisitResult[1] == ":preceding+" or menuVisitResult[1] == ":preceding-":
                 status = -1
                 passedInput = dirPath
@@ -83,12 +79,10 @@ class Navigation:
                 goToResult = self.goTo(dirPath)
                 status = goToResult[0]
                 passedInput = goToResult[1]
-                passedOutput = goToResult[2]
         else:
             status = 3
             passedInput = ""
-            passedOutput = ""
-        return (status, passedInput, passedOutput)
+        return (status, passedInput, "")
 
     """
     The status returned by this method can have following values:
@@ -186,7 +180,7 @@ class Navigation:
             print("You exited the " + menuType +  " menu")
         else:
             status = 1
-        return (status, userChoice, self.previousDirectory)
+        return (status, userChoice, "")
 
     """ Displays the requested navigation menu and prompts the user to enter the required option """
     def __visitNavigationMenu(self, menuChoice, userInput = "", previousCommand = ""):
