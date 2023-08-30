@@ -5,10 +5,14 @@ from os.path import isdir
 class Navigation:
     def __init__(self, startingDirectory):
         self.previousDirectory = startingDirectory
+        self.previousNavigationFilter = ""
         nav.initNavMenus()
 
     def getPreviousDirectory(self):
         return self.previousDirectory
+
+    def getPreviousNavigationFilter(self):
+        return self.previousNavigationFilter
 
     """ core function for visiting directories """
     def goTo(self, gtDirectory):
@@ -35,6 +39,10 @@ class Navigation:
             print(" - exception raised")
             print("Please try again!")
         return(status, "", "")
+
+    """ Convenience method for visiting the previous directory """
+    def goToPreviousDirectory(self):
+        return self.goTo(self.previousDirectory)
 
     """ visit directory by choosing an entry from a navigation menu (history, favorites, filtered menus) """
     # negative statuses are special statuses and will be retrieved in conjunction with special characters preceding valid entry numbers (like + -> status -1); path is forwarded as input and used by main app
@@ -229,6 +237,7 @@ class Navigation:
         filteredEntries = []
         if menuChoice in ["-fh", "-ff"]:
             assert len(userInput) > 0, "No filter has been provided for filtered navigation menu"
+            self.previousNavigationFilter = userInput
             filterResult = nav.buildFilteredNavigationHistory(filteredEntries, userInput) if menuChoice == "-fh" else nav.buildFilteredFavorites(filteredEntries, userInput)
             totalNrOfMatches = filterResult[0]
             appliedFilterKey = filterResult[1]

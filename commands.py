@@ -5,6 +5,7 @@ class Commands:
     def __init__(self):
         self.previousCommand = ""
         self.previousCommandSuccess = False
+        self.previousCommandsFilter = ""
         cmd.initCmdMenus()
 
     def getPreviousCommand(self):
@@ -13,55 +14,40 @@ class Commands:
     def getPreviousCommandSuccess(self):
         return self.previousCommandSuccess
 
-    """ core command execution function wrappers """
-    def executeCommandWithStatus(self, command = "", repeatPrev = False):
+    def getPreviousCommandsFilter(self):
+        return self.previousCommandsFilter
+
+    """ execute new command """
+    def executeCommand(self, command):
         assert len(command) > 0, "Empty argument detected for 'command'"
-        commandType = "Repeated" if repeatPrev == True else "Entered"
-        print(commandType + " command is being executed: " + command)
+        print("Entered command is being executed: " + command)
         print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
         result = self.__executeCommand(command)
         finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
         print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-        print(commandType + " command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
+        print("Entered command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
         return result
 
-    """ edit a previously entered command and then execute it """
-    def editAndExecPrevCmd(self, previousCommand = ""):
-        def hook():
-            readline.insert_text(previousCommand)
-            readline.redisplay()
-        status = 0 #normal execution, no user abort
-        passedInput = ""
-        if len(previousCommand) == 0:
-            print("No shell command executed in this session. Enter a new command")
-        else:
-            print("Please edit the below command and hit ENTER to execute")
-            readline.set_pre_input_hook(hook)
-        print("(press \':\' + ENTER to quit):")
-        commandToExecute = input()
-        commandToExecute = commandToExecute.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the command history
-        readline.set_pre_input_hook() # ensure any further input is no longer pre-filled
-        os.system("clear")
-        commandLength = len(commandToExecute)
-        syncResult = sysfunc.syncCurrentDir() #in case current dir gets unreachable before user enters input ...
-        if syncResult[1]:
-            out.displayFallbackMessage()
-        elif commandLength > 0 and commandToExecute[commandLength-1] != ':':
-            commandType = "Edited" if previousCommand != "" else "Entered"
-            print(commandType + " command is being executed: " + commandToExecute)
+    """ execute (repeat) previous command """
+    def executePreviousCommand(self):
+        result = None
+        if len(self.previousCommand) > 0:
+            print("Repeated command is being executed: " + self.previousCommand)
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            result = self.__executeCommand(commandToExecute)
+            result = self.__executeCommand(self.previousCommand)
             finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            print(commandType + " command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
-            passedInput = result[1]
+            print("Repeated command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
         else:
-            print("Command aborted. You returned to navigation menu.")
-            status = 2 #aborted by user
-        return (status, passedInput, "")
+            print("No shell command previously executed")
+        return result
+
+    """ edit and execute previous command """
+    def editAndExecutePreviousCommand(self):
+        return self.__editAndExecuteCommand(self.previousCommand)
 
     """ Displays the requested commands menu and prompts the user to enter the required option """
-    def visitCommandMenu(self, mode, filterKey = "", previousCommand = ""):
+    def visitCommandMenu(self, mode, filterKey = ""):
         def displayCmdHistMenu(mode):
             cmd.consolidateCommandHistory() # normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
             print("COMMANDS LIST")
@@ -85,7 +71,7 @@ class Commands:
             print("")
             print("Current directory: " + currentDir)
             print("Last executed shell command: ", end='')
-            print(previousCommand) if len(previousCommand) > 0 else print("none")
+            print(self.previousCommand) if len(self.previousCommand) > 0 else print("none")
             print("")
             if len(filterKey) > 0:
                 print("Applied filter: " + filterKey)
@@ -112,6 +98,7 @@ class Commands:
             userInput = input()
             os.system("clear")
         else:
+            self.previousCommandsFilter = filterKey
             filterResult = cmd.buildFilteredCommandHistory(filteredHistEntries, filterKey)
             totalNrOfMatches = filterResult[0]
             appliedFilterKey = filterResult[1]
@@ -164,10 +151,45 @@ class Commands:
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                     print("Repeated command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
             else:
-                result = self.editAndExecPrevCmd(commandHistoryEntry)
+                result = self.__editAndExecuteCommand(commandHistoryEntry)
                 if result[0] != 0:
                     status = 2 #aborted by user
             passedInput = result[1]
+        return (status, passedInput, "")
+
+    """ edit an existing command (previous command or from commands history) and then execute it """
+    def __editAndExecuteCommand(self, previousCommand):
+        def hook():
+            readline.insert_text(previousCommand)
+            readline.redisplay()
+        status = 0 #normal execution, no user abort
+        passedInput = ""
+        if len(previousCommand) == 0:
+            print("No shell command executed in this session. Enter a new command")
+        else:
+            print("Please edit the below command and hit ENTER to execute")
+            readline.set_pre_input_hook(hook)
+        print("(press \':\' + ENTER to quit):")
+        commandToExecute = input()
+        commandToExecute = commandToExecute.rstrip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the command history
+        readline.set_pre_input_hook() # ensure any further input is no longer pre-filled
+        os.system("clear")
+        commandLength = len(commandToExecute)
+        syncResult = sysfunc.syncCurrentDir() #in case current dir gets unreachable before user enters input ...
+        if syncResult[1]:
+            out.displayFallbackMessage()
+        elif commandLength > 0 and commandToExecute[commandLength-1] != ':':
+            commandType = "Edited" if previousCommand != "" else "Entered"
+            print(commandType + " command is being executed: " + commandToExecute)
+            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+            result = self.__executeCommand(commandToExecute)
+            finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
+            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+            print(commandType + " command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
+            passedInput = result[1]
+        else:
+            print("Command aborted. You returned to navigation menu.")
+            status = 2 #aborted by user
         return (status, passedInput, "")
 
     """ core command execution function """
