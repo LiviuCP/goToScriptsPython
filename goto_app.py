@@ -11,25 +11,19 @@ context_switch_dict = {"--execute" : "--edit", "--edit" : "--execute", "-f" : "-
 class Application:
     def __init__(self):
         self.currentContext = "" # main context
-        self.currentFilter = "" # should change each time the user filters the navigation/command history
-        self.prevNavigationFilter = "" # stores the last navigation filter applied by user
-        self.prevCommandsFilter = "" # stores the last commands filter applied by user
+        self.currentFilter = "" # should change to a non-empty value each time the user filters the navigation/command history (otherwise it should be reset to an empty value)
         syncResult = sysfunc.syncCurrentDir() # TODO: at next refactoring phase check if status code should remain 0 for fallback or a dedicated status code should be chosen (maybe 5?)
-        self.prevDir = syncResult[0]
-        self.prevCommand = ""
+        self.nav = nav.Navigation(syncResult[0])
+        self.cmd = cmd.Commands()
         self.clipboard = clip.Clipboard()
         self.recursiveTransfer = rt.RecursiveTransfer()
         self.appStatus = 0
         self.passedInput = ""
-        self.passedOutput = ""
         self.syncWithFinder = sysfunc.isFinderSyncEnabled()
         self.isQuickNavHistEnabled = False
         common.setPathAutoComplete()
-        nav.initNavMenus()
-        cmd.initCmdMenus()
 
     def execute(self):
-        prevCommandFinishingStatus = "" # finishing status of last command (success / with errors)
         userInput = ""
         forwardUserInput = False
         os.system("clear")
@@ -46,11 +40,13 @@ class Application:
                 self.syncWithFinder = sysfunc.isFinderSyncEnabled()
                 if self.syncWithFinder:
                     nav.doFinderSync()
+            prevCommand = self.cmd.getPreviousCommand()
             if userInput not in {"?", "?clip", "?ren"}:
-                if len(self.prevCommand) > 0:
-                    out.displayGeneralOutput(self.prevDir, self.syncWithFinder, self.prevCommand, prevCommandFinishingStatus, self.prevNavigationFilter, self.prevCommandsFilter, self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.isQuickNavHistEnabled)
+                if len(prevCommand) > 0:
+                    prevCommandFinishingStatus = "successfully" if self.cmd.getPreviousCommandSuccess() else "with errors"
+                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.syncWithFinder, prevCommand, prevCommandFinishingStatus, self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.isQuickNavHistEnabled)
                 else:
-                    out.displayGeneralOutput(self.prevDir, self.syncWithFinder, navigationFilter = self.prevNavigationFilter, commandsFilter = self.prevCommandsFilter, clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir(), isQuickNavHistEnabled = self.isQuickNavHistEnabled)
+                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.syncWithFinder, navigationFilter = self.nav.getPreviousNavigationFilter(), commandsFilter = self.cmd.getPreviousCommandsFilter(), clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir(), isQuickNavHistEnabled = self.isQuickNavHistEnabled)
             keyInterruptOccurred = False
             try:
                 userInput = input()
@@ -61,11 +57,6 @@ class Application:
                     if self.appStatus == 1:
                         userInput = self.passedInput
                         forwardUserInput = True
-                    elif self.appStatus == 2:
-                        self.prevCommand = self.passedInput
-                        prevCommandFinishingStatus = self.passedOutput
-                    elif self.appStatus == 4:
-                        self.prevDir = self.passedOutput
                     if forwardUserInput == True:
                         forwardUserInput = False
                     else:
@@ -73,14 +64,13 @@ class Application:
             except (KeyboardInterrupt, EOFError): # CTRL + C, CTRL + D (latter one causes EOFError)
                 keyInterruptOccurred = True
                 os.system("clear")
-                handleCloseApplication(self.prevCommand, self.syncWithFinder)
+                handleCloseApplication(prevCommand, self.syncWithFinder)
             if userInput == "!" or keyInterruptOccurred:
                 break
 
     def handleUserInput(self, userInput):
         self.appStatus = 0
         self.passedInput = ""
-        self.passedOutput = ""
         shouldSwitchToMainContext = True
         result = None # a valid result should contain: (status code, passed input, passed output)
         fallbackPerformed = False
@@ -113,9 +103,10 @@ class Application:
                 result = self.setContext(contexts_dict[userInput[0]], navHistInput)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif userInput in [":n", ":N"]:
-            if len(self.prevNavigationFilter) > 0:
+            prevNavigationFilter = self.nav.getPreviousNavigationFilter()
+            if len(prevNavigationFilter) > 0:
                 contexts_dictKey = "<<" if userInput == ":n" else ">>"
-                result = self.setContext(contexts_dict[contexts_dictKey], self.prevNavigationFilter)
+                result = self.setContext(contexts_dict[contexts_dictKey], prevNavigationFilter)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
             else:
                 print("No navigation filter previously entered.")
@@ -128,9 +119,10 @@ class Application:
             result = self.setContext(contexts_dict[userInput[0:2]], userInput[2:])
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif userInput in [":f", ":F"]:
-            if len(self.prevCommandsFilter) > 0:
+            prevCommandsFilter = self.cmd.getPreviousCommandsFilter()
+            if len(prevCommandsFilter) > 0:
                 contexts_dictKey = ":<" if userInput == ":f" else "::"
-                result = self.setContext(contexts_dict[contexts_dictKey], self.prevCommandsFilter)
+                result = self.setContext(contexts_dict[contexts_dictKey], prevCommandsFilter)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
             else:
                 print("No commands filter previously entered.")
@@ -142,12 +134,12 @@ class Application:
             else:
                 print("Unable to toggle, not in the right menu!")
         elif userInput == ",":
-            result = nav.goTo(self.prevDir, os.getcwd(), self.syncWithFinder) # fallback already checked, so getcwd() should be safe
+            result = self.nav.goToPreviousDirectory(self.syncWithFinder)
             self.appStatus = 4 if result[0] == 0 else self.appStatus
         elif len(userInput) >= 1 and userInput[0] == ";":
             ancestorDirPath = common.computeAncestorDirRelativePath(userInput[1:])
             if len(ancestorDirPath) > 0:
-                result = nav.goTo(ancestorDirPath, self.prevDir, self.syncWithFinder)
+                result = self.nav.goTo(ancestorDirPath, self.syncWithFinder)
                 self.appStatus = 4 if result[0] == 0 else self.appStatus
             else:
                 print("Invalid ancestor directory data provided!")
@@ -155,13 +147,11 @@ class Application:
                 print("A single ';' character followed by a positive integer (ancestor depth) is required for determining the ancestor directory path.")
                 print("No other character types are allowed.")
         elif userInput == ":-":
-            if len(self.prevCommand) > 0:
-                result = cmd.executeCommandWithStatus(self.prevCommand, True)
+            result = self.cmd.executePreviousCommand()
+            if result is not None:
                 self.appStatus = 2 if result[0] == 0 else self.appStatus # force updating previous command and its finishing status (although command is just repeated); the command might for example finish with errors although when previously executed it finished successfully (e.g. when removing a file and then attempting to remove it again)
-            else:
-                print("No shell command previously executed")
         elif userInput == ":":
-            result = cmd.editAndExecPrevCmd(self.prevCommand) if self.prevCommand != "" else cmd.editAndExecPrevCmd()
+            result = self.cmd.editAndExecutePreviousCommand()
             self.appStatus = 2 if result[0] == 0 else self.appStatus
         elif userInput == "+>":
             nav.addDirToFavorites()
@@ -185,17 +175,16 @@ class Application:
         elif userInput == ":s":
             self.toggleSyncWithFinder()
         elif userInput == "!":
-            handleCloseApplication(self.prevCommand, self.syncWithFinder)
+            handleCloseApplication(self.cmd.getPreviousCommand(), self.syncWithFinder)
         else:
             if len(userInput) > 0 and userInput[0] == ":":
-                result = cmd.executeCommandWithStatus(userInput[1:])
+                result = self.cmd.executeCommand(userInput[1:])
                 self.appStatus = 2
             else:
-                result = nav.goTo(userInput, self.prevDir, self.syncWithFinder)
+                result = self.nav.goTo(userInput, self.syncWithFinder)
                 self.appStatus = 4 if result[0] == 0 else self.appStatus
         if result is not None:
             self.passedInput = result[1]
-            self.passedOutput = result[2]
         if shouldSwitchToMainContext:
             self.setContext(contexts_dict["main"], "")
 
@@ -209,21 +198,16 @@ class Application:
     def setContext(self, newContext, userInput):
         assert newContext in valid_contexts, "Invalid context detected"
         if len(self.currentFilter) > 0:
-            if self.currentContext in ["-fh", "-ff"]:
-                self.prevNavigationFilter = self.currentFilter
-            elif self.currentContext in ["--execute", "--edit"]:
-                self.prevCommandsFilter = self.currentFilter
-            else:
-                assert False, "Invalid filter keyword within current context"
+            assert self.currentContext in ["-fh", "-ff", "--execute", "--edit"], "Invalid filter keyword within current context"
         self.currentContext = newContext
         self.currentFilter = ""
         result = None  # a valid result should contain: (status code, passed input, passed output)
         if self.currentContext in ["--execute", "--edit"]:
             self.currentFilter = userInput
-            result = cmd.visitCommandMenu(self.currentContext, self.currentFilter, self.prevCommand)
+            result = self.cmd.visitCommandMenu(self.currentContext, userInput)
             self.appStatus = 2 if result[0] == 0 else 1 if result[0] == 1 else self.appStatus
         elif self.currentContext in ["-f", "-h"]:
-            result = nav.executeGoToFromMenu(self.currentContext, self.prevDir, self.syncWithFinder, userInput, self.prevCommand)
+            result = self.nav.executeGoToFromMenu(self.currentContext, self.syncWithFinder, userInput, self.cmd.getPreviousCommand())
             if len(userInput) > 0:
                 self.appStatus = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else self.appStatus #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
             else:
@@ -233,7 +217,7 @@ class Application:
         elif self.currentContext in ["-fh", "-ff"]:
             if len(userInput) > 0:
                 self.currentFilter = userInput
-                result = nav.executeGoToFromMenu(self.currentContext, self.prevDir, self.syncWithFinder, userInput, self.prevCommand)
+                result = self.nav.executeGoToFromMenu(self.currentContext, self.syncWithFinder, userInput, self.cmd.getPreviousCommand())
                 self.appStatus = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.appStatus
                 if result[0] == -1:
                     self.recursiveTransfer.setTargetDir(result[1])
