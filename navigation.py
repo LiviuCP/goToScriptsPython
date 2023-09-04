@@ -6,6 +6,8 @@ class Navigation:
     def __init__(self, startingDirectory):
         self.previousDirectory = startingDirectory
         self.previousNavigationFilter = ""
+        self.syncWithFinderEnabled = False
+        self.syncWithFinderInitialized = False
         nav.initNavMenus()
 
     def getPreviousDirectory(self):
@@ -14,8 +16,11 @@ class Navigation:
     def getPreviousNavigationFilter(self):
         return self.previousNavigationFilter
 
+    def isSyncWithFinderEnabled(self):
+        return self.syncWithFinderEnabled
+
     """ core function for visiting directories """
-    def goTo(self, gtDirectory, syncWithFinder):
+    def goTo(self, gtDirectory):
         status = -1
         syncResult = sysfunc.syncCurrentDir()
         assert not syncResult[1], "Current dir fallback not allowed"
@@ -32,8 +37,8 @@ class Navigation:
             else:
                 print("Current directory remains unchanged: " + currentDir)
             # update current directory in Finder if sync enabled
-            if syncWithFinder == True:
-                doFinderSync()
+            if self.syncWithFinderEnabled:
+                nav.doFinderSync()
         if not status is 0:
             print("Error when attempting to change directory! Possible causes: ")
             print(" - chosen directory path does not exist or has been deleted")
@@ -44,12 +49,12 @@ class Navigation:
         return(status, "", "")
 
     """ Convenience method for visiting the previous directory """
-    def goToPreviousDirectory(self, syncWithFinder):
-        return self.goTo(self.previousDirectory, syncWithFinder)
+    def goToPreviousDirectory(self):
+        return self.goTo(self.previousDirectory)
 
     """ visit directory by choosing an entry from a navigation menu (history, favorites, filtered menus) """
     # negative statuses are special statuses and will be retrieved in conjunction with special characters preceding valid entry numbers (like + -> status -1); path is forwarded as input and used by main app
-    def executeGoToFromMenu(self, menuChoice, syncWithFinder, userInput = "", previousCommand = ""):
+    def executeGoToFromMenu(self, menuChoice, userInput = "", previousCommand = ""):
         assert menuChoice in ["-f", "-ff", "-h", "-fh"], "Invalid menuChoice argument"
         menuVisitResult = self.__visitNavigationMenu(menuChoice, userInput, previousCommand)
         status = 0 # default status, normal execution or missing dir successful removal/mapping
@@ -79,7 +84,7 @@ class Navigation:
                         menuChoice = "-h"
                     elif menuChoice == "-ff": #entries from filtered favorites are actually part of favorites so they should be handled as a missing favorites entry case
                         menuChoice = "-f"
-                    handleResult = self.__handleMissingDir(dirPath, menuChoice, syncWithFinder)
+                    handleResult = self.__handleMissingDir(dirPath, menuChoice)
                     if handleResult[0] == 1:
                         status = 1 #forward user input
                         passedInput = handleResult[1]
@@ -87,13 +92,51 @@ class Navigation:
                 status = -1
                 passedInput = dirPath
             else:
-                goToResult = self.goTo(dirPath, syncWithFinder)
+                goToResult = self.goTo(dirPath)
                 status = goToResult[0]
                 passedInput = goToResult[1]
         else:
             status = 3
             passedInput = ""
         return (status, passedInput, "")
+
+    """ performs first Finder sync (when application gets launched) """
+    def initSyncWithFinder(self):
+        if not self.syncWithFinderInitialized:
+            self.syncWithFinderInitialized = True
+            self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
+            if self.syncWithFinderEnabled:
+                nav.doFinderSync()
+
+    """ toggles the synchronization of the terminal with Finder on/off """
+    def toggleSyncWithFinder(self):
+        assert self.syncWithFinderInitialized, "No initialization performed for Finder synchronization"
+        sysfunc.setFinderSyncEnabled(not self.syncWithFinderEnabled)
+        self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
+        print("Finder synchronization enabled") if self.syncWithFinderEnabled == True else print("Finder synchronization disabled")
+        if self.syncWithFinderEnabled:
+            nav.doFinderSync()
+        else:
+            nav.closeFinderWhenSyncOff()
+
+    """ restores the Finder sync after fallback, fallback dir becomes current Finder dir """
+    def restoreFinderToFallbackDir(self):
+        assert self.syncWithFinderEnabled and not sysfunc.isFinderSyncEnabled(), "Invalid scenario, no fallback occured"
+        success = False
+        nav.closeFinderWhenSyncOff()
+        sysfunc.setFinderSyncEnabled(self.syncWithFinderEnabled)
+        #ensure sync with Finder was re-enabled in system functionality (only then re-open Finder)
+        self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
+        if self.syncWithFinderEnabled:
+            success = True
+            nav.doFinderSync()
+        return success
+
+    """ closes Finder when sync is no longer applicable (e.g. application is closed) """
+    def closeFinderWhenSyncOff(self):
+        if self.syncWithFinderEnabled:
+            self.syncWithFinderEnabled = False
+            nav.closeFinderWhenSyncOff()
 
     """
     The status returned by this method can have following values:
@@ -103,7 +146,7 @@ class Navigation:
     3 - invalid or missing arguments
     4 - replacing directory to which mapping is requested does not exist
     """
-    def __handleMissingDir(self, path, menu, syncWithFinder):
+    def __handleMissingDir(self, path, menu):
         syncResult = sysfunc.syncCurrentDir()
         assert not syncResult[1], "Current dir fallback not allowed"
         assert len(path) > 0, "Empty 'missing path' argument detected"
@@ -179,7 +222,7 @@ class Navigation:
                     print("")
                     print("Mapping performed successfully, navigating to replacing directory ...")
                     print("")
-                    self.goTo(mappingResult[1], syncWithFinder)
+                    self.goTo(mappingResult[1])
                 else:
                     status = 4
                     os.system("clear")
@@ -316,25 +359,3 @@ def removeDirFromFavorites():
 
 def isValidFavoritesEntryNr(userInput):
     return nav.isValidFavoritesEntryNr(userInput)
-
-def doFinderSync():
-    setDelays = "delayBeforeClose=" + str(nav.getDelayBeforeFinderClose()) + ";" + "\n" + \
-                "delayBeforeReopen=" + str(nav.getDelayBeforeFinderReopen()) + ";" + "\n" + \
-                "delayAfterReopen=" + str(nav.getDelayAfterFinderReopen()) + ";" + "\n" + \
-                "delayErrorReopen=" + str(nav.getDelayErrorFinderReopen()) + ";" + "\n"
-    closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
-    handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n"
-    reopenFinder = "else sleep $delayBeforeReopen; open . 2> /dev/null;" + "\n"
-    handleReopeningError = "if [[ $? != 0 ]]; then sleep $delayErrorReopen; echo \'An error occured when opening the new directory in Finder\'; " + "\n"
-    addDelayAfterSuccessfulReopen = "else sleep $delayAfterReopen;" + "\n" + "fi" + "\n" + "fi" + "\n"
-    openTerminal = "open -a terminal;"
-    updateFinder = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
-    os.system(updateFinder)
-
-def handleCloseFinderWhenSyncOff():
-    if nav.shouldCloseFinderWhenSyncOff():
-        setDelays = "delayBeforeClose=0.1;" + "\n"
-        closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
-        handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n" + "fi"
-        updateFinder = setDelays + closeFinder + handleClosingError
-        os.system(updateFinder)

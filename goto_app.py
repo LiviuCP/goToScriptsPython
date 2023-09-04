@@ -19,7 +19,6 @@ class Application:
         self.recursiveTransfer = rt.RecursiveTransfer()
         self.appStatus = 0
         self.passedInput = ""
-        self.syncWithFinder = sysfunc.isFinderSyncEnabled()
         self.isQuickNavHistEnabled = False
         common.setPathAutoComplete()
 
@@ -28,25 +27,22 @@ class Application:
         forwardUserInput = False
         os.system("clear")
         print("Welcome to navigation app!")
-        if self.syncWithFinder:
-            nav.doFinderSync()
+        self.nav.initSyncWithFinder()
         while True:
             if sysfunc.isFinderSyncEnabled():
-                assert self.syncWithFinder, "Invalid Finder sync setting" # this assert could only fire if Finder sync had not been enabled through Application (entering ":s" or init)
-            elif self.syncWithFinder:
-                # current dir fallback scenario (Finder should be closed and if possible re-opened to fallback dir)
-                nav.handleCloseFinderWhenSyncOff()
-                sysfunc.setFinderSyncEnabled(self.syncWithFinder)
-                self.syncWithFinder = sysfunc.isFinderSyncEnabled()
-                if self.syncWithFinder:
-                    nav.doFinderSync()
+                assert self.nav.isSyncWithFinderEnabled(), "Invalid Finder sync setting" # this assert could only fire if Finder sync had not been enabled through Application (entering ":s")
+            elif self.nav.isSyncWithFinderEnabled():
+                isRestoreSuccessful = self.nav.restoreFinderToFallbackDir() # fallback scenario occurred, Finder should be restored accordingly
+                if not isRestoreSuccessful:
+                    print("")
+                    print("Warning! Unable to restore Finder to fallback directory. Sync with Finder is disabled.")
             prevCommand = self.cmd.getPreviousCommand()
             if userInput not in {"?", "?clip", "?ren"}:
                 if len(prevCommand) > 0:
                     prevCommandFinishingStatus = "successfully" if self.cmd.getPreviousCommandSuccess() else "with errors"
-                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.syncWithFinder, prevCommand, prevCommandFinishingStatus, self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.isQuickNavHistEnabled)
+                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.nav.isSyncWithFinderEnabled(), prevCommand, prevCommandFinishingStatus, self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.isQuickNavHistEnabled)
                 else:
-                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.syncWithFinder, navigationFilter = self.nav.getPreviousNavigationFilter(), commandsFilter = self.cmd.getPreviousCommandsFilter(), clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir(), isQuickNavHistEnabled = self.isQuickNavHistEnabled)
+                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.nav.isSyncWithFinderEnabled(), navigationFilter = self.nav.getPreviousNavigationFilter(), commandsFilter = self.cmd.getPreviousCommandsFilter(), clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir(), isQuickNavHistEnabled = self.isQuickNavHistEnabled)
             keyInterruptOccurred = False
             try:
                 userInput = input()
@@ -64,7 +60,7 @@ class Application:
             except (KeyboardInterrupt, EOFError): # CTRL + C, CTRL + D (latter one causes EOFError)
                 keyInterruptOccurred = True
                 os.system("clear")
-                handleCloseApplication(prevCommand, self.syncWithFinder)
+                self.handleCloseApplication(prevCommand)
             if userInput == "!" or keyInterruptOccurred:
                 break
 
@@ -134,12 +130,12 @@ class Application:
             else:
                 print("Unable to toggle, not in the right menu!")
         elif userInput == ",":
-            result = self.nav.goToPreviousDirectory(self.syncWithFinder)
+            result = self.nav.goToPreviousDirectory()
             self.appStatus = 4 if result[0] == 0 else self.appStatus
         elif len(userInput) >= 1 and userInput[0] == ";":
             ancestorDirPath = common.computeAncestorDirRelativePath(userInput[1:])
             if len(ancestorDirPath) > 0:
-                result = self.nav.goTo(ancestorDirPath, self.syncWithFinder)
+                result = self.nav.goTo(ancestorDirPath)
                 self.appStatus = 4 if result[0] == 0 else self.appStatus
             else:
                 print("Invalid ancestor directory data provided!")
@@ -173,15 +169,15 @@ class Application:
         elif userInput in ["?", "?clip", "?ren"]:
             self.handleHelpRequest(userInput, out)
         elif userInput == ":s":
-            self.toggleSyncWithFinder()
+            self.nav.toggleSyncWithFinder()
         elif userInput == "!":
-            handleCloseApplication(self.cmd.getPreviousCommand(), self.syncWithFinder)
+            self.handleCloseApplication(self.cmd.getPreviousCommand())
         else:
             if len(userInput) > 0 and userInput[0] == ":":
                 result = self.cmd.executeCommand(userInput[1:])
                 self.appStatus = 2
             else:
-                result = self.nav.goTo(userInput, self.syncWithFinder)
+                result = self.nav.goTo(userInput)
                 self.appStatus = 4 if result[0] == 0 else self.appStatus
         if result is not None:
             self.passedInput = result[1]
@@ -207,7 +203,7 @@ class Application:
             result = self.cmd.visitCommandMenu(self.currentContext, userInput)
             self.appStatus = 2 if result[0] == 0 else 1 if result[0] == 1 else self.appStatus
         elif self.currentContext in ["-f", "-h"]:
-            result = self.nav.executeGoToFromMenu(self.currentContext, self.syncWithFinder, userInput, self.cmd.getPreviousCommand())
+            result = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.cmd.getPreviousCommand())
             if len(userInput) > 0:
                 self.appStatus = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else self.appStatus #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
             else:
@@ -217,7 +213,7 @@ class Application:
         elif self.currentContext in ["-fh", "-ff"]:
             if len(userInput) > 0:
                 self.currentFilter = userInput
-                result = self.nav.executeGoToFromMenu(self.currentContext, self.syncWithFinder, userInput, self.cmd.getPreviousCommand())
+                result = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.cmd.getPreviousCommand())
                 self.appStatus = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.appStatus
                 if result[0] == -1:
                     self.recursiveTransfer.setTargetDir(result[1])
@@ -254,14 +250,16 @@ class Application:
         else:
             assert False, "Invalid help option"
 
-    def toggleSyncWithFinder(self):
-        sysfunc.setFinderSyncEnabled(not self.syncWithFinder)
-        self.syncWithFinder = sysfunc.isFinderSyncEnabled()
-        print("Finder synchronization enabled") if self.syncWithFinder == True else print("Finder synchronization disabled")
-        if self.syncWithFinder:
-            nav.doFinderSync()
-        else:
-            nav.handleCloseFinderWhenSyncOff()
+    def handleCloseApplication(self, previousCommand):
+        self.nav.closeFinderWhenSyncOff()
+        print("You exited the navigation app.")
+        print("")
+        out.printCurrentDir("Last visited")
+        print("Last executed shell command: ", end='')
+        print(previousCommand) if len(previousCommand) > 0 else print("none")
+        print("")
+
+
 
 ''' Helper functions '''
 def handleClipboardInput(clipboardInput, clipboard):
@@ -299,16 +297,6 @@ def handleClearMenu(userInput):
         cmd.clearCommandHistory()
     else:
         assert False, "Invalid clear menu option"
-
-def handleCloseApplication(previousCommand, shouldCloseFinder):
-    if shouldCloseFinder:
-        nav.handleCloseFinderWhenSyncOff() # Finder synchronization is no longer applicable therefore Finder should be closed
-    print("You exited the navigation app.")
-    print("")
-    out.printCurrentDir("Last visited")
-    print("Last executed shell command: ", end='')
-    print(previousCommand) if len(previousCommand) > 0 else print("none")
-    print("")
 
 #any input starting with < and continuing with a character different from < is considered a quick navigation history request (no matter if valid or not, e.g. <a is invalid)
 def isQuickNavigationRequested(userInput):

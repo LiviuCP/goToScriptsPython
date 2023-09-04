@@ -332,17 +332,25 @@ def retrieveTargetDirPath(gtDirectory):
     return targetDirPath
 
 """ Functions related to Finder synchronization """
-def getDelayBeforeFinderClose():
-    return sysset.delay_before_finder_close
 
-def getDelayBeforeFinderReopen():
-    return sysset.delay_before_finder_reopen
+def doFinderSync():
+    setDelays = "delayBeforeClose=" + str(sysset.delay_before_finder_close) + ";" + "\n" + \
+        "delayBeforeReopen=" + str(sysset.delay_before_finder_reopen) + ";" + "\n" + \
+        "delayAfterReopen=" + str(sysset.delay_after_finder_reopen) + ";" + "\n" + \
+        "delayErrorReopen=" + str(sysset.delay_error_finder_reopen) + ";" + "\n"
+    closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
+    handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n"
+    reopenFinder = "else sleep $delayBeforeReopen; open . 2> /dev/null;" + "\n"
+    handleReopeningError = "if [[ $? != 0 ]]; then sleep $delayErrorReopen; echo \'An error occured when opening the new directory in Finder\'; " + "\n"
+    addDelayAfterSuccessfulReopen = "else sleep $delayAfterReopen;" + "\n" + "fi" + "\n" + "fi" + "\n"
+    openTerminal = "open -a terminal;"
+    updateFinder = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
+    os.system(updateFinder)
 
-def getDelayAfterFinderReopen():
-    return sysset.delay_after_finder_reopen
-
-def getDelayErrorFinderReopen():
-    return sysset.delay_error_finder_reopen
-
-def shouldCloseFinderWhenSyncOff():
-    return sysset.close_finder_when_sync_off
+def closeFinderWhenSyncOff():
+    if sysset.close_finder_when_sync_off:
+        setDelays = "delayBeforeClose=0.1;" + "\n"
+        closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
+        handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n" + "fi"
+        updateFinder = setDelays + closeFinder + handleClosingError
+        os.system(updateFinder)
