@@ -24,11 +24,11 @@ class Application:
 
     def execute(self):
         userInput = ""
-        forwardUserInput = False
+        keyInterruptOccurred = False
         os.system("clear")
         print("Welcome to navigation app!")
         self.nav.initSyncWithFinder()
-        while True:
+        while userInput is not "!" and not keyInterruptOccurred:
             if sysfunc.isFinderSyncEnabled():
                 assert self.nav.isSyncWithFinderEnabled(), "Invalid Finder sync setting" # this assert could only fire if Finder sync had not been enabled through Application (entering ":s")
             elif self.nav.isSyncWithFinderEnabled():
@@ -43,28 +43,19 @@ class Application:
                     out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.nav.isSyncWithFinderEnabled(), prevCommand, prevCommandFinishingStatus, self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.isQuickNavHistEnabled)
                 else:
                     out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.nav.isSyncWithFinderEnabled(), navigationFilter = self.nav.getPreviousNavigationFilter(), commandsFilter = self.cmd.getPreviousCommandsFilter(), clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir(), isQuickNavHistEnabled = self.isQuickNavHistEnabled)
-            keyInterruptOccurred = False
             try:
                 userInput = input()
                 userInput = userInput.strip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history or other errors might occur (depending on input use case)
-                while True:
-                    os.system("clear")
+                self.handleUserInput(userInput)
+                while self.appStatus == 1:
+                    userInput = self.passedInput
                     self.handleUserInput(userInput)
-                    if self.appStatus == 1:
-                        userInput = self.passedInput
-                        forwardUserInput = True
-                    if forwardUserInput == True:
-                        forwardUserInput = False
-                    else:
-                        break
             except (KeyboardInterrupt, EOFError): # CTRL + C, CTRL + D (latter one causes EOFError)
                 keyInterruptOccurred = True
-                os.system("clear")
                 self.handleCloseApplication(prevCommand)
-            if userInput == "!" or keyInterruptOccurred:
-                break
 
     def handleUserInput(self, userInput):
+        os.system("clear")
         self.appStatus = 0
         self.passedInput = ""
         shouldSwitchToMainContext = True
@@ -252,6 +243,7 @@ class Application:
 
     def handleCloseApplication(self, previousCommand):
         self.nav.closeFinderWhenSyncOff()
+        os.system("clear")
         print("You exited the navigation app.")
         print("")
         out.printCurrentDir("Last visited")
