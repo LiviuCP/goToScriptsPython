@@ -44,7 +44,7 @@ class Application:
                     self.handleUserInput(userInput)
             except (KeyboardInterrupt, EOFError): # CTRL + C, CTRL + D (latter one causes EOFError)
                 keyInterruptOccurred = True
-                handleCloseApplication(prevCommand)
+                self.handleCloseApplication(prevCommand)
 
     def handleUserInput(self, userInput):
         os.system("clear")
@@ -152,7 +152,7 @@ class Application:
         elif userInput in ["?", "?clip", "?ren"]:
             self.handleHelpRequest(userInput, out)
         elif userInput == "!":
-            handleCloseApplication(self.cmd.getPreviousCommand())
+            self.handleCloseApplication(self.cmd.getPreviousCommand())
         else:
             if len(userInput) > 0 and userInput[0] == ":":
                 result = self.cmd.executeCommand(userInput[1:])
@@ -230,6 +230,17 @@ class Application:
         else:
             assert False, "Invalid help option"
 
+    def handleCloseApplication(self, previousCommand):
+        os.system("clear")
+        print("You exited the navigation app.")
+        print("")
+        out.printCurrentDir("Last visited")
+        print("Last executed shell command: ", end='')
+        print(previousCommand) if len(previousCommand) > 0 else print("none")
+        print("")
+
+
+
 ''' Helper functions '''
 def handleClipboardInput(clipboardInput, clipboard):
     if clipboardInput == ":c":
@@ -266,15 +277,6 @@ def handleClearMenu(userInput):
         cmd.clearCommandHistory()
     else:
         assert False, "Invalid clear menu option"
-
-def handleCloseApplication(previousCommand):
-    os.system("clear")
-    print("You exited the navigation app.")
-    print("")
-    out.printCurrentDir("Last visited")
-    print("Last executed shell command: ", end='')
-    print(previousCommand) if len(previousCommand) > 0 else print("none")
-    print("")
 
 #any input starting with < and continuing with a character different from < is considered a quick navigation history request (no matter if valid or not, e.g. <a is invalid)
 def isQuickNavigationRequested(userInput):
