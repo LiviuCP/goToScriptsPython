@@ -140,9 +140,9 @@ class Application:
         elif userInput in [":clearnavigation", ":clearcommands"]:
             handleClearMenu(userInput)
         elif userInput in [":c", ":m", ":y", ":ec", ":dc"]:
-            handleClipboardInput(userInput, self.clipboard)
+            self.__handleClipboardInput(userInput)
         elif userInput in [":td", ":M", ":C", ":etd", ":dtd"]:
-            handleRecursiveTransferInput(userInput, self.recursiveTransfer)
+            self.__handleRecursiveTransferInput(userInput)
         elif userInput.startswith(":") and userInput[1:] in renaming_commands:
             rn.rename(renaming_translations[userInput[1:]])
         elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
@@ -164,6 +164,34 @@ class Application:
             self.passedInput = result[1]
         if shouldSwitchToMainContext:
             self.__setContext(contexts_dict["main"], "")
+
+    def __handleClipboardInput(self, clipboardInput):
+        if clipboardInput == ":c":
+            self.clipboard.createAction()
+        elif clipboardInput == ":m":
+            self.clipboard.createAction(False)
+        elif clipboardInput == ":y":
+            self.clipboard.applyAction()
+        elif clipboardInput == ":ec":
+            self.clipboard.erase(True)
+        elif clipboardInput == ":dc":
+            self.clipboard.display()
+        else:
+            assert False, "Invalid clipboard option"
+
+    def __handleRecursiveTransferInput(self, recursiveTransferInput):
+        if recursiveTransferInput == ":td":
+            self.recursiveTransfer.setTargetDir()
+        elif recursiveTransferInput == ":M":
+            self.recursiveTransfer.transferItemsToTargetDir(False)
+        elif recursiveTransferInput == ":C":
+            self.recursiveTransfer.transferItemsToTargetDir()
+        elif recursiveTransferInput == ":etd":
+            self.recursiveTransfer.eraseTargetDir(True)
+        elif recursiveTransferInput == ":dtd":
+            self.recursiveTransfer.displayTargetDir()
+        else:
+            assert False, "Invalid recursive transfer option"
 
     ''' Contexts are related to main menus:
         - navigation history
@@ -245,34 +273,6 @@ class Application:
 
 
 ''' Helper functions '''
-def handleClipboardInput(clipboardInput, clipboard):
-    if clipboardInput == ":c":
-        clipboard.createAction()
-    elif clipboardInput == ":m":
-        clipboard.createAction(False)
-    elif clipboardInput == ":y":
-        clipboard.applyAction()
-    elif clipboardInput == ":ec":
-        clipboard.erase(True)
-    elif clipboardInput == ":dc":
-        clipboard.display()
-    else:
-        assert False, "Invalid clipboard option"
-
-def handleRecursiveTransferInput(recursiveTransferInput, recursiveTransfer):
-    if recursiveTransferInput == ":td":
-        recursiveTransfer.setTargetDir()
-    elif recursiveTransferInput == ":M":
-        recursiveTransfer.transferItemsToTargetDir(False)
-    elif recursiveTransferInput == ":C":
-        recursiveTransfer.transferItemsToTargetDir()
-    elif recursiveTransferInput == ":etd":
-        recursiveTransfer.eraseTargetDir(True)
-    elif recursiveTransferInput == ":dtd":
-        recursiveTransfer.displayTargetDir()
-    else:
-        assert False, "Invalid recursive transfer option"
-
 def handleClearMenu(userInput):
     if userInput == ":clearnavigation":
         nav.clearVisitedDirsMenu()
