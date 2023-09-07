@@ -47,6 +47,11 @@ class Application:
                 self.__handleCloseApplication(prevCommand)
 
     def __handleUserInput(self, userInput):
+        #any input starting with < and continuing with a character different from < is considered a quick navigation history request (no matter if valid or not, e.g. <a is invalid)
+        def isQuickNavigationRequested(userInput):
+            userInput = userInput.strip(' ')
+            isQuickNavHistInput = len(userInput) > 1 and ((userInput[0] == "<" and userInput[1] != "<") or userInput[0:2] == ",,")
+            return isQuickNavHistInput
         os.system("clear")
         self.appStatus = 0
         self.passedInput = ""
@@ -137,8 +142,10 @@ class Application:
         elif userInput == "->":
             result = nav.removeDirFromFavorites()
             self.appStatus = 1 if result[0] == 1 else self.appStatus
-        elif userInput in [":clearnavigation", ":clearcommands"]:
-            handleClearMenu(userInput)
+        if userInput == ":clearnavigation":
+            nav.clearVisitedDirsMenu()
+        elif userInput == ":clearcommands":
+            cmd.clearCommandHistory()
         elif userInput in [":c", ":m", ":y", ":ec", ":dc"]:
             self.__handleClipboardInput(userInput)
         elif userInput in [":td", ":M", ":C", ":etd", ":dtd"]:
@@ -269,23 +276,6 @@ class Application:
         print("Last executed shell command: ", end='')
         print(previousCommand) if len(previousCommand) > 0 else print("none")
         print("")
-
-
-
-''' Helper functions '''
-def handleClearMenu(userInput):
-    if userInput == ":clearnavigation":
-        nav.clearVisitedDirsMenu()
-    elif userInput == ":clearcommands":
-        cmd.clearCommandHistory()
-    else:
-        assert False, "Invalid clear menu option"
-
-#any input starting with < and continuing with a character different from < is considered a quick navigation history request (no matter if valid or not, e.g. <a is invalid)
-def isQuickNavigationRequested(userInput):
-    userInput = userInput.strip(' ')
-    isQuickNavHistInput = len(userInput) > 1 and ((userInput[0] == "<" and userInput[1] != "<") or userInput[0:2] == ",,")
-    return isQuickNavHistInput
 
 application = Application()
 application.execute()
