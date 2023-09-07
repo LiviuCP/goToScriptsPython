@@ -38,15 +38,15 @@ class Application:
             try:
                 userInput = input()
                 userInput = userInput.strip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history or other errors might occur (depending on input use case)
-                self.handleUserInput(userInput)
+                self.__handleUserInput(userInput)
                 while self.appStatus == 1:
                     userInput = self.passedInput
-                    self.handleUserInput(userInput)
+                    self.__handleUserInput(userInput)
             except (KeyboardInterrupt, EOFError): # CTRL + C, CTRL + D (latter one causes EOFError)
                 keyInterruptOccurred = True
-                self.handleCloseApplication(prevCommand)
+                self.__handleCloseApplication(prevCommand)
 
-    def handleUserInput(self, userInput):
+    def __handleUserInput(self, userInput):
         os.system("clear")
         self.appStatus = 0
         self.passedInput = ""
@@ -58,9 +58,9 @@ class Application:
             fallbackPerformed = syncResult[1]
         if fallbackPerformed:
             out.printFallbackMessage()
-            self.handleFallbackPerformed()
+            self.__handleFallbackPerformed()
         elif len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
-            result = self.setContext(contexts_dict[userInput[0:2]], userInput[2:])
+            result = self.__setContext(contexts_dict[userInput[0:2]], userInput[2:])
             #return to main context only if the user hasn't chosen to toggle or no quick navigation has been attempted (same for the below cases)
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif len(userInput) >= 1 and userInput[0] == ">":
@@ -71,44 +71,44 @@ class Application:
                 if not isInputOk:
                     print("Invalid favorites entry number!")
             if isInputOk:
-                result = self.setContext(contexts_dict[userInput[0]], navHistInput)
+                result = self.__setContext(contexts_dict[userInput[0]], navHistInput)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif len(userInput) >= 1 and userInput[0] == "<":
             navHistInput = userInput[1:]
             isInputOk = True
             if len(navHistInput) > 0:
-                isInputOk = self.isQuickNavigationPossible(navHistInput)
+                isInputOk = self.__isQuickNavigationPossible(navHistInput)
             if isInputOk:
-                result = self.setContext(contexts_dict[userInput[0]], navHistInput)
+                result = self.__setContext(contexts_dict[userInput[0]], navHistInput)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif userInput in [":n", ":N"]:
             prevNavigationFilter = self.nav.getPreviousNavigationFilter()
             if len(prevNavigationFilter) > 0:
                 contexts_dictKey = "<<" if userInput == ":n" else ">>"
-                result = self.setContext(contexts_dict[contexts_dictKey], prevNavigationFilter)
+                result = self.__setContext(contexts_dict[contexts_dictKey], prevNavigationFilter)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
             else:
                 print("No navigation filter previously entered.")
         elif len(userInput) >= 2 and userInput[0:2] == ",,":
             navHistInput = userInput[2:]
-            if self.isQuickNavigationPossible(navHistInput):
-                result = self.setContext(contexts_dict["<"], "," + navHistInput)
+            if self.__isQuickNavigationPossible(navHistInput):
+                result = self.__setContext(contexts_dict["<"], "," + navHistInput)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
-            result = self.setContext(contexts_dict[userInput[0:2]], userInput[2:])
+            result = self.__setContext(contexts_dict[userInput[0:2]], userInput[2:])
             shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
         elif userInput in [":f", ":F"]:
             prevCommandsFilter = self.cmd.getPreviousCommandsFilter()
             if len(prevCommandsFilter) > 0:
                 contexts_dictKey = ":<" if userInput == ":f" else "::"
-                result = self.setContext(contexts_dict[contexts_dictKey], prevCommandsFilter)
+                result = self.__setContext(contexts_dict[contexts_dictKey], prevCommandsFilter)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
             else:
                 print("No commands filter previously entered.")
         elif userInput == ":t":
             newContext = context_switch_dict[self.currentContext]
             if len(newContext) > 0:
-                result = self.setContext(newContext, self.currentFilter)
+                result = self.__setContext(newContext, self.currentFilter)
                 shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
             else:
                 print("Unable to toggle, not in the right menu!")
@@ -148,11 +148,11 @@ class Application:
         elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
             print("Input cancelled, no action performed!")
         elif userInput == ":qn":
-            self.toggleQuickNavigationHistory()
+            self.__toggleQuickNavigationHistory()
         elif userInput in ["?", "?clip", "?ren"]:
-            self.handleHelpRequest(userInput, out)
+            self.__handleHelpRequest(userInput, out)
         elif userInput == "!":
-            self.handleCloseApplication(self.cmd.getPreviousCommand())
+            self.__handleCloseApplication(self.cmd.getPreviousCommand())
         else:
             if len(userInput) > 0 and userInput[0] == ":":
                 result = self.cmd.executeCommand(userInput[1:])
@@ -163,7 +163,7 @@ class Application:
         if result is not None:
             self.passedInput = result[1]
         if shouldSwitchToMainContext:
-            self.setContext(contexts_dict["main"], "")
+            self.__setContext(contexts_dict["main"], "")
 
     ''' Contexts are related to main menus:
         - navigation history
@@ -172,7 +172,7 @@ class Application:
         - command history in execute mode (filtered or not)
         - command history in edit mode (filtered or not)
         - main navigation mode (no main menu): includes all sub-contexts: edit an individual command, help menu, move/copy, recursive move/copy, renaming files/dirs etc '''
-    def setContext(self, newContext, userInput):
+    def __setContext(self, newContext, userInput):
         assert newContext in valid_contexts, "Invalid context detected"
         if len(self.currentFilter) > 0:
             assert self.currentContext in ["-fh", "-ff", "--execute", "--edit"], "Invalid filter keyword within current context"
@@ -202,13 +202,16 @@ class Application:
                 print("No filter keyword entered. Cannot filter ", end='')
                 print("navigation history.") if self.currentContext == "-fh" else print("favorites.")
         return result
-    def handleFallbackPerformed(self):
+
+    def __handleFallbackPerformed(self):
         self.clipboard.erase()
         self.recursiveTransfer.eraseTargetDir()
-    def toggleQuickNavigationHistory(self):
+
+    def __toggleQuickNavigationHistory(self):
         self.isQuickNavHistEnabled = not self.isQuickNavHistEnabled
         print("Quick navigation history enabled!") if self.isQuickNavHistEnabled else print("Quick navigation history disabled!")
-    def isQuickNavigationPossible(self, navHistInput):
+
+    def __isQuickNavigationPossible(self, navHistInput):
         isQuickNavPossible = False
         if len(self.currentContext) > 0: #quick history is only accessible from main navigation page (including help menus) - it should be visible when accessed!
             print("Quick navigation history not accessible from current context. Please try again!")
@@ -220,7 +223,7 @@ class Application:
         else:
             print("Quick history is disabled. Please enable it and try again!")
         return isQuickNavPossible
-    def handleHelpRequest(self, helpInput, out):
+    def __handleHelpRequest(self, helpInput, out):
         if helpInput == "?":
             out.displayHelp(self.isQuickNavHistEnabled)
         elif helpInput == "?clip":
@@ -230,7 +233,7 @@ class Application:
         else:
             assert False, "Invalid help option"
 
-    def handleCloseApplication(self, previousCommand):
+    def __handleCloseApplication(self, previousCommand):
         os.system("clear")
         print("You exited the navigation app.")
         print("")
