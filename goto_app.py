@@ -142,7 +142,7 @@ class Application:
         elif userInput == "->":
             result = nav.removeDirFromFavorites()
             self.appStatus = 1 if result[0] == 1 else self.appStatus
-        if userInput == ":clearnavigation":
+        elif userInput == ":clearnavigation":
             nav.clearVisitedDirsMenu()
         elif userInput == ":clearcommands":
             cmd.clearCommandHistory()
