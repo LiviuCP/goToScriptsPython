@@ -1,5 +1,5 @@
 import sys, os
-import system_functionality as sysfunc, quick_navigation as qnav, navigation_settings as navset
+import system_functionality as sysfunc, navigation as nav, navigation_settings as navset
 
 def displayGeneralOutput(prevDir, prevCommand = "", prevCommandFinishingStatus = "", navigationFilter = "", commandsFilter = "", clipboardAction = "", clipboardKeyword = "", clipboardSourceDir = "", recursiveTargetDir = "", isQuickNavHistEnabled = False):
     syncResult = sysfunc.syncCurrentDir()
@@ -85,7 +85,7 @@ def displayQuickNavigationHistory():
     print("")
     print("Last visited directories (enter < or ,, followed by entry number to re-visit the directory or its parent):")
     print("")
-    qnav.displayFormattedQuickNavigationHistory()
+    nav.displayQuickNavigationHistory()
     print("")
 
 # to be updated: number of columns should be dynamically determined depending on screen size and number of files/dirs contained in current dir
