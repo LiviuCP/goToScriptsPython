@@ -359,3 +359,9 @@ def removeDirFromFavorites():
 
 def isValidFavoritesEntryNr(userInput):
     return nav.isValidFavoritesEntryNr(userInput)
+
+def displayQuickNavigationHistory():
+    nav.displayFormattedQuickNavigationHistory()
+
+def isValidQuickNavHistoryEntryNr(userInput):
+    return nav.isValidQuickNavHistoryEntryNr(userInput)

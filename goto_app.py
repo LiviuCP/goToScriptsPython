@@ -1,5 +1,5 @@
 import os
-import navigation as nav, quick_navigation as qnav, commands as cmd, common, clipboard as clip, recursive_transfer as rt, rename as rn, system_functionality as sysfunc, display as out
+import navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt, rename as rn, system_functionality as sysfunc, display as out
 
 renaming_commands = {"ra", "ran", "rp", "rpn", "ri", "rin", "rd", "rr", "rrn"}
 renaming_translations = {"ra" : "a", "ran" : "A", "rp" : "p", "rpn" : "P", "ri" : "i", "rin" : "I", "rd" : "d", "rr" : "r", "rrn" : "R"}
@@ -261,7 +261,7 @@ class Application:
         if len(self.currentContext) > 0: #quick history is only accessible from main navigation page (including help menus) - it should be visible when accessed!
             print("Quick navigation history not accessible from current context. Please try again!")
         elif self.isQuickNavHistEnabled:
-            if qnav.isValidEntryNr(navHistInput):
+            if nav.isValidQuickNavHistoryEntryNr(navHistInput):
                 isQuickNavPossible = True
             else:
                 print("Invalid quick history entry number! Please try again.")

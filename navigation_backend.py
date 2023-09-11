@@ -1,5 +1,5 @@
 import sys, os
-import common, nav_cmd_common as nvcdcmn, shared_nav_functions as ns, navigation_settings as navset, system_settings as sysset
+import nav_cmd_common as nvcdcmn, shared_nav_functions as ns, navigation_settings as navset, system_settings as sysset
 
 """ navigation history/favorites menu init/access functions """
 def initNavMenus():
@@ -330,6 +330,24 @@ def retrieveTargetDirPath(gtDirectory):
             with open(sysset.input_storage_file, "r") as inputStorage:
                 targetDirPath = inputStorage.readline().strip('\n')
     return targetDirPath
+
+""" Functions related to quick navigation """
+
+def displayFormattedQuickNavigationHistory():
+    with open(navset.r_hist_file, "r") as rHist:
+        ns.displayFormattedNavFileContent(rHist.readlines(), 0, navset.q_hist_max_entries)
+
+# a positive result guarantees validity of user provided quick navigation history entry
+def isValidQuickNavHistoryEntryNr(userInput):
+    isValid = False
+    if len(userInput) > 0 and userInput.isdigit():
+        quickNavEntryNr = int(userInput)
+        if quickNavEntryNr <= navset.q_hist_max_entries and quickNavEntryNr > 0:
+            rHistEntriesCount = 0
+            with open(navset.r_hist_file, "r") as rHist:
+                rHistEntriesCount = len(rHist.readlines())
+            isValid = quickNavEntryNr <= rHistEntriesCount
+    return isValid
 
 """ Functions related to Finder synchronization """
 
