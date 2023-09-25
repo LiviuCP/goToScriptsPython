@@ -6,7 +6,7 @@ class Commands:
         self.previousCommand = ""
         self.previousCommandSuccess = False
         self.previousCommandsFilter = ""
-        cmd.initCmdMenus()
+        self.cmd = cmd.CommandsBackend()
 
     def getPreviousCommand(self):
         return self.previousCommand
@@ -47,26 +47,26 @@ class Commands:
         return self.__editAndExecuteCommand(self.previousCommand)
 
     """ Displays the requested commands menu and prompts the user to enter the required option """
-    def visitCommandMenu(self, mode, filterKey = ""):
+    def visitCommandsMenu(self, mode, filterKey = ""):
         def displayCmdHistMenu(mode):
-            cmd.consolidateCommandHistory() # normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
+            self.cmd.consolidateCommandsHistory() # normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
             print("COMMANDS LIST")
             print("")
             print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
             print("")
             print("-- RECENTLY EXECUTED --")
             print("")
-            cmd.displayFormattedRecentCmdHistContent()
+            self.cmd.displayFormattedRecentCmdHistContent()
             print("")
             print("-- MOST EXECUTED --")
             print("")
-            cmd.displayFormattedPersistentCmdHistContent()
+            self.cmd.displayFormattedPersistentCmdHistContent()
         def displayFilteredCmdHistMenu(content, mode, totalNrOfMatches):
             print("FILTERED COMMANDS LIST")
             print("")
             print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
             print("")
-            cmd.displayFormattedFilteredCmdHistContent(content, totalNrOfMatches)
+            self.cmd.displayFormattedFilteredCmdHistContent(content, totalNrOfMatches)
         def displayPageFooter(currentDir, filterKey = ""):
             print("")
             print("Current directory: " + currentDir)
@@ -88,8 +88,8 @@ class Commands:
         passedInput = ""
         assert mode in ["--edit", "--execute"], "Invalid mode argument provided"
         os.system("clear")
-        filteredHistEntries = []
-        if cmd.isCommandMenuEmpty():
+        filteredEntries = []
+        if self.cmd.isCommandsMenuEmpty():
             print("There are no entries in the command history menu.")
             userInput = ""
         elif len(filterKey) == 0:
@@ -99,33 +99,33 @@ class Commands:
             os.system("clear")
         else:
             self.previousCommandsFilter = filterKey
-            filterResult = cmd.buildFilteredCommandHistory(filteredHistEntries, filterKey)
+            filterResult = self.cmd.buildFilteredCommandsHistory(filterKey, filteredEntries)
             totalNrOfMatches = filterResult[0]
             appliedFilterKey = filterResult[1]
-            if len(filteredHistEntries) == 0:
+            if len(filteredEntries) == 0:
                 print("There are no entries in the filtered command history menu.")
                 userInput = ""
             else:
-                displayFilteredCmdHistMenu(filteredHistEntries, mode, totalNrOfMatches)
+                displayFilteredCmdHistMenu(filteredEntries, mode, totalNrOfMatches)
                 displayPageFooter(syncResult[0], appliedFilterKey)
                 userInput = input()
                 os.system("clear")
         # process user choice
         userInput = userInput.strip()
-        choiceResult = cmd.chooseCommand(userInput) if len(filterKey) == 0 else cmd.chooseFilteredCommand(userInput, filteredHistEntries)
-        commandHistoryEntry = choiceResult[0]
+        choiceResult = self.cmd.chooseCommand(userInput) if len(filterKey) == 0 else self.cmd.chooseFilteredCommand(userInput, filteredEntries)
+        commandsHistoryEntry = choiceResult[0]
         syncResult = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice
         if syncResult[1]:
             out.displayFallbackMessage()
-        elif commandHistoryEntry in [":1", ":2"]:
-            status = int(commandHistoryEntry[1])
+        elif commandsHistoryEntry in [":1", ":2"]:
+            status = int(commandsHistoryEntry[1])
             passedInput = choiceResult[1]
             if status == 2:
                 print("You exited the command menu!")
-        elif commandHistoryEntry not in [":3", ":4"]:
+        elif commandsHistoryEntry not in [":3", ":4"]:
             result = (status, "", "")
             if mode == "--execute":
-                commandToExecute = commandHistoryEntry
+                commandToExecute = commandsHistoryEntry
                 if cmd.isSensitiveCommand(commandToExecute):
                     print("The following command might cause ireversible changes:")
                     print(commandToExecute)
@@ -151,11 +151,20 @@ class Commands:
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                     print("Repeated command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
             else:
-                result = self.__editAndExecuteCommand(commandHistoryEntry)
+                result = self.__editAndExecuteCommand(commandsHistoryEntry)
                 if result[0] != 0:
                     status = 2 #aborted by user
             passedInput = result[1]
         return (status, passedInput, "")
+
+    """ resets the commands history """
+    def clearCommandsHistory(self):
+        self.cmd.clearCommandsHistory()
+        print("Content of commands history menu has been erased.")
+
+    """ requests closing the commands functionality in an orderly manner when application gets closed """
+    def closeCommands(self):
+        self.cmd.closeCommands()
 
     """ edit an existing command (previous command or from commands history) and then execute it """
     def __editAndExecuteCommand(self, previousCommand):
@@ -201,14 +210,8 @@ class Commands:
         # read command status code, create the status message and update the command history files
         commandExecResult = cmd.retrieveCommandExecResult()
         if len(command) >= cmd.getMinCommandSize():
-            cmd.updateCommandHistory(command)
-            cmd.consolidateCommandHistory()
+            self.cmd.updateCommandsHistory(command)
+            self.cmd.consolidateCommandsHistory()
         self.previousCommand = command
         self.previousCommandSuccess = (commandExecResult == 0)
         return (0, command, "")
-
-""" Functions currently not included in the Commands class """
-
-def clearCommandHistory():
-    cmd.clearCommandHistory()
-    print("Content of command history menu has been erased.")

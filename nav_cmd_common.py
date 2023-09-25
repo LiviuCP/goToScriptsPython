@@ -1,20 +1,6 @@
 """ common code to be used by navigation_backend.py and commands_backend.py """
 
 import os, re
-from pathlib import Path
-
-def limitEntriesNr(filePath, maxEntries):
-    assert len(filePath) > 0, "Empty path argument detected"
-    with open(filePath, "r") as f:
-        fileContent = f.readlines()
-        fileEntries = 0
-        for entry in fileContent:
-            fileEntries = fileEntries + 1
-        if fileEntries > maxEntries:
-            f.close()
-            with open(filePath, "w") as f:
-                for entryNr in range(maxEntries):
-                    f.write(fileContent[entryNr])
 
 """
 The returned outcome could have following special values in the first field:
@@ -52,13 +38,49 @@ def getMenuEntry(userInput, content):
         output = ":4" if len(content) == 0 else ":2" if userInput == '!' else ":1"
     return (output.strip("\n"), userInput, "")
 
-def readFromPermHist(histDict, strHistFile, numHistFile):
+def loadBasicFiles(rHistFile, rHistMaxEntries, lHistFile, pStrHistFile, pNumHistFile, rHistEntries, dailyLog, pHistDict):
+    recentHistory = []
+    persistentHistory = {}
+    if os.path.isfile(rHistFile):
+        with open(rHistFile, "r") as rHist:
+            entriesCount = 0
+            for entry in rHist.readlines():
+                if entriesCount == rHistMaxEntries:
+                    break
+                recentHistory.append(entry.strip('\n'))
+                ++entriesCount
+    if len(recentHistory) > 0 and os.path.isfile(pStrHistFile) and os.path.isfile(pNumHistFile):
+        readFromPermHist(pStrHistFile, pNumHistFile, persistentHistory)
+    if len(persistentHistory) > 0:
+        rHistEntries.clear()
+        pHistDict.clear()
+        for entry in recentHistory:
+            rHistEntries.append(entry)
+        for entry in persistentHistory.items():
+            pHistDict[entry[0]] = entry[1]
+        if os.path.isfile(lHistFile):
+            dailyLog.clear()
+            with open(lHistFile, "r") as lHist:
+                for entry in lHist.readlines():
+                    dailyLog.append(entry.strip('\n'))
+
+def readFromPermHist(strHistFile, numHistFile, histDict):
     with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:
         strHistList = strHist.readlines()
         numHistList = numHist.readlines()
         assert len(strHistList) == len(numHistList), "The number of entries contained in file " + strHistFile + " is different from the number contained in file" + numHistFile
         for index in range(len(strHistList)):
             histDict[strHistList[index].strip('\n')] = int(numHistList[index].strip('\n'))
+
+def writeBackToTempHist(rHistEntries, rHistFile, dailyLog, logDir, dailyLogFile):
+    with open(rHistFile, "w") as rHist:
+        for entry in rHistEntries:
+            rHist.write(entry + '\n')
+    if not os.path.exists(logDir):
+        os.makedirs(logDir)
+    with open(dailyLogFile, "w") as lHist:
+        for entry in dailyLog:
+            lHist.write(entry + '\n')
 
 def writeBackToPermHist(histDict, strHistFile, numHistFile, shouldSort = False):
     with open(strHistFile, "w") as strHist, open(numHistFile, "w") as numHist:
@@ -71,46 +93,14 @@ def writeBackToPermHist(histDict, strHistFile, numHistFile, shouldSort = False):
                 strHist.write(path + '\n')
                 numHist.write(str(count) + '\n')
 
-def updateHistory(newOrUpdatedEntry, lHistFile, rHistFile, rHistMaxEntries, pStrHistFile, pNumHistFile, eStrHistFile = "", eNumHistFile = ""):
-    assert len(newOrUpdatedEntry) > 0, "Empty path argument detected"
-    with open(lHistFile, "a") as lHist, open(rHistFile, "r") as rHist:
-        rHistContent = []
-        rHistEntries = 0
-        for entry in rHist.readlines():
-            rHistContent.append(entry.strip('\n'))
-            rHistEntries = rHistEntries + 1
-        if newOrUpdatedEntry in rHistContent:
-            rHistContent.remove(newOrUpdatedEntry)
-        elif rHistEntries == rHistMaxEntries:
-            rHistContent.remove(rHistContent[rHistEntries-1])
-        rHistContent = [newOrUpdatedEntry] + rHistContent
-        rHist.close()
-        lHist.close()
-        with open(rHistFile, "w") as rHist, open(lHistFile, "r") as lHist:
-            for entry in rHistContent:
-                rHist.write(entry+'\n')
-            lHistContent = []
-            for entry in lHist.readlines():
-                lHistContent.append(entry.strip('\n'))
-            lHist.close()
-            # only update persistent or excluded history file if the visited path is not being contained in the visit log for the current day
-            if newOrUpdatedEntry not in lHistContent:
-                with open(lHistFile, "a") as lHist:
-                    lHist.write(newOrUpdatedEntry + "\n")
-                    eHistUpdateDict = {}
-                    if len(eStrHistFile) > 0:
-                        assert len(eNumHistFile) > 0, "The excluded history numbers file hasn't been passed as argument"
-                        readFromPermHist(eHistUpdateDict, eStrHistFile, eNumHistFile)
-                    if newOrUpdatedEntry in eHistUpdateDict.keys():
-                        eHistUpdateDict[newOrUpdatedEntry] += 1
-                        writeBackToPermHist(eHistUpdateDict, eStrHistFile, eNumHistFile)
-                    else:
-                        pHistUpdateDict = {}
-                        readFromPermHist(pHistUpdateDict, pStrHistFile, pNumHistFile)
-                        pHistUpdateDict[newOrUpdatedEntry] = (pHistUpdateDict[newOrUpdatedEntry] + 1) if newOrUpdatedEntry in pHistUpdateDict.keys() else 1
-                        writeBackToPermHist(pHistUpdateDict, pStrHistFile, pNumHistFile, True)
+def buildFilteredPersistentHistory(pHistDict, filterKeyword, maxFilteredHistEntries, filteredContent):
+    assert len(filterKeyword) > 0, "Empty filter key found"
+    rawHistoryContent = []
+    for path, count in sorted(pHistDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+        rawHistoryContent.append(path)
+    return buildFilteredHistory(rawHistoryContent, filterKeyword, maxFilteredHistEntries, filteredContent)
 
-def buildFilteredHistory(filteredContent, filterKeyword, pStrHistFile, maxFilteredHistEntries):
+def buildFilteredHistory(rawContent, filterKeyword, maxFilteredHistEntries, filteredContent):
     assert len(filterKeyword) > 0, "Empty filter keyword found"
     nrOfMatches = 0
     appliedFilterKeyword = ""
@@ -126,31 +116,30 @@ def buildFilteredHistory(filteredContent, filterKeyword, pStrHistFile, maxFilter
                 filter = "^((?!" + filter[1:] + ").)*$" # search for entries that DON'T contain the search keyword
             validFilters.append(filter.lower())
     if len(validFilters) > 0:
-        with open(pStrHistFile, 'r') as pStrHist:
-            result = []
-            try:
-                for entry in pStrHist.readlines():
-                    entry = entry.strip('\n')
-                    match = True
-                    for filter in validFilters:
-                        searchResult = re.search(filter, entry.lower())
-                        if not searchResult:
-                            match = False
-                            break
-                    if match:
-                        result.append(entry)
-                nrOfMatches = len(result)
-                nrOfExposedEntries = nrOfMatches if nrOfMatches < maxFilteredHistEntries else maxFilteredHistEntries
-                for index in range(nrOfExposedEntries):
-                    filteredContent.append(result[index])
-                # provide the cleaned-up filter string to the user
+        result = []
+        try:
+            for entry in rawContent:
+                entry = entry.strip('\n')
+                match = True
                 for filter in validFilters:
-                    appliedFilterKeyword += filter + ", "
-                appliedFilterKeywordLength = len(appliedFilterKeyword)
-                if appliedFilterKeywordLength >= 2:
-                    appliedFilterKeyword = appliedFilterKeyword[0:appliedFilterKeywordLength-2]
-            except Exception as e:
-                result.clear()
-                nrOfMatches = 0
-                appliedFilterKeyword = ""
+                    searchResult = re.search(filter, entry.lower())
+                    if not searchResult:
+                        match = False
+                        break
+                if match:
+                    result.append(entry)
+            nrOfMatches = len(result)
+            nrOfExposedEntries = nrOfMatches if nrOfMatches < maxFilteredHistEntries else maxFilteredHistEntries
+            for index in range(nrOfExposedEntries):
+                filteredContent.append(result[index])
+            # provide the cleaned-up filter string to the user
+            for filter in validFilters:
+                appliedFilterKeyword += filter + ", "
+            appliedFilterKeywordLength = len(appliedFilterKeyword)
+            if appliedFilterKeywordLength >= 2:
+                appliedFilterKeyword = appliedFilterKeyword[0:appliedFilterKeywordLength-2]
+        except Exception as e:
+            result.clear()
+            nrOfMatches = 0
+            appliedFilterKeyword = ""
     return (nrOfMatches, appliedFilterKeyword)

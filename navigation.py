@@ -6,7 +6,7 @@ class Navigation:
     def __init__(self, startingDirectory):
         self.previousDirectory = startingDirectory
         self.previousNavigationFilter = ""
-        nav.initNavMenus()
+        self.nav = nav.NavigationBackend()
 
     def getPreviousDirectory(self):
         return self.previousDirectory
@@ -26,8 +26,8 @@ class Navigation:
             os.chdir(currentDir)
             if (prevDir != currentDir):
                 print("Switched to new directory: " + currentDir)
-                nav.updateNavigationHistory(currentDir)
-                nav.consolidateHistory()
+                self.nav.updateNavigationHistory(currentDir)
+                self.nav.consolidateHistory()
                 self.previousDirectory = prevDir
             else:
                 print("Current directory remains unchanged: " + currentDir)
@@ -92,6 +92,74 @@ class Navigation:
             passedInput = ""
         return (status, passedInput, "")
 
+    """ resets the navigation history (including separate history for favorite directories) """
+    def clearVisitedDirsMenu(self):
+        self.nav.clearHistory()
+        print("Content of navigation history menu has been erased.")
+
+    """ adds directory to favorite paths """
+    def addDirToFavorites(self, dirPath = ""):
+        pathToAdd = common.getAbsoluteDirPath(dirPath)
+        if len(pathToAdd) > 0:
+            if not self.nav.isContainedInFavorites(pathToAdd):
+                self.nav.addPathToFavorites(pathToAdd)
+                print("Directory " + pathToAdd + " added to favorites.")
+            else:
+                print("Directory " + pathToAdd + " already added to favorites.")
+        else:
+            os.system("clear")
+            print("Directory " + dirPath + " does not exist, has been deleted or you might not have the required access level.")
+            print("Cannot add to favorites.")
+
+    """ removes dir from favorite paths """
+    def removeDirFromFavorites(self):
+        def displayFavoritesEntryRemovalDialog(currentDir):
+            print("REMOVE DIRECTORY FROM FAVORITES")
+            print('')
+            self.nav.displayFormattedFavoritesContent()
+            print('')
+            print("Current directory: " + currentDir)
+            print('')
+            print("Enter the number of the directory to be removed from favorites.")
+            print("Enter ! to quit this dialog.")
+            print('')
+        syncResult = sysfunc.syncCurrentDir()
+        assert not syncResult[1], "Current dir fallback not allowed"
+        status = 0 # default status, successful removal or aborted by user
+        userInput = ""
+        if self.nav.isFavEmpty():
+            print("There are no entries in the favorites menu.")
+            status = 4
+        else:
+            displayFavoritesEntryRemovalDialog(syncResult[0])
+            userInput = input()
+            os.system("clear")
+            if userInput == '!':
+                print("No entry removed from favorites menu.")
+            else:
+                removedPath = self.nav.removePathFromFavorites(userInput)
+                if len(removedPath) > 0:
+                    print("Entry " + removedPath + " removed from favorites menu.")
+                else:
+                    status = 1 # forward user input as regular input
+        return (status, userInput, "")
+
+    """ used for quick favorite directories access """
+    def isValidFavoritesEntryNr(self, userInput):
+        return self.nav.isValidFavoritesEntryNr(userInput)
+
+    """ quick navigation history is part of recent history but can be accessed outside the regular history menus """
+    def displayQuickNavigationHistory(self):
+        self.nav.displayFormattedQuickNavigationHistory()
+
+    """ checks the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent navigation history) """
+    def isValidQuickNavHistoryEntryNr(self, userInput):
+        return self.nav.isValidQuickNavHistoryEntryNr(userInput)
+
+    """ requests closing the navigation functionality in an orderly manner when application gets closed """
+    def closeNavigation(self):
+        self.nav.closeNavigation()
+
     """
     The status returned by this method can have following values:
     0 - mapping or removal attempted by user
@@ -123,7 +191,7 @@ class Navigation:
             out.printFallbackMessage()
         # remove directory from history, don't map to anything
         elif userChoice == "!r":
-            removedPath = nav.removeMissingDir(missingDirPath)
+            removedPath = self.nav.removeMissingDir(missingDirPath)
             os.system("clear")
             print("Entry " + removedPath + " has been removed from the menus.")
         # map missing directory to a valid replacing dir
@@ -169,7 +237,7 @@ class Navigation:
                 replacingDirPath = nav.getReplacingDirPath(replacingDir)
                 if replacingDirPath != ":4":
                     self.previousDirectory = syncResult[0] # prev dir to be updated to current dir in case of successful mapping
-                    mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
+                    mappingResult = self.nav.mapMissingDir(missingDirPath, replacingDirPath)
                     os.system("clear")
                     print("Missing directory: " + mappingResult[0])
                     print("Replacing directory: " + mappingResult[1])
@@ -193,25 +261,25 @@ class Navigation:
     """ Displays the requested navigation menu and prompts the user to enter the required option """
     def __visitNavigationMenu(self, menuChoice, userInput = "", previousCommand = ""):
         def displayHistMenu():
-            nav.consolidateHistory() # normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
+            self.nav.consolidateHistory() # normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
             print("VISITED DIRECTORIES")
             print("")
             print("-- RECENTLY VISITED --")
             print("")
-            nav.displayFormattedRecentHistContent()
+            self.nav.displayFormattedRecentHistContent()
             print("")
             print("-- MOST VISITED --")
             print("")
-            nav.displayFormattedPersistentHistContent()
+            self.nav.displayFormattedPersistentHistContent()
         def displayFavoritesMenu():
             print("FAVORITE DIRECTORIES")
             print("")
-            nav.displayFormattedFavoritesContent()
+            self.nav.displayFormattedFavoritesContent()
         def displayFilteredMenu(choice, content, totalNrOfMatches):
             assert choice in ["-fh", "-ff"]
             print("FILTERED VISITED DIRECTORIES") if choice == "-fh" else print("FILTERED FAVORITE DIRECTORIES")
             print("")
-            nav.displayFormattedFilteredContent(content, totalNrOfMatches)
+            self.nav.displayFormattedFilteredContent(content, totalNrOfMatches)
         def displayPageFooter(currentDir, choice, filterKey = ""):
             toggleDict = {"-h" : "FAVORITE DIRECTORIES", "-f" : "VISITED DIRECTORIES", "-fh" : "FILTERED FAVORITE DIRECTORIES", "-ff" : "FILTERED VISITED DIRECTORIES"}
             print("")
@@ -238,7 +306,7 @@ class Navigation:
         if menuChoice in ["-fh", "-ff"]:
             assert len(userInput) > 0, "No filter has been provided for filtered navigation menu"
             self.previousNavigationFilter = userInput
-            filterResult = nav.buildFilteredNavigationHistory(filteredEntries, userInput) if menuChoice == "-fh" else nav.buildFilteredFavorites(filteredEntries, userInput)
+            filterResult = self.nav.buildFilteredNavigationHistory(userInput, filteredEntries) if menuChoice == "-fh" else self.nav.buildFilteredFavorites(userInput, filteredEntries)
             totalNrOfMatches = filterResult[0]
             appliedFilterKey = filterResult[1]
             userInput = "" #input should be reset to correctly account for the case when the resulting filtered history menu is empty
@@ -250,72 +318,12 @@ class Navigation:
                 os.system("clear")
         elif len(userInput) == 0:
             os.system("clear")
-            if not nav.isMenuEmpty(menuChoice):
+            if not self.nav.isMenuEmpty(menuChoice):
                 displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
                 displayPageFooter(syncResult[0], menuChoice)
                 userInput = input()
                 os.system("clear")
         # process user choice
         userInput = userInput.strip()
-        choiceResult = nav.choosePath(menuChoice, userInput, filteredEntries)
+        choiceResult = self.nav.choosePath(menuChoice, userInput, filteredEntries)
         return choiceResult
-
-""" Functions currently not included in the Navigation class """
-
-def clearVisitedDirsMenu():
-    nav.clearHistory()
-    print("Content of navigation history menu has been erased.")
-
-def addDirToFavorites(dirPath = ""):
-    pathToAdd = common.getAbsoluteDirPath(dirPath)
-    if len(pathToAdd) > 0:
-        if not nav.isContainedInFavorites(pathToAdd):
-            nav.addPathToFavorites(pathToAdd)
-            print("Directory " + pathToAdd + " added to favorites.")
-        else:
-            print("Directory " + pathToAdd + " already added to favorites.")
-    else:
-        os.system("clear")
-        print("Directory " + dirPath + " does not exist, has been deleted or you might not have the required access level.")
-        print("Cannot add to favorites.")
-
-def removeDirFromFavorites():
-    def displayFavoritesEntryRemovalDialog(currentDir):
-        print("REMOVE DIRECTORY FROM FAVORITES")
-        print('')
-        nav.displayFormattedFavoritesContent()
-        print('')
-        print("Current directory: " + currentDir)
-        print('')
-        print("Enter the number of the directory to be removed from favorites.")
-        print("Enter ! to quit this dialog.")
-        print('')
-    syncResult = sysfunc.syncCurrentDir()
-    assert not syncResult[1], "Current dir fallback not allowed"
-    status = 0 # default status, successful removal or aborted by user
-    userInput = ""
-    if nav.isFavEmpty():
-        print("There are no entries in the favorites menu.")
-        status = 4
-    else:
-        displayFavoritesEntryRemovalDialog(syncResult[0])
-        userInput = input()
-        os.system("clear")
-        if userInput == '!':
-            print("No entry removed from favorites menu.")
-        else:
-            removedPath = nav.removePathFromFavorites(userInput)
-            if len(removedPath) > 0:
-                print("Entry " + removedPath + " removed from favorites menu.")
-            else:
-                status = 1 # forward user input as regular input
-    return (status, userInput, "")
-
-def isValidFavoritesEntryNr(userInput):
-    return nav.isValidFavoritesEntryNr(userInput)
-
-def displayQuickNavigationHistory():
-    nav.displayFormattedQuickNavigationHistory()
-
-def isValidQuickNavHistoryEntryNr(userInput):
-    return nav.isValidQuickNavHistoryEntryNr(userInput)
