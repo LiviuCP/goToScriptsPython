@@ -13,6 +13,7 @@ class NavigationBackend:
         self.__loadNavigationFiles()
         self.__doHistoryCleanup()
         self.consolidateHistory()
+        self.__computeFavorites()
 
     def choosePath(self, menuChoice, userInput, filteredContent):
         content = filteredContent if menuChoice in ["-fh", "-ff"] else self.favorites if menuChoice == "-f" else self.consolidatedHistory
@@ -20,7 +21,7 @@ class NavigationBackend:
 
     def isMenuEmpty(self, menuChoice):
         assert menuChoice in ["-h", "-f"], "Invalid menu option argument detected"
-        return len(self.favorites if menuChoice == "-f" else self.consolidatedHistory) == 0
+        return len(self.excludedHistory if menuChoice == "-f" else self.consolidatedHistory) == 0
 
     def updateNavigationHistory(self, dirPath):
         assert len(dirPath) > 0, "Empty path argument detected"
@@ -78,26 +79,26 @@ class NavigationBackend:
         else:
             nrOfPathVisits = 0
         self.excludedHistory[pathToAdd] = nrOfPathVisits
-        self.favorites.append(pathToAdd)
-        self.__sortFavorites()
+        self.__computeFavorites()
 
     def removePathFromFavorites(self, userInput):
         pathToRemove = ""
         # remove from favorites, re-sort, remove from excluded history and move to persistent history if visited at least once
         if self.__isValidFavoritesEntryNr(userInput):
             pathToRemove = self.favorites[int(userInput)-1]
-            self.favorites.remove(pathToRemove)
-            self.__sortFavorites()
+            assert pathToRemove in self.excludedHistory, "Favorites path not contained in excluded history!"
             nrOfRemovedPathVisits = self.excludedHistory[pathToRemove]
             if nrOfRemovedPathVisits > 0:
                 self.persistentHistory[pathToRemove] = nrOfRemovedPathVisits
                 self.consolidateHistory()
+            del self.excludedHistory[pathToRemove]
+            self.__computeFavorites()
         return pathToRemove
 
     def isContainedInFavorites(self, pathToAdd):
         assert len(pathToAdd) > 0, "Empty path argument detected"
         alreadyAddedToFavorites = False
-        for path in self.favorites:
+        for path in self.excludedHistory:
             if path == pathToAdd:
                 alreadyAddedToFavorites = True
                 break
@@ -107,7 +108,7 @@ class NavigationBackend:
         return self.__isValidFavoritesEntryNr(userInput)
 
     def isFavEmpty(self):
-        return len(self.favorites) == 0
+        return len(self.excludedHistory) == 0
 
     def isValidQuickNavHistoryEntryNr(self, userInput):
         isValid = False
@@ -128,71 +129,60 @@ class NavigationBackend:
         if pathToRemove in self.persistentHistory:
             del self.persistentHistory[pathToRemove]
             removedFromPersistentHistory = True
-        if not removedFromPersistentHistory:
-            self.favorites.remove(pathToRemove)
+        elif pathTorRemove in self.excludedHistory:
             del self.excludedHistory[pathToRemove]
+            self.__computeFavorites()
+        else:
+            assert False, "Removed entry neither present in persistent, nor in excluded history!"
         if removedFromRecentHistory or removedFromPersistentHistory:
             self.consolidateHistory()
         return pathToRemove
 
-    def mapMissingDir(self, pathToReplace, replacingPath):
-        assert len(pathToReplace) > 0, "Empty argument for 'path to replace' detected"
+    def mapMissingDir(self, replacedPath, replacingPath):
+        assert len(replacedPath) > 0, "Empty argument for 'replaced path' detected"
         assert len(replacingPath) > 0, "Empty argument for 'replacing path' detected"
-        isPathToReplaceInFav = False
-        reSortPHist = False
-        reSortFav = False
+        replacedPathVisits = 0
+        replacingPathVisits = 0
+        replacedPathInRHist = False
+        replacedPathInPHist = False
+        replacedPathInEHist = False
+        replacingPathVisitsIncreasedInPHist = False
         # handle path to replace: remove it from all required files
-        if pathToReplace in self.dailyLog:
-            self.dailyLog.remove(pathToReplace)
-        removedFromRHist = False
-        if pathToReplace in self.recentHistory:
-            self.recentHistory.remove(pathToReplace)
-            removedFromRHist = True
-        if pathToReplace in self.persistentHistory:
-            pathToReplaceVisits = self.persistentHistory[pathToReplace]
-            self.persistentHistory.pop(pathToReplace)
+        if replacedPath in self.dailyLog:
+            self.dailyLog.remove(replacedPath)
+        if replacedPath in self.recentHistory:
+            self.recentHistory.remove(replacedPath)
+            replacedPathInRHist = True
+        if replacedPath in self.persistentHistory:
+            replacedPathVisits = self.persistentHistory[replacedPath]
+            self.persistentHistory.pop(replacedPath)
+            replacedPathInPHist = True
         else:
             #only modify the excluded history for the moment, to be removed from favorites in next step
-            pathToReplaceVisits = self.excludedHistory[pathToReplace]
-            self.excludedHistory.pop(pathToReplace)
-            isPathToReplaceInFav = True
+            replacedPathVisits = self.excludedHistory[replacedPath]
+            self.excludedHistory.pop(replacedPath)
+            replacedPathInEHist = True
         # handle replacing path
         if replacingPath in self.persistentHistory:
             replacingPathVisits = self.persistentHistory[replacingPath]
-            if pathToReplaceVisits > replacingPathVisits:
-                self.persistentHistory[replacingPath] = pathToReplaceVisits
-                reSortPHist = True
-            if isPathToReplaceInFav:
-                self.favorites.remove(pathToReplace)
+            if replacedPathVisits > replacingPathVisits:
+                self.persistentHistory[replacingPath] = replacedPathVisits
+                replacingPathVisitsIncreasedInPHist = True
         elif replacingPath in self.excludedHistory:
             replacingPathVisits = self.excludedHistory[replacingPath]
-            if pathToReplaceVisits > replacingPathVisits:
-                self.excludedHistory[replacingPath] = pathToReplaceVisits
-            if isPathToReplaceInFav:
-                self.favorites.remove(pathToReplace)
+            if replacedPathVisits > replacingPathVisits:
+                self.excludedHistory[replacingPath] = replacedPathVisits
         else: # new path, neither contained in history or favorites (not visited yet, possibly newly created directory)
-            if isPathToReplaceInFav:
-                self.excludedHistory[replacingPath] = pathToReplaceVisits
-                self.favorites.remove(pathToReplace)
-                self.favorites.append(replacingPath)
-                reSortFav = True
+            if replacedPathInEHist:
+                self.excludedHistory[replacingPath] = replacedPathVisits
             else:
-                self.persistentHistory[replacingPath] = pathToReplaceVisits
-                reSortPHist = True
-        # final touch: re-sort persistent and/or excluded history, consolidate history
-        if isPathToReplaceInFav:
-            if reSortFav: #old path had been replaced by an unvisited file
-                self.__sortFavorites()
-                if removedFromRHist:
-                    self.consolidateHistory()
-            else:
-                if replacingPath in self.persistentHistory and reSortPHist: #replacing path is in persistent history and the number of visits had been increased (taken over from the replaced path)
-                    self.consolidateHistory()
-                elif removedFromRHist:
-                    self.consolidateHistory()
-        else:
+                self.persistentHistory[replacingPath] = replacedPathVisits
+        # final touch: consolidate history, recompute favorites
+        if replacedPathInRHist or replacedPathInPHist or replacingPathVisitsIncreasedInPHist:
             self.consolidateHistory()
-        return (pathToReplace, replacingPath)
+        if replacedPathInEHist:
+            self.__computeFavorites()
+        return (replacedPath, replacingPath)
 
     def displayFormattedRecentHistContent(self):
         self.__displayFormattedNavFileContent(self.consolidatedHistory, 0, len(self.recentHistory))
@@ -221,9 +211,6 @@ class NavigationBackend:
         nvcdcmn.loadBasicFiles(navset.r_hist_file, navset.r_hist_max_entries, navset.l_hist_file, navset.p_str_hist_file, navset.p_num_hist_file, self.recentHistory, self.dailyLog, self.persistentHistory)
         if os.path.isfile(navset.e_str_hist_file) and os.path.isfile(navset.e_num_hist_file):
             nvcdcmn.readFromPermHist(navset.e_str_hist_file, navset.e_num_hist_file, self.excludedHistory)
-        for path, visitsCount in self.excludedHistory.items():
-            self.favorites.append(path)
-        self.__sortFavorites()
 
     def __saveNavigationFiles(self):
         nvcdcmn.writeBackToTempHist(self.recentHistory, navset.r_hist_file, self.dailyLog, navset.log_dir, navset.l_hist_file)
@@ -251,20 +238,19 @@ class NavigationBackend:
         #print("Cleaned up persistent history entries: " + str(pHistCleanedUp))
         #print("Cleaned up recent history entries: " + str(rHistCleanedUp))
 
-    def __sortFavorites(self):
+    def __computeFavorites(self):
         favDict = {}
-        result = []
-        for path in self.favorites:
+        for path in self.excludedHistory.keys():
             favDict[path] = os.path.basename(path)
-        for path, visitsCount in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
-            result.append(path)
-        self.favorites = result
+        self.favorites.clear()
+        for path, dirName in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
+            self.favorites.append(path)
 
     def __isValidFavoritesEntryNr(self, userInput):
         isValid = True
         if userInput.isdigit():
             userInput = int(userInput)
-            if userInput > len(self.favorites) or userInput == 0:
+            if userInput > len(self.excludedHistory) or userInput == 0:
                 isValid = False
         else:
             isValid = False
