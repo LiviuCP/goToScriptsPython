@@ -8,7 +8,7 @@ class CommandsBackend:
         self.dailyCommandsLog = []
         self.consolidatedCommandsHistory = []
         self.__loadCommandsFiles()
-        self.consolidateCommandsHistory()
+        self.__consolidateCommandsHistory()
 
     def chooseCommand(self, userInput):
         return nvcdcmn.getMenuEntry(userInput, self.consolidatedCommandsHistory)
@@ -34,19 +34,7 @@ class CommandsBackend:
                 self.persistentCommandsHistory[command] += 1
             else:
                 self.persistentCommandsHistory[command] = 1
-
-    def consolidateCommandsHistory(self):
-        cpHistEntries = []
-        limit = 0
-        for command, executionsCount in sorted(self.persistentCommandsHistory.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-            if (limit == cmdset.c_p_hist_max_entries):
-                break
-            cpHistEntries.append(command)
-            limit += 1
-        cpHistEntries.sort(key = lambda k: k.lower())
-        self.consolidatedCommandsHistory = self.recentCommandsHistory.copy()
-        for command in cpHistEntries:
-            self.consolidatedCommandsHistory.append(command)
+        self.__consolidateCommandsHistory()
 
     def clearCommandsHistory(self):
         self.recentCommandsHistory.clear()
@@ -91,6 +79,18 @@ class CommandsBackend:
             for rowNr in range(firstRowNr, limit):
                 command = fileContent[rowNr].strip('\n')
                 print('{0:<10s} {1:<140s}'.format(str(rowNr+1), command))
+    def __consolidateCommandsHistory(self):
+        cpHistEntries = []
+        limit = 0
+        for command, executionsCount in sorted(self.persistentCommandsHistory.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+            if (limit == cmdset.c_p_hist_max_entries):
+                break
+            cpHistEntries.append(command)
+            limit += 1
+        cpHistEntries.sort(key = lambda k: k.lower())
+        self.consolidatedCommandsHistory = self.recentCommandsHistory.copy()
+        for command in cpHistEntries:
+            self.consolidatedCommandsHistory.append(command)
 
 """ command execution helper functions """
 def isSensitiveCommand(command):

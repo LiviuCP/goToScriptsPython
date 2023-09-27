@@ -12,7 +12,7 @@ class NavigationBackend:
         self.favorites = []
         self.__loadNavigationFiles()
         self.__doHistoryCleanup()
-        self.consolidateHistory()
+        self.__consolidateHistory()
         self.__computeFavorites()
 
     def choosePath(self, menuChoice, userInput, filteredContent):
@@ -40,18 +40,7 @@ class NavigationBackend:
                 self.persistentHistory[dirPath] += 1
             else:
                 self.persistentHistory[dirPath] = 1
-
-    def consolidateHistory(self):
-        pHistDict = {}
-        limit = 0
-        for path, visitsCount in sorted(self.persistentHistory.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-            if (limit == navset.p_hist_max_entries):
-                break
-            pHistDict[path] = os.path.basename(path)
-            limit += 1
-        self.consolidatedHistory = self.recentHistory.copy()
-        for path, visitsCount in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
-            self.consolidatedHistory.append(path)
+        self.__consolidateHistory()
 
     def clearHistory(self):
         self.recentHistory.clear()
@@ -75,7 +64,7 @@ class NavigationBackend:
         nrOfPathVisits = self.persistentHistory.get(pathToAdd)
         if nrOfPathVisits is not None:
             del self.persistentHistory[pathToAdd]
-            self.consolidateHistory()
+            self.__consolidateHistory()
         else:
             nrOfPathVisits = 0
         self.excludedHistory[pathToAdd] = nrOfPathVisits
@@ -90,7 +79,7 @@ class NavigationBackend:
             nrOfRemovedPathVisits = self.excludedHistory[pathToRemove]
             if nrOfRemovedPathVisits > 0:
                 self.persistentHistory[pathToRemove] = nrOfRemovedPathVisits
-                self.consolidateHistory()
+                self.__consolidateHistory()
             del self.excludedHistory[pathToRemove]
             self.__computeFavorites()
         return pathToRemove
@@ -135,7 +124,7 @@ class NavigationBackend:
         else:
             assert False, "Removed entry neither present in persistent, nor in excluded history!"
         if removedFromRecentHistory or removedFromPersistentHistory:
-            self.consolidateHistory()
+            self.__consolidateHistory()
         return pathToRemove
 
     def mapMissingDir(self, replacedPath, replacingPath):
@@ -179,7 +168,7 @@ class NavigationBackend:
                 self.persistentHistory[replacingPath] = replacedPathVisits
         # final touch: consolidate history, recompute favorites
         if replacedPathInRHist or replacedPathInPHist or replacingPathVisitsIncreasedInPHist:
-            self.consolidateHistory()
+            self.__consolidateHistory()
         if replacedPathInEHist:
             self.__computeFavorites()
         return (replacedPath, replacingPath)
@@ -237,6 +226,18 @@ class NavigationBackend:
                 rHistCleanedUp += 1
         #print("Cleaned up persistent history entries: " + str(pHistCleanedUp))
         #print("Cleaned up recent history entries: " + str(rHistCleanedUp))
+
+    def __consolidateHistory(self):
+        pHistDict = {}
+        limit = 0
+        for path, visitsCount in sorted(self.persistentHistory.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+            if (limit == navset.p_hist_max_entries):
+                break
+            pHistDict[path] = os.path.basename(path)
+            limit += 1
+        self.consolidatedHistory = self.recentHistory.copy()
+        for path, visitsCount in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
+            self.consolidatedHistory.append(path)
 
     def __computeFavorites(self):
         favDict = {}

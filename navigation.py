@@ -27,7 +27,6 @@ class Navigation:
             if (prevDir != currentDir):
                 print("Switched to new directory: " + currentDir)
                 self.nav.updateNavigationHistory(currentDir)
-                self.nav.consolidateHistory()
                 self.previousDirectory = prevDir
             else:
                 print("Current directory remains unchanged: " + currentDir)
@@ -261,7 +260,6 @@ class Navigation:
     """ Displays the requested navigation menu and prompts the user to enter the required option """
     def __visitNavigationMenu(self, menuChoice, userInput = "", previousCommand = ""):
         def displayHistMenu():
-            self.nav.consolidateHistory() # normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
             print("VISITED DIRECTORIES")
             print("")
             print("-- RECENTLY VISITED --")
