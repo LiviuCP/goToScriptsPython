@@ -49,23 +49,28 @@ class Commands:
     """ Displays the requested commands menu and prompts the user to enter the required option """
     def visitCommandsMenu(self, mode, filterKey = ""):
         def displayCmdHistMenu(mode):
+            (consolidatedCommandsHistory, recentCommandsHistoryEntriesCount) = self.cmd.getConsolidatedCommandsHistoryInfo()
             print("COMMANDS LIST")
             print("")
             print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
             print("")
             print("-- RECENTLY EXECUTED --")
             print("")
-            self.cmd.displayFormattedRecentCmdHistContent()
+            self.__displayFormattedCmdFileContent(consolidatedCommandsHistory, 0, recentCommandsHistoryEntriesCount)
             print("")
             print("-- MOST EXECUTED --")
             print("")
-            self.cmd.displayFormattedPersistentCmdHistContent()
-        def displayFilteredCmdHistMenu(content, mode, totalNrOfMatches):
+            self.__displayFormattedCmdFileContent(consolidatedCommandsHistory, recentCommandsHistoryEntriesCount)
+        def displayFilteredCmdHistMenu(filteredContent, mode, totalNrOfMatches):
             print("FILTERED COMMANDS LIST")
             print("")
             print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
             print("")
-            self.cmd.displayFormattedFilteredCmdHistContent(content, totalNrOfMatches)
+            self.__displayFormattedCmdFileContent(filteredContent, 0)
+            print("")
+            print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
+            if totalNrOfMatches > len(filteredContent):
+                print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
         def displayPageFooter(currentDir, filterKey = ""):
             print("")
             print("Current directory: " + currentDir)
@@ -213,3 +218,14 @@ class Commands:
         self.previousCommand = command
         self.previousCommandSuccess = (commandExecResult == 0)
         return (0, command, "")
+
+    """ Function used for displaying specific commands menus """
+    def __displayFormattedCmdFileContent(self, fileContent, firstRowNr = 0, limit = -1):
+        nrOfRows = len(fileContent)
+        assert nrOfRows > 0, "Attempt to display an empty command menu"
+        limit = nrOfRows if limit < 0 or limit > nrOfRows else limit
+        assert limit != 0, "Zero entries limit detected, not permitted"
+        if firstRowNr < limit and firstRowNr >= 0:
+            for rowNr in range(firstRowNr, limit):
+                command = fileContent[rowNr].strip('\n')
+                print('{0:<10s} {1:<140s}'.format(str(rowNr+1), command))

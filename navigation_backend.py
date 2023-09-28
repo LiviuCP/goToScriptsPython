@@ -1,6 +1,5 @@
 import sys, os
 import nav_cmd_common as nvcdcmn, navigation_settings as navset, system_settings as sysset
-from pathlib import Path
 
 class NavigationBackend:
     def __init__(self):
@@ -14,6 +13,12 @@ class NavigationBackend:
         self.__doHistoryCleanup()
         self.__consolidateHistory()
         self.__computeFavorites()
+
+    def getConsolidatedHistoryInfo(self):
+        return (self.consolidatedHistory.copy(), len(self.recentHistory))
+
+    def getFavorites(self):
+        return self.favorites.copy()
 
     def choosePath(self, menuChoice, userInput, filteredContent):
         content = filteredContent if menuChoice in ["-fh", "-ff"] else self.favorites if menuChoice == "-f" else self.consolidatedHistory
@@ -173,25 +178,6 @@ class NavigationBackend:
             self.__computeFavorites()
         return (replacedPath, replacingPath)
 
-    def displayFormattedRecentHistContent(self):
-        self.__displayFormattedNavFileContent(self.consolidatedHistory, 0, len(self.recentHistory))
-
-    def displayFormattedPersistentHistContent(self):
-        self.__displayFormattedNavFileContent(self.consolidatedHistory, len(self.recentHistory))
-
-    def displayFormattedFilteredContent(self, filteredContent, totalNrOfMatches):
-        self.__displayFormattedNavFileContent(filteredContent, 0)
-        print("")
-        print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
-        if totalNrOfMatches > len(filteredContent):
-            print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
-
-    def displayFormattedQuickNavigationHistory(self):
-        self.__displayFormattedNavFileContent(self.recentHistory, 0, navset.q_hist_max_entries)
-
-    def displayFormattedFavoritesContent(self):
-        self.__displayFormattedNavFileContent(self.favorites)
-
     def closeNavigation(self):
         self.__saveNavigationFiles()
         pass
@@ -256,31 +242,6 @@ class NavigationBackend:
         else:
             isValid = False
         return isValid
-
-    def __displayFormattedNavFileContent(self, fileContent, firstRowNr = 0, limit = -1):
-        nrOfRows = len(fileContent)
-        assert nrOfRows > 0, "Attempt to display an empty navigation menu"
-        limit = nrOfRows if limit < 0 or limit > nrOfRows else limit
-        assert limit != 0, "Zero entries limit detected, not permitted"
-        beginCharsToDisplayForDirName = navset.max_nr_of_item_name_chars // 2 #first characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
-        endCharsToDisplayForDirName = beginCharsToDisplayForDirName - navset.max_nr_of_item_name_chars #last characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
-        beginCharsToDisplayForPath = navset.max_nr_of_path_chars // 2 #first characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
-        endCharsToDisplayForPath = beginCharsToDisplayForPath - navset.max_nr_of_path_chars #last characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
-        if firstRowNr < limit and firstRowNr >= 0:
-            print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format('', '- PARENT DIR -', '- DIR NAME -', '- DIR PATH -'))
-            for rowNr in range(firstRowNr, limit):
-                dirPath = fileContent[rowNr].strip('\n')
-                dirName = os.path.basename(dirPath) if dirPath != "/" else "*root"
-                parentDir = os.path.basename(str(Path(dirPath).parent))
-                if len(parentDir) == 0:
-                    parentDir = "*root"
-                elif len(parentDir)-1 > navset.max_nr_of_item_name_chars:
-                    parentDir = parentDir[0:beginCharsToDisplayForDirName] + "..." + parentDir[endCharsToDisplayForDirName-1:]
-                if len(dirName)-1 > navset.max_nr_of_item_name_chars:
-                    dirName = dirName[0:beginCharsToDisplayForDirName] + "..." + dirName[endCharsToDisplayForDirName-1:]
-                if len(dirPath)-1 > navset.max_nr_of_path_chars:
-                    dirPath = dirPath[0:beginCharsToDisplayForPath] + "..." + dirPath[endCharsToDisplayForPath-1:]
-                print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format(str(rowNr+1), parentDir, dirName, dirPath))
 
 """ navigation helper functions """
 def getReplacingDirPath(replacingDir):

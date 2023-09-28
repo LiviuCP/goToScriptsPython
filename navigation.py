@@ -1,6 +1,7 @@
 import sys, os, readline
-import common, navigation_backend as nav, system_functionality as sysfunc, display as out
+import common, navigation_backend as nav, navigation_settings as navset, system_functionality as sysfunc, display as out
 from os.path import isdir
+from pathlib import Path
 
 class Navigation:
     def __init__(self, startingDirectory):
@@ -115,7 +116,7 @@ class Navigation:
         def displayFavoritesEntryRemovalDialog(currentDir):
             print("REMOVE DIRECTORY FROM FAVORITES")
             print('')
-            self.nav.displayFormattedFavoritesContent()
+            self.__displayFormattedNavFileContent(self.nav.getFavorites())
             print('')
             print("Current directory: " + currentDir)
             print('')
@@ -149,7 +150,9 @@ class Navigation:
 
     """ quick navigation history is part of recent history but can be accessed outside the regular history menus """
     def displayQuickNavigationHistory(self):
-        self.nav.displayFormattedQuickNavigationHistory()
+        (consolidatedHistory, recentHistoryEntriesCount) = self.nav.getConsolidatedHistoryInfo()
+        recentHistory = consolidatedHistory[0: recentHistoryEntriesCount]
+        self.__displayFormattedNavFileContent(recentHistory, 0, navset.q_hist_max_entries)
 
     """ checks the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent navigation history) """
     def isValidQuickNavHistoryEntryNr(self, userInput):
@@ -260,24 +263,29 @@ class Navigation:
     """ Displays the requested navigation menu and prompts the user to enter the required option """
     def __visitNavigationMenu(self, menuChoice, userInput = "", previousCommand = ""):
         def displayHistMenu():
+            (consolidatedHistory, recentHistoryEntriesCount) = self.nav.getConsolidatedHistoryInfo()
             print("VISITED DIRECTORIES")
             print("")
             print("-- RECENTLY VISITED --")
             print("")
-            self.nav.displayFormattedRecentHistContent()
+            self.__displayFormattedNavFileContent(consolidatedHistory, 0, recentHistoryEntriesCount)
             print("")
             print("-- MOST VISITED --")
             print("")
-            self.nav.displayFormattedPersistentHistContent()
+            self.__displayFormattedNavFileContent(consolidatedHistory, recentHistoryEntriesCount)
         def displayFavoritesMenu():
             print("FAVORITE DIRECTORIES")
             print("")
-            self.nav.displayFormattedFavoritesContent()
-        def displayFilteredMenu(choice, content, totalNrOfMatches):
+            self.__displayFormattedNavFileContent(self.nav.getFavorites())
+        def displayFilteredMenu(choice, filteredContent, totalNrOfMatches):
             assert choice in ["-fh", "-ff"]
             print("FILTERED VISITED DIRECTORIES") if choice == "-fh" else print("FILTERED FAVORITE DIRECTORIES")
             print("")
-            self.nav.displayFormattedFilteredContent(content, totalNrOfMatches)
+            self.__displayFormattedNavFileContent(filteredContent, 0)
+            print("")
+            print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
+            if totalNrOfMatches > len(filteredContent):
+                print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
         def displayPageFooter(currentDir, choice, filterKey = ""):
             toggleDict = {"-h" : "FAVORITE DIRECTORIES", "-f" : "VISITED DIRECTORIES", "-fh" : "FILTERED FAVORITE DIRECTORIES", "-ff" : "FILTERED VISITED DIRECTORIES"}
             print("")
@@ -325,3 +333,29 @@ class Navigation:
         userInput = userInput.strip()
         choiceResult = self.nav.choosePath(menuChoice, userInput, filteredEntries)
         return choiceResult
+
+    """ Function used for displaying specific navigation menus """
+    def __displayFormattedNavFileContent(self, fileContent, firstRowNr = 0, limit = -1):
+        nrOfRows = len(fileContent)
+        assert nrOfRows > 0, "Attempt to display an empty navigation menu"
+        limit = nrOfRows if limit < 0 or limit > nrOfRows else limit
+        assert limit != 0, "Zero entries limit detected, not permitted"
+        beginCharsToDisplayForDirName = navset.max_nr_of_item_name_chars // 2 #first characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
+        endCharsToDisplayForDirName = beginCharsToDisplayForDirName - navset.max_nr_of_item_name_chars #last characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
+        beginCharsToDisplayForPath = navset.max_nr_of_path_chars // 2 #first characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
+        endCharsToDisplayForPath = beginCharsToDisplayForPath - navset.max_nr_of_path_chars #last characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
+        if firstRowNr < limit and firstRowNr >= 0:
+            print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format('', '- PARENT DIR -', '- DIR NAME -', '- DIR PATH -'))
+            for rowNr in range(firstRowNr, limit):
+                dirPath = fileContent[rowNr].strip('\n')
+                dirName = os.path.basename(dirPath) if dirPath != "/" else "*root"
+                parentDir = os.path.basename(str(Path(dirPath).parent))
+                if len(parentDir) == 0:
+                    parentDir = "*root"
+                elif len(parentDir)-1 > navset.max_nr_of_item_name_chars:
+                    parentDir = parentDir[0:beginCharsToDisplayForDirName] + "..." + parentDir[endCharsToDisplayForDirName-1:]
+                if len(dirName)-1 > navset.max_nr_of_item_name_chars:
+                    dirName = dirName[0:beginCharsToDisplayForDirName] + "..." + dirName[endCharsToDisplayForDirName-1:]
+                if len(dirPath)-1 > navset.max_nr_of_path_chars:
+                    dirPath = dirPath[0:beginCharsToDisplayForPath] + "..." + dirPath[endCharsToDisplayForPath-1:]
+                print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format(str(rowNr+1), parentDir, dirName, dirPath))

@@ -1,6 +1,7 @@
 """ common code to be used by navigation_backend.py and commands_backend.py """
 
 import os, re
+from pathlib import Path
 
 """
 The returned outcome could have following special values in the first field:

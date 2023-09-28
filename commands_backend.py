@@ -10,6 +10,9 @@ class CommandsBackend:
         self.__loadCommandsFiles()
         self.__consolidateCommandsHistory()
 
+    def getConsolidatedCommandsHistoryInfo(self):
+        return (self.consolidatedCommandsHistory.copy(), len(self.recentCommandsHistory))
+
     def chooseCommand(self, userInput):
         return nvcdcmn.getMenuEntry(userInput, self.consolidatedCommandsHistory)
 
@@ -46,19 +49,6 @@ class CommandsBackend:
         assert len(filterKey) > 0, "Empty filter key found"
         return nvcdcmn.buildFilteredPersistentHistory(self.persistentCommandsHistory, filterKey, cmdset.max_filtered_c_hist_entries, filteredContent)
 
-    def displayFormattedRecentCmdHistContent(self):
-        self.__displayFormattedCmdFileContent(self.consolidatedCommandsHistory, 0, len(self.recentCommandsHistory))
-
-    def displayFormattedPersistentCmdHistContent(self):
-        self.__displayFormattedCmdFileContent(self.consolidatedCommandsHistory, len(self.recentCommandsHistory))
-
-    def displayFormattedFilteredCmdHistContent(self, filteredContent, totalNrOfMatches):
-        self.__displayFormattedCmdFileContent(filteredContent, 0)
-        print("")
-        print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
-        if totalNrOfMatches > len(filteredContent):
-            print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
-
     def closeCommands(self):
         self.__saveCommandsFiles()
         pass
@@ -70,15 +60,6 @@ class CommandsBackend:
         nvcdcmn.writeBackToTempHist(self.recentCommandsHistory, cmdset.c_r_hist_file, self.dailyCommandsLog, cmdset.c_log_dir, cmdset.c_l_hist_file)
         nvcdcmn.writeBackToPermHist(self.persistentCommandsHistory, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
 
-    def __displayFormattedCmdFileContent(self, fileContent, firstRowNr = 0, limit = -1):
-        nrOfRows = len(fileContent)
-        assert nrOfRows > 0, "Attempt to display an empty command menu"
-        limit = nrOfRows if limit < 0 or limit > nrOfRows else limit
-        assert limit != 0, "Zero entries limit detected, not permitted"
-        if firstRowNr < limit and firstRowNr >= 0:
-            for rowNr in range(firstRowNr, limit):
-                command = fileContent[rowNr].strip('\n')
-                print('{0:<10s} {1:<140s}'.format(str(rowNr+1), command))
     def __consolidateCommandsHistory(self):
         cpHistEntries = []
         limit = 0
