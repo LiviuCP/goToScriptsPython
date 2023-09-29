@@ -66,20 +66,26 @@ class NavigationBackend:
 
     def addPathToFavorites(self, pathToAdd):
         assert len(pathToAdd) > 0, "Empty path argument detected"
-        nrOfPathVisits = self.persistentHistory.get(pathToAdd)
-        if nrOfPathVisits is not None:
-            del self.persistentHistory[pathToAdd]
-            self.__consolidateHistory()
-        else:
-            nrOfPathVisits = 0
-        self.excludedHistory[pathToAdd] = nrOfPathVisits
-        self.__computeFavorites()
+        shouldAddToFavorites = True
+        for path in self.excludedHistory:
+            if path.lower() == pathToAdd.lower():
+                shouldAddToFavorites = False
+                break
+        if shouldAddToFavorites:
+            nrOfPathVisits = self.persistentHistory.get(pathToAdd)
+            if nrOfPathVisits is not None:
+                del self.persistentHistory[pathToAdd]
+                self.__consolidateHistory()
+            else:
+                nrOfPathVisits = 0
+            self.excludedHistory[pathToAdd] = nrOfPathVisits
+            self.__computeFavorites()
+        return shouldAddToFavorites
 
-    def removePathFromFavorites(self, userInput):
-        pathToRemove = ""
-        # remove from favorites, re-sort, remove from excluded history and move to persistent history if visited at least once
-        if self.__isValidFavoritesEntryNr(userInput):
-            pathToRemove = self.favorites[int(userInput)-1]
+    def removePathFromFavorites(self, pathToRemove):
+        pathRemoved = False
+        # remove from excluded history, update favorites; move to persistent history if visited at least once
+        if pathToRemove in self.favorites:
             assert pathToRemove in self.excludedHistory, "Favorites path not contained in excluded history!"
             nrOfRemovedPathVisits = self.excludedHistory[pathToRemove]
             if nrOfRemovedPathVisits > 0:
@@ -87,22 +93,8 @@ class NavigationBackend:
                 self.__consolidateHistory()
             del self.excludedHistory[pathToRemove]
             self.__computeFavorites()
-        return pathToRemove
-
-    def isContainedInFavorites(self, pathToAdd):
-        assert len(pathToAdd) > 0, "Empty path argument detected"
-        alreadyAddedToFavorites = False
-        for path in self.excludedHistory:
-            if path == pathToAdd:
-                alreadyAddedToFavorites = True
-                break
-        return alreadyAddedToFavorites
-
-    def isValidFavoritesEntryNr(self, userInput):
-        return self.__isValidFavoritesEntryNr(userInput)
-
-    def isFavEmpty(self):
-        return len(self.excludedHistory) == 0
+            pathRemoved = True
+        return pathRemoved
 
     def isValidQuickNavHistoryEntryNr(self, userInput):
         isValid = False
@@ -232,16 +224,6 @@ class NavigationBackend:
         self.favorites.clear()
         for path, dirName in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
             self.favorites.append(path)
-
-    def __isValidFavoritesEntryNr(self, userInput):
-        isValid = True
-        if userInput.isdigit():
-            userInput = int(userInput)
-            if userInput > len(self.excludedHistory) or userInput == 0:
-                isValid = False
-        else:
-            isValid = False
-        return isValid
 
 """ navigation helper functions """
 def getReplacingDirPath(replacingDir):

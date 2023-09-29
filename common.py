@@ -32,6 +32,16 @@ def getNumberOfLines(filePath):
         nrOfLines = len(fPath.readlines())
     return nrOfLines
 
+# the menu content should be a list, user input should be a entry number starting from 1 and ending with the list length
+def getMenuEntry(menuContent, userInput):
+    assert type(menuContent) is list, "Invalid menu content data type!"
+    result = None
+    if userInput.isdigit():
+        entryNumber = int(userInput)
+        if entryNumber > 0 and entryNumber <= len(menuContent):
+            result = menuContent[entryNumber-1]
+    return result
+
 def setPathAutoComplete():
     def getDirectoryContent(dirPath):
         dirName = os.path.dirname(dirPath)

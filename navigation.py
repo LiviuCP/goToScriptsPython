@@ -101,8 +101,8 @@ class Navigation:
     def addDirToFavorites(self, dirPath = ""):
         pathToAdd = common.getAbsoluteDirPath(dirPath)
         if len(pathToAdd) > 0:
-            if not self.nav.isContainedInFavorites(pathToAdd):
-                self.nav.addPathToFavorites(pathToAdd)
+            pathAdded = self.nav.addPathToFavorites(pathToAdd)
+            if pathAdded:
                 print("Directory " + pathToAdd + " added to favorites.")
             else:
                 print("Directory " + pathToAdd + " already added to favorites.")
@@ -127,7 +127,8 @@ class Navigation:
         assert not syncResult[1], "Current dir fallback not allowed"
         status = 0 # default status, successful removal or aborted by user
         userInput = ""
-        if self.nav.isFavEmpty():
+        favorites = self.nav.getFavorites()
+        if len(favorites) == 0:
             print("There are no entries in the favorites menu.")
             status = 4
         else:
@@ -137,16 +138,20 @@ class Navigation:
             if userInput == '!':
                 print("No entry removed from favorites menu.")
             else:
-                removedPath = self.nav.removePathFromFavorites(userInput)
-                if len(removedPath) > 0:
-                    print("Entry " + removedPath + " removed from favorites menu.")
+                pathToRemove = common.getMenuEntry(favorites, userInput)
+                if pathToRemove is not None:
+                    pathRemoved = self.nav.removePathFromFavorites(pathToRemove)
+                    if pathRemoved:
+                        print("Entry " + pathToRemove + " removed from favorites menu.")
+                    else:
+                        print("Error! Entry " + pathToRemove + " could not be removed from favorites menu.")
                 else:
                     status = 1 # forward user input as regular input
         return (status, userInput, "")
 
     """ used for quick favorite directories access """
     def isValidFavoritesEntryNr(self, userInput):
-        return self.nav.isValidFavoritesEntryNr(userInput)
+        return common.getMenuEntry(self.nav.getFavorites(), userInput) is not None
 
     """ quick navigation history is part of recent history but can be accessed outside the regular history menus """
     def displayQuickNavigationHistory(self):
