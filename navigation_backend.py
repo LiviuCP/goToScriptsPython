@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, time
 import nav_cmd_common as nvcdcmn, navigation_settings as navset, system_settings as sysset
 
 class NavigationBackend:
@@ -9,6 +9,9 @@ class NavigationBackend:
         self.dailyLog = []
         self.consolidatedHistory = []
         self.favorites = []
+        self.addedToFavorites = []
+        self.removedFromFavorites = []
+        self.openingTime = time.time()
         self.__loadNavigationFiles()
         self.__doHistoryCleanup()
         self.__consolidateHistory()
@@ -79,6 +82,9 @@ class NavigationBackend:
             else:
                 nrOfPathVisits = 0
             self.excludedHistory[pathToAdd] = nrOfPathVisits
+            if pathToAdd in self.removedFromFavorites:
+                self.removedFromFavorites.remove(pathToAdd)
+            self.addedToFavorites.append(pathToAdd)
             self.__computeFavorites()
         return shouldAddToFavorites
 
@@ -92,6 +98,9 @@ class NavigationBackend:
                 self.persistentHistory[pathToRemove] = nrOfRemovedPathVisits
                 self.__consolidateHistory()
             del self.excludedHistory[pathToRemove]
+            if pathToRemove in self.addedToFavorites:
+                self.addedToFavorites.remove(pathToRemove)
+            self.removedFromFavorites.append(pathToRemove)
             self.__computeFavorites()
             pathRemoved = True
         return pathRemoved
@@ -171,11 +180,20 @@ class NavigationBackend:
         return (replacedPath, replacingPath)
 
     def closeNavigation(self):
+        navigationFilesReconciled = False
+        if self.__relevantNavigationFilesModifiedAfterStartup():
+            self.__reconcileNavigationFiles()
+            navigationFilesReconciled = True
         self.__saveNavigationFiles()
-        pass
+        return navigationFilesReconciled
 
-    def __loadNavigationFiles(self):
-        nvcdcmn.loadBasicFiles(navset.r_hist_file, navset.r_hist_max_entries, navset.l_hist_file, navset.p_str_hist_file, navset.p_num_hist_file, self.recentHistory, self.dailyLog, self.persistentHistory)
+    def __loadNavigationFiles(self, shouldOverrideRecentHistory = True):
+        if shouldOverrideRecentHistory:
+            nvcdcmn.loadBasicFiles(navset.r_hist_file, navset.r_hist_max_entries, navset.l_hist_file, navset.p_str_hist_file, navset.p_num_hist_file, self.recentHistory, self.dailyLog, self.persistentHistory)
+        else:
+            # recent history loaded in temporary variable and discarded in order to keep the content of the "current" recent history
+            recentHistoryTemp = []
+            nvcdcmn.loadBasicFiles(navset.r_hist_file, navset.r_hist_max_entries, navset.l_hist_file, navset.p_str_hist_file, navset.p_num_hist_file, recentHistoryTemp, self.dailyLog, self.persistentHistory)
         if os.path.isfile(navset.e_str_hist_file) and os.path.isfile(navset.e_num_hist_file):
             nvcdcmn.readFromPermHist(navset.e_str_hist_file, navset.e_num_hist_file, self.excludedHistory)
 
@@ -183,6 +201,72 @@ class NavigationBackend:
         nvcdcmn.writeBackToTempHist(self.recentHistory, navset.r_hist_file, self.dailyLog, navset.log_dir, navset.l_hist_file)
         nvcdcmn.writeBackToPermHist(self.persistentHistory, navset.p_str_hist_file, navset.p_num_hist_file)
         nvcdcmn.writeBackToPermHist(self.excludedHistory, navset.e_str_hist_file, navset.e_num_hist_file)
+
+    def __relevantNavigationFilesModifiedAfterStartup(self):
+        filesModified = False
+        for path in [navset.p_str_hist_file, navset.e_str_hist_file]:
+            if os.path.isfile(path) and os.path.getmtime(path) > self.openingTime:
+                print ("modified path: " + path)
+                filesModified = True
+                break
+        return filesModified
+
+    def __reconcileNavigationFiles(self):
+        currentPersistentHistory = self.persistentHistory.copy()
+        currentExcludedHistory = self.excludedHistory.copy()
+        currentDailyLog = self.dailyLog.copy()
+        self.__loadNavigationFiles(shouldOverrideRecentHistory = False) # member variables will contain the persistent/excluded history and the daily log of previous session
+        # current recent history overrides the recent history of previous session, however the no longer existing paths should be removed
+        for path in self.recentHistory:
+            if not os.path.exists(path):
+                self.recentHistory.remove(path)
+        # add current persistent history content to persistent/excluded history of previous session, reconcile number of visits
+        for path, visitsCount in currentPersistentHistory.items():
+            if path in self.persistentHistory:
+                if visitsCount > self.persistentHistory[path]:
+                    self.persistentHistory[path] = visitsCount
+            elif path in self.excludedHistory:
+                newVisitsCount = visitsCount if visitsCount > self.excludedHistory[path] else self.excludedHistory[path]
+                if path in self.removedFromFavorites:
+                    self.persistentHistory[path] = newVisitsCount
+                    del self.excludedHistory[path]
+                else:
+                    self.excludedHistory[path] = newVisitsCount
+            elif os.path.exists(path):
+                self.persistentHistory[path] = visitsCount
+            else:
+                pass # discard entry by not adding it back to resulting (reconciled) persistent history
+        # add current excluded history content to excluded/persistent history of previous session, reconcile number of visits
+        for path, visitsCount in currentExcludedHistory.items():
+            if path in self.excludedHistory:
+                if visitsCount > self.excludedHistory[path]:
+                    self.excludedHistory[path] = visitsCount
+            elif path in self.persistentHistory:
+                newVisitsCount = visitsCount if visitsCount > self.persistentHistory[path] else self.persistentHistory[path]
+                if path in self.addedToFavorites:
+                    self.excludedHistory[path] = newVisitsCount
+                    del self.persistentHistory[path]
+                else:
+                    self.persistentHistory[path] = newVisitsCount
+            elif os.path.exists(path):
+                self.excludedHistory[path] = visitsCount
+            else:
+                pass # discard entry by not adding it back to resulting (reconciled) excluded history
+        # remove paths from resulting persistent history that neither exist any longer nor are contained within persistent/excluded history of the current session
+        for path in self.persistentHistory.keys():
+            if not (path in currentPersistentHistory or path in currentExcludedHistory or os.path.exists(path)):
+                del self.persistenHistory[path]
+        # remove paths from resulting excluded history that neither exist any longer nor are contained within excluded/persistent history of the current session
+        for path in self.excludedHistory.keys():
+            if not (path in currentPersistentHistory or path in currentExcludedHistory or os.path.exists(path)):
+                del self.excludedHistory[path]
+        # daily logs of current and previous session to be consolidated; any entry that is not contained within reconciled persistent/excluded history should be removed
+        for path in self.dailyLog:
+            if not (path in self.persistentHistory or path in self.excludedHistory):
+                self.dailyLog.remove(path)
+        for path in currentDailyLog:
+            if not path in self.dailyLog and (path in self.persistentHistory or path in self.excludedHistory):
+                self.dailyLog.append(path)
 
     def __doHistoryCleanup(self):
         pHistCleanedUp = 0

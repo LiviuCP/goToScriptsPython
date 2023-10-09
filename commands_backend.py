@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, time
 import nav_cmd_common as nvcdcmn, commands_settings as cmdset, system_settings as sysset
 
 class CommandsBackend:
@@ -7,6 +7,7 @@ class CommandsBackend:
         self.persistentCommandsHistory = {}
         self.dailyCommandsLog = []
         self.consolidatedCommandsHistory = []
+        self.openingTime = time.time()
         self.__loadCommandsFiles()
         self.__consolidateCommandsHistory()
 
@@ -50,15 +51,43 @@ class CommandsBackend:
         return nvcdcmn.buildFilteredPersistentHistory(self.persistentCommandsHistory, filterKey, cmdset.max_filtered_c_hist_entries, filteredContent)
 
     def closeCommands(self):
+        commandsFilesReconciled = False
+        if self.__relevantCommandsFilesModifiedAfterStartup():
+            self.__reconcileCommandsFiles()
+            commandsFilesReconciled = True
         self.__saveCommandsFiles()
-        pass
+        return commandsFilesReconciled
 
-    def __loadCommandsFiles(self):
-        nvcdcmn.loadBasicFiles(cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries, cmdset.c_l_hist_file, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file, self.recentCommandsHistory, self.dailyCommandsLog, self.persistentCommandsHistory)
+    def __loadCommandsFiles(self, shouldOverrideRecentHistory = True):
+        if shouldOverrideRecentHistory:
+            nvcdcmn.loadBasicFiles(cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries, cmdset.c_l_hist_file, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file, self.recentCommandsHistory, self.dailyCommandsLog, self.persistentCommandsHistory)
+        else:
+            # recent commands history loaded in temporary variable and discarded in order to keep the content of the "current" recent history
+            recentCommandsHistoryTemp = []
+            nvcdcmn.loadBasicFiles(cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries, cmdset.c_l_hist_file, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file, recentCommandsHistoryTemp, self.dailyCommandsLog, self.persistentCommandsHistory)
 
     def __saveCommandsFiles(self):
         nvcdcmn.writeBackToTempHist(self.recentCommandsHistory, cmdset.c_r_hist_file, self.dailyCommandsLog, cmdset.c_log_dir, cmdset.c_l_hist_file)
         nvcdcmn.writeBackToPermHist(self.persistentCommandsHistory, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
+
+    def __relevantCommandsFilesModifiedAfterStartup(self):
+        return os.path.isfile(cmdset.c_p_str_hist_file) and os.path.getmtime(cmdset.c_p_str_hist_file) > self.openingTime
+
+    def __reconcileCommandsFiles(self):
+        currentPersistentCommandsHistory = self.persistentCommandsHistory.copy()
+        currentDailyCommandsLog = self.dailyCommandsLog.copy()
+        self.__loadCommandsFiles(shouldOverrideRecentHistory = False)
+        # consolidate current and saved persistent history, reconcile number of times a command was executed
+        for command, executionsCount in currentPersistentCommandsHistory.items():
+            if command in self.persistentCommandsHistory.keys():
+                if executionsCount > self.persistentCommandsHistory[command]:
+                    self.persistentCommandsHistory[command] = executionsCount
+            else:
+                self.persistentCommandsHistory[command] = executionsCount
+        # consolidate daily logs
+        for command in currentDailyCommandsLog:
+            if command not in self.dailyCommandsLog:
+                self.dailyCommandsLog.append(command)
 
     def __consolidateCommandsHistory(self):
         cpHistEntries = []

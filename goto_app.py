@@ -265,11 +265,15 @@ class Application:
             assert False, "Invalid help option"
 
     def __handleCloseApplication(self, previousCommand):
-        self.nav.closeNavigation()
-        self.cmd.closeCommands()
+        navModifiedByPreviousSession = self.nav.closeNavigation()
+        cmdModifiedByPreviousSession = self.cmd.closeCommands()
         os.system("clear")
         print("You exited the navigation app.")
         print("")
+        if navModifiedByPreviousSession or cmdModifiedByPreviousSession:
+            print("The navigation and/or commands environment had been modified by a previous script session.")
+            print("All modifications have been reconciled.")
+            print("")
         out.printCurrentDir("Last visited")
         print("Last executed shell command: ", end='')
         print(previousCommand) if len(previousCommand) > 0 else print("none")

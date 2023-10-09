@@ -168,7 +168,7 @@ class Commands:
 
     """ requests closing the commands functionality in an orderly manner when application gets closed """
     def closeCommands(self):
-        self.cmd.closeCommands()
+        return self.cmd.closeCommands()
 
     """ edit an existing command (previous command or from commands history) and then execute it """
     def __editAndExecuteCommand(self, previousCommand):

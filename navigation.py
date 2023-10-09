@@ -165,7 +165,7 @@ class Navigation:
 
     """ requests closing the navigation functionality in an orderly manner when application gets closed """
     def closeNavigation(self):
-        self.nav.closeNavigation()
+        return self.nav.closeNavigation()
 
     """
     The status returned by this method can have following values:
