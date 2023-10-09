@@ -117,9 +117,8 @@ def getMinCommandSize():
 
 def buildShellCommand(command):
     assert len(command) > 0, "Empty command argument detected"
-    sourceConfigFileCmd = "source ~/.bashrc;" #include .bashrc to ensure the aliases and scripts work
     getExitCodeCmd = "echo $? > " + sysset.output_storage_file #exit code (used by Python to determine if the command finished successfully or not)
-    shellCommandToExecute = sourceConfigFileCmd + "\n" + command + "\n" + getExitCodeCmd
+    shellCommandToExecute = command + "\n" + getExitCodeCmd
     return shellCommandToExecute
 
 def retrieveCommandExecResult():
