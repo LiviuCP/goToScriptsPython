@@ -269,8 +269,6 @@ class NavigationBackend:
                 self.dailyLog.append(path)
 
     def __doHistoryCleanup(self):
-        pHistCleanedUp = 0
-        rHistCleanedUp = 0
         # clean up persistent history (except the most visited paths)
         if len(self.persistentHistory) > navset.p_hist_max_entries:
             persistentHistorySortedPaths = []
@@ -280,14 +278,10 @@ class NavigationBackend:
                 currentPath = persistentHistorySortedPaths[index]
                 if not os.path.exists(currentPath):
                     del self.persistentHistory[currentPath]
-                    pHistCleanedUp += 1
         # clean up recent history
         for path in self.recentHistory:
             if not os.path.exists(path):
                 self.recentHistory.remove(path)
-                rHistCleanedUp += 1
-        #print("Cleaned up persistent history entries: " + str(pHistCleanedUp))
-        #print("Cleaned up recent history entries: " + str(rHistCleanedUp))
 
     def __consolidateHistory(self):
         pHistDict = {}
