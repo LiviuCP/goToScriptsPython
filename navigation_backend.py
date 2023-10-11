@@ -134,30 +134,19 @@ class NavigationBackend:
         return pathToRemove
 
     def mapMissingDir(self, replacedPath, replacingPath):
-        assert len(replacedPath) > 0, "Empty argument for 'replaced path' detected"
-        assert len(replacingPath) > 0, "Empty argument for 'replacing path' detected"
-        replacedPathVisits = 0
-        replacingPathVisits = 0
-        replacedPathInRHist = False
-        replacedPathInPHist = False
-        replacedPathInEHist = False
-        replacingPathVisitsIncreasedInPHist = False
+        replacedPathInPHist = (replacedPath in self.persistentHistory)
+        assert replacedPathInPHist or replacedPath in self.excludedHistory, "Path to replace not found in persistent/excluded history!"
+        assert len(replacingPath) > 0, "Empty replacing path argument detected!"
+        replacedPathInRHist = (replacedPath in self.recentHistory)
         # handle path to replace: remove it from all required files
         if replacedPath in self.dailyLog:
             self.dailyLog.remove(replacedPath)
-        if replacedPath in self.recentHistory:
+        if replacedPathInRHist:
             self.recentHistory.remove(replacedPath)
-            replacedPathInRHist = True
-        if replacedPath in self.persistentHistory:
-            replacedPathVisits = self.persistentHistory[replacedPath]
-            self.persistentHistory.pop(replacedPath)
-            replacedPathInPHist = True
-        else:
-            #only modify the excluded history for the moment, to be removed from favorites in next step
-            replacedPathVisits = self.excludedHistory[replacedPath]
-            self.excludedHistory.pop(replacedPath)
-            replacedPathInEHist = True
+        replacedPathVisits = self.persistentHistory.pop(replacedPath) if replacedPathInPHist else self.excludedHistory.pop(replacedPath)
         # handle replacing path
+        replacingPathVisits = 0
+        replacingPathVisitsIncreasedInPHist = False
         if replacingPath in self.persistentHistory:
             replacingPathVisits = self.persistentHistory[replacingPath]
             if replacedPathVisits > replacingPathVisits:
@@ -167,15 +156,15 @@ class NavigationBackend:
             replacingPathVisits = self.excludedHistory[replacingPath]
             if replacedPathVisits > replacingPathVisits:
                 self.excludedHistory[replacingPath] = replacedPathVisits
-        else: # new path, neither contained in history or favorites (not visited yet, possibly newly created directory)
-            if replacedPathInEHist:
-                self.excludedHistory[replacingPath] = replacedPathVisits
-            else:
+        else: # new path, neither contained in history, nor in favorites (possibly old directory renamed or newly created directory)
+            if replacedPathInPHist:
                 self.persistentHistory[replacingPath] = replacedPathVisits
+            else:
+                self.excludedHistory[replacingPath] = replacedPathVisits
         # final touch: consolidate history, recompute favorites
         if replacedPathInRHist or replacedPathInPHist or replacingPathVisitsIncreasedInPHist:
             self.__consolidateHistory()
-        if replacedPathInEHist:
+        if not replacedPathInPHist:
             self.__computeFavorites()
         return (replacedPath, replacingPath)
 
