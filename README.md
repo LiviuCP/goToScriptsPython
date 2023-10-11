@@ -252,7 +252,7 @@ Each time a directory is visited or a command is executed, the event is tracked 
 - persistent history
 - excluded history (only for navigating to directories)
 
-The command history only tracks the commands initiated in navigation mode, namely the ones preceded by the : character. It is completely separate from standard BASH history, which tracks commands executed when navigation mode is disabled.
+The command history only tracks the commands initiated in navigation mode, namely the ones preceded by the : character. It is completely separate from standard terminal (shell) history, which tracks commands executed when the current script is not being run.
 
 6.1. Recent history
 
@@ -268,7 +268,7 @@ All paths except the ones from excluded history are mentioned here along with th
 
 Also if the previous directory is the same with the visited directory the persistent history is not updated.
 
-The file is sorted each time it is updated and the most visited paths are added to a consolidated history file.
+The persistent history is sorted each time it is updated and the most visited paths are added to a consolidated history menu.
 
 The same behavior is implemented for executed commands except there is no excluded history to be taken into account.
 
@@ -276,21 +276,23 @@ The persistent history holds an unlimited number of entries. However only a limi
 
 6.3. Consolidated history
 
-This file consolidates the entries contained in the previous 2 files. A unified interface is provided to the user for accessing the history.
+This menu consolidates the entries contained within:
+- recent history (all entries added to consolidated history)
+- persistent history (most visited entries added to consolidated history, see previous section).
+
+A unified interface is provided to the user for accessing the relevant history part.
 
 6.4. Excluded history
 
-When a directory is added to favorites its entry from the persistent history file is added to this file. This way the number of visits continues to be tracked (same tracking mechanism as for persistent history) and in the same time the path is separated from consolidated history.
+When a directory is added to favorites, its entry from persistent history is moved to the excluded section. This way the number of visits continues to be tracked (same tracking mechanism as for persistent history) and in the same time the path is separated from consolidated history.
 
-When the directory is removed from favorites the entry is moved back to persistent history with the actual number of visits.
+When the directory is removed from favorites, the entry is moved back to persistent history with the actual number of visits.
 
-If the directory hadn't been visited prior to adding to favorites (e.g. if adding it by calling the addToFavorites function with the directory path as argument when in another directory) an entry with 0 visits is created in the excluded history file. If the directory is removed from favorites before visiting it the entry is removed both from favorites file and excluded history and nothing is added to persistent history.
-
-There is no excluded history for commands. For "favorite commands" using of standard aliases is recommended.
+There is no excluded history for commands.
 
 6.5. Filtered history
 
-Both for visited directories and commands there is also the possibility to filter the persistent history (whole file) based on a search keyword. The search will find all matches but only display a limited number of results on screen. This limitation is implemented for efficiency purposes. By modifying a variable in the navigation_backend.py or commands_backend.py it is possible to modify this limit (however I recommend keeping it low).
+Both for visited directories and executed commands there is also the possibility to filter the persistent history (whole content) based on a search keyword. The search will find all matches but only display a limited number of results on screen. This limitation is implemented for efficiency purposes. By modifying a variable in the navigation_settings.py or commands_settings.py it is possible to change this limit (however I recommend keeping it low).
 
 Once the search results are displayed please select the number of the required entry from the menu so it is executed/visited. The filtered history menus behave the same as the consolidated menus regarding usage.
 
@@ -309,25 +311,19 @@ In the above examples the search keyword contains a single filter. However both 
 Last but not least each individual filter is counted as a regular expression so the specific regex syntax can be used. However this should be valid otherwise no search results will be returned. For example entering ::* will yield no results.
 
 Notes:
-- all persistent history file entries (including the ones not displayed in the consolidated menu) are being searched for the given keyword. This gives the user a chance to reuse the less visited/executed paths/commands as well.
+- all persistent history entries (including the ones not displayed in the consolidated menu) are being searched for the given keyword. This gives the user a chance to reuse the less visited/executed paths/commands as well.
 - the search is case-insensitive, meaning you can enter <<abcd for /home/aBcd retrieval
 - the number of spaces within search keyword filter is relevant and should be the right one for identifying the substring in the command/path. For example you should enter :<cho ab and not :<cho  ab to find the echo abdcgijk command. As already mentioned before, preceding and trailing spaces are ignored for each filter.
 - if the number of found entries is higher than the displayed ones try to narrow down the search if the required path/command is not visible. This can be done by modifying the filter(s) within keyword or by adding new filters. Feel free to use regex specific syntax as well if required.
-- also if no match was found try to modify the search keyword until getting the desired result. If the result is still not obtained it is likely that the required entry is not in the persistent history file (maybe it had been deleted at the last history reset)
-- the excluded history is not contained in the paths used as navigation history filtering base. The search is performed only in the persistent history files. It is possible to filter excluded history separately by using prefix >> (favorite paths filtering)
+- also if no match was found try to modify the search keyword until getting the desired result. If the result is still not obtained it is likely that the required entry is not contained within persistent history
+- the excluded history is not contained in the paths used as navigation history filtering base. The search is performed only in the persistent history. It is possible to filter excluded history separately by using prefix >> (favorite paths filtering)
 - empty filters are ignored. For example if the user enters <<,,abc only abc is being used for the search. If no valid (not empty) filters have been entered then no results are being displayed. Please note that filters containing only whitespaces are also considered empty.
 - it is also possible to search for entries that don't contain a specific keyword. In order to do this without using specific regular expression, the user could enter the keyword preceded by the '-' character. This is the same (yet much easier) as writing ^((?!keyword).)*$ which would be rather messy. For example by entering dir1, -dir2 (or vice-versa) the entries that contain dir1 but not dir2 are being searched for. Say there are two distinct directories, namely /home/user1/dir1 and /home/user1/dir2/dir1. By using the mentioned filters combination only the first entry will be displayed. This is particularly useful when two similar directory structures with different base directories exist and the user is interested in navigating in only one of them. Same can be used for similar commands, e.g. two shell commands that differ by only one option. Please note that the expanded regex syntax is being displayed as last used navigation/commands filter.
 - the keyword search is actually a regex match as each keyword is a regular expression construct
 
 6.6. Adding commands to history based on command string size
 
-It is possible to setup the minimum number of characters a command should contain in order to be stored into the command history file. This is done by setting up the min_command_size variable in commands_settings.py. For example by setting min_command_size=10 each command with less than 10 characters will be prevented from being included into the command history. The characters include the spaces but not the : character used for entering the command in navigation mode. This rule can be bypassed if more spaces are being included in the command (if the command has a single word the spaces should be added before the word). An alternative is to set the minimum number of characters to 0 in the settings file.
-
-For example:
-:echo abcd #will not be included in command history (less than 10 characters - a total of 9, including space, excluding : )
-:echo  abcd #will be included in command history (2 spaces this time)
-:echo #will not be included, no matter how many spaces are entered after echo
-:      echo #will be included, there is a total of 10 spaces, 6 spaces before the echo word
+It is possible to setup the minimum number of characters a command should contain in order to be stored into the commands history. This is done by setting up the min_command_size variable in commands_settings.py. For example, by setting min_command_size=10 each command with less than 10 characters will be prevented from being included into the command history. The count does not include the : character used for entering the command in navigation mode. This rule can be bypassed by setting the minimum number of characters to 0 in the settings file.
 
 Note: this setting does not affect storing the command in the "last executed shell command" buffer which is updated each time a command is executed no matter how many chars the command contains. The content of this buffer is volatile and is erased once exiting the goto_app.py script.
 
@@ -368,7 +364,6 @@ Last but not least, it is also possible to visit the parent directory from the c
 Notes:
 - to modify the number of displayed entries, please change the variable q_hist_max_entries from navigation_settings.py to the desired value (default is 5 and it is recommended to keep it small).
 - when accessing the parent directory, an empty entry number (namely entering only ,,) is considered invalid and the same error is triggered as when the other validity criteria (mentioned above) are not fulfilled. The user should retry by entering a valid entry number.
-- please avoid using quick history when the script is run in multiple instances! Each instance modifies the same recent history file, which could result in navigating to a path different from the chosen one (which is obviously a bug). This might be corrected in a future changeset by having a mechanism implemented that detects changes in recent history prior to having a quick entry executed.
 
 7. HANDLING MISSING DIRECTORIES
 
@@ -384,7 +379,7 @@ Note: this functionality is NOT available when choosing the parent dir from the 
 
 7.1. Removing the path
 
-When this option is chosen the path is removed from all menus and files. The number of visits is lost.
+When this option is chosen, the path is removed from all menus. The number of visits is lost.
 
 7.2. Remapping
 
@@ -458,10 +453,28 @@ To be noted:
 
 The fallback mechanism has been designed for increasing the resiliency of the application by aiding in preventing unwanted crashes. Due to the complexity of the application there might be some places (sub-menus) where it hasn't been implemented (in this case the app might crash), yet in practice it should be seldom required as in most of the situations the current directory should be fully available.
 
-10. MISCELLANEOUS
+10. DATA RECONCILING
 
-1) It is possible to erase all entries from history, which means all history files are cleared. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the navigation favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :clearnavigation and hit ENTER in order to clear the navigation history. For command history type :clearcommands and hit ENTER.
+The application does not modify its files at runtime meaning all operations occur in-memory. This was implemented in order to fully support running multiple sessions in the same time. When the script gets launched, it starts by loading all relevant content from the application files into the required data structures. These structures are then updated during runtime as the user navigates through directories and executes shell commands. Finally when the user decides to exit the application, the content of these data structures is written back to the files, which fully overrides them. These files include: persistent navigation/commands history, recent navigation/commands history, excluded navigation history and other relevant files.
 
-2) Unlike the equivalent BASH-only scripts (that can be downloaded from the goToScripts repo: https://github.com/LiviuCP/gotoScripts.git), when exiting the Python script (either by entering ! or CTRL+C / CTRL+D) the current directory is not retained but the terminal will revert to the original directory that was current when launching the goto_app.py.
+An issue might arise when at least two script sessions are active. Each session performs its own operations without being aware of the other process. At some moment in time the user might decide to close one of the sessions, which triggers saving the data to the application files. These files are obviously shared by all script sessions. Later when the other session gets closed, it will override the files again. As the sessions are unaware of each other, this would pose the risk that the changes performed by the previously closed process are lost.
+
+In order to prevent this and to preserve consistency of the operations, a data reconciliation mechanism has been implemented. When a session gets closed, it is first being checked whether another session modified the files while the current one was active. If this was the case, then the files would be reloaded into separate in-memory data structures. Both data groups (from previous/current session) are then analyzed against each other, reconciled and consolidated into a single unified group of data structures. The consolidated structures (reconciled data) are then saved to the application files.
+
+The reconciliation process ensures that:
+- paths removed from persistent/excluded history by a script session (e.g. directories that no longer exist) stay removed and don't get written back to the application data files (unless the other session reverted these changes, i.e. recreated the erased directory)
+- the number of times a specific path was visited, respectively a command was executed is the right one (e.g. a directory visited during previous session but not visited in current session will have the updated number of visits)
+- when a path has been added to/removed from favorites by one of the sessions, it stays added/removed unless the other session has performed its own modifications on it
+- newly visited paths/executed commands are visible in history or in favorites (if added here after visiting)
+
+Note: the recent navigation/commands history is always the one from the last closed session, it overrides the ones from previous sessions.
+
+To conclude, the goal of reconciling data of multiple sessions is to obtain a clean persistent/excluded history by ensuring the right entries with the right number of visits/executions are present within these files after closing all sessions.
+
+11. MISCELLANEOUS
+
+1) It is possible to erase all entries from history, which means all history data is erased. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the navigation favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :clearnavigation and hit ENTER in order to clear the navigation history. For command history type :clearcommands and hit ENTER.
+
+2) Unlike the equivalent BASH-only scripts (that can be downloaded from the goToScripts repo: https://github.com/LiviuCP/gotoScripts.git), when exiting the Python script (either by entering ! or CTRL+C / CTRL+D) the current directory is not retained but the terminal will revert to the original directory that was current when launching goto_app.py.
 
 3) When using CTRL+C or CTRL+D from the clipboard, recursive transfer or rename menus the user returns to the main navigation page and any operation related to these menus is aborted. When hitting these key combinations in any other menu or dialog the application is exited. Please note that CTRL + D might not always work (in some situations it might not have any effect).
