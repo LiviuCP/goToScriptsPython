@@ -1,6 +1,7 @@
 import sys, os, readline
-import common, navigation_backend as nav, system_functionality as sysfunc, display as out
+import common, navigation_backend as nav, navigation_settings as navset, system_functionality as sysfunc, display as out
 from os.path import isdir
+from pathlib import Path
 
 class Navigation:
     def __init__(self, startingDirectory):
@@ -8,7 +9,7 @@ class Navigation:
         self.previousNavigationFilter = ""
         self.syncWithFinderEnabled = False
         self.syncWithFinderInitialized = False
-        nav.initNavMenus()
+        self.nav = nav.NavigationBackend()
 
     def getPreviousDirectory(self):
         return self.previousDirectory
@@ -31,8 +32,7 @@ class Navigation:
             os.chdir(currentDir)
             if (prevDir != currentDir):
                 print("Switched to new directory: " + currentDir)
-                nav.updateNavigationHistory(currentDir)
-                nav.consolidateHistory()
+                self.nav.updateNavigationHistory(currentDir)
                 self.previousDirectory = prevDir
             else:
                 print("Current directory remains unchanged: " + currentDir)
@@ -99,6 +99,81 @@ class Navigation:
             status = 3
             passedInput = ""
         return (status, passedInput, "")
+
+    """ resets the navigation history (including separate history for favorite directories) """
+    def clearVisitedDirsMenu(self):
+        self.nav.clearHistory()
+        print("Content of navigation history menu has been erased.")
+
+    """ adds directory to favorite paths """
+    def addDirToFavorites(self, dirPath = ""):
+        pathToAdd = common.getAbsoluteDirPath(dirPath)
+        if len(pathToAdd) > 0:
+            pathAdded = self.nav.addPathToFavorites(pathToAdd)
+            if pathAdded:
+                print("Directory " + pathToAdd + " added to favorites.")
+            else:
+                print("Directory " + pathToAdd + " already added to favorites.")
+        else:
+            os.system("clear")
+            print("Directory " + dirPath + " does not exist, has been deleted or you might not have the required access level.")
+            print("Cannot add to favorites.")
+
+    """ removes dir from favorite paths """
+    def removeDirFromFavorites(self):
+        def displayFavoritesEntryRemovalDialog(currentDir):
+            print("REMOVE DIRECTORY FROM FAVORITES")
+            print('')
+            self.__displayFormattedNavFileContent(self.nav.getFavorites())
+            print('')
+            print("Current directory: " + currentDir)
+            print('')
+            print("Enter the number of the directory to be removed from favorites.")
+            print("Enter ! to quit this dialog.")
+            print('')
+        syncResult = sysfunc.syncCurrentDir()
+        assert not syncResult[1], "Current dir fallback not allowed"
+        status = 0 # default status, successful removal or aborted by user
+        userInput = ""
+        favorites = self.nav.getFavorites()
+        if len(favorites) == 0:
+            print("There are no entries in the favorites menu.")
+            status = 4
+        else:
+            displayFavoritesEntryRemovalDialog(syncResult[0])
+            userInput = input()
+            os.system("clear")
+            if userInput == '!':
+                print("No entry removed from favorites menu.")
+            else:
+                pathToRemove = common.getMenuEntry(favorites, userInput)
+                if pathToRemove is not None:
+                    pathRemoved = self.nav.removePathFromFavorites(pathToRemove)
+                    if pathRemoved:
+                        print("Entry " + pathToRemove + " removed from favorites menu.")
+                    else:
+                        print("Error! Entry " + pathToRemove + " could not be removed from favorites menu.")
+                else:
+                    status = 1 # forward user input as regular input
+        return (status, userInput, "")
+
+    """ used for quick favorite directories access """
+    def isValidFavoritesEntryNr(self, userInput):
+        return common.getMenuEntry(self.nav.getFavorites(), userInput) is not None
+
+    """ quick navigation history is part of recent history but can be accessed outside the regular history menus """
+    def displayQuickNavigationHistory(self):
+        (consolidatedHistory, recentHistoryEntriesCount) = self.nav.getConsolidatedHistoryInfo()
+        recentHistory = consolidatedHistory[0: recentHistoryEntriesCount]
+        self.__displayFormattedNavFileContent(recentHistory, 0, navset.q_hist_max_entries)
+
+    """ checks the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent navigation history) """
+    def isValidQuickNavHistoryEntryNr(self, userInput):
+        return self.nav.isValidQuickNavHistoryEntryNr(userInput)
+
+    """ requests closing the navigation functionality in an orderly manner when application gets closed """
+    def closeNavigation(self):
+        return self.nav.closeNavigation()
 
     """ performs first Finder sync (when application gets launched) """
     def initSyncWithFinder(self):
@@ -169,7 +244,7 @@ class Navigation:
             out.printFallbackMessage()
         # remove directory from history, don't map to anything
         elif userChoice == "!r":
-            removedPath = nav.removeMissingDir(missingDirPath)
+            removedPath = self.nav.removeMissingDir(missingDirPath)
             os.system("clear")
             print("Entry " + removedPath + " has been removed from the menus.")
         # map missing directory to a valid replacing dir
@@ -215,7 +290,7 @@ class Navigation:
                 replacingDirPath = nav.getReplacingDirPath(replacingDir)
                 if replacingDirPath != ":4":
                     self.previousDirectory = syncResult[0] # prev dir to be updated to current dir in case of successful mapping
-                    mappingResult = nav.mapMissingDir(missingDirPath, replacingDirPath)
+                    mappingResult = self.nav.mapMissingDir(missingDirPath, replacingDirPath)
                     os.system("clear")
                     print("Missing directory: " + mappingResult[0])
                     print("Replacing directory: " + mappingResult[1])
@@ -239,25 +314,29 @@ class Navigation:
     """ Displays the requested navigation menu and prompts the user to enter the required option """
     def __visitNavigationMenu(self, menuChoice, userInput = "", previousCommand = ""):
         def displayHistMenu():
-            nav.consolidateHistory() # normally this would not be required; nevertheless it's needed in order to fix a bug that appears both on Linux and Mac (persistent history entries vanish in specific circumstances - on Linux after executing a command, on Mac after opening a new Terminal Window); the fix is not 100% satisfactory yet it's the best that could be found so far
+            (consolidatedHistory, recentHistoryEntriesCount) = self.nav.getConsolidatedHistoryInfo()
             print("VISITED DIRECTORIES")
             print("")
             print("-- RECENTLY VISITED --")
             print("")
-            nav.displayFormattedRecentHistContent()
+            self.__displayFormattedNavFileContent(consolidatedHistory, 0, recentHistoryEntriesCount)
             print("")
             print("-- MOST VISITED --")
             print("")
-            nav.displayFormattedPersistentHistContent()
+            self.__displayFormattedNavFileContent(consolidatedHistory, recentHistoryEntriesCount)
         def displayFavoritesMenu():
             print("FAVORITE DIRECTORIES")
             print("")
-            nav.displayFormattedFavoritesContent()
-        def displayFilteredMenu(choice, content, totalNrOfMatches):
+            self.__displayFormattedNavFileContent(self.nav.getFavorites())
+        def displayFilteredMenu(choice, filteredContent, totalNrOfMatches):
             assert choice in ["-fh", "-ff"]
             print("FILTERED VISITED DIRECTORIES") if choice == "-fh" else print("FILTERED FAVORITE DIRECTORIES")
             print("")
-            nav.displayFormattedFilteredContent(content, totalNrOfMatches)
+            self.__displayFormattedNavFileContent(filteredContent, 0)
+            print("")
+            print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
+            if totalNrOfMatches > len(filteredContent):
+                print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
         def displayPageFooter(currentDir, choice, filterKey = ""):
             toggleDict = {"-h" : "FAVORITE DIRECTORIES", "-f" : "VISITED DIRECTORIES", "-fh" : "FILTERED FAVORITE DIRECTORIES", "-ff" : "FILTERED VISITED DIRECTORIES"}
             print("")
@@ -284,7 +363,7 @@ class Navigation:
         if menuChoice in ["-fh", "-ff"]:
             assert len(userInput) > 0, "No filter has been provided for filtered navigation menu"
             self.previousNavigationFilter = userInput
-            filterResult = nav.buildFilteredNavigationHistory(filteredEntries, userInput) if menuChoice == "-fh" else nav.buildFilteredFavorites(filteredEntries, userInput)
+            filterResult = self.nav.buildFilteredNavigationHistory(userInput, filteredEntries) if menuChoice == "-fh" else self.nav.buildFilteredFavorites(userInput, filteredEntries)
             totalNrOfMatches = filterResult[0]
             appliedFilterKey = filterResult[1]
             userInput = "" #input should be reset to correctly account for the case when the resulting filtered history menu is empty
@@ -296,72 +375,38 @@ class Navigation:
                 os.system("clear")
         elif len(userInput) == 0:
             os.system("clear")
-            if not nav.isMenuEmpty(menuChoice):
+            if not self.nav.isMenuEmpty(menuChoice):
                 displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
                 displayPageFooter(syncResult[0], menuChoice)
                 userInput = input()
                 os.system("clear")
         # process user choice
         userInput = userInput.strip()
-        choiceResult = nav.choosePath(menuChoice, userInput, filteredEntries)
+        choiceResult = self.nav.choosePath(menuChoice, userInput, filteredEntries)
         return choiceResult
 
-""" Functions currently not included in the Navigation class """
-
-def clearVisitedDirsMenu():
-    nav.clearHistory()
-    print("Content of navigation history menu has been erased.")
-
-def addDirToFavorites(dirPath = ""):
-    pathToAdd = common.getAbsoluteDirPath(dirPath)
-    if len(pathToAdd) > 0:
-        if not nav.isContainedInFavorites(pathToAdd):
-            nav.addPathToFavorites(pathToAdd)
-            print("Directory " + pathToAdd + " added to favorites.")
-        else:
-            print("Directory " + pathToAdd + " already added to favorites.")
-    else:
-        os.system("clear")
-        print("Directory " + dirPath + " does not exist, has been deleted or you might not have the required access level.")
-        print("Cannot add to favorites.")
-
-def removeDirFromFavorites():
-    def displayFavoritesEntryRemovalDialog(currentDir):
-        print("REMOVE DIRECTORY FROM FAVORITES")
-        print('')
-        nav.displayFormattedFavoritesContent()
-        print('')
-        print("Current directory: " + currentDir)
-        print('')
-        print("Enter the number of the directory to be removed from favorites.")
-        print("Enter ! to quit this dialog.")
-        print('')
-    syncResult = sysfunc.syncCurrentDir()
-    assert not syncResult[1], "Current dir fallback not allowed"
-    status = 0 # default status, successful removal or aborted by user
-    userInput = ""
-    if nav.isFavEmpty():
-        print("There are no entries in the favorites menu.")
-        status = 4
-    else:
-        displayFavoritesEntryRemovalDialog(syncResult[0])
-        userInput = input()
-        os.system("clear")
-        if userInput == '!':
-            print("No entry removed from favorites menu.")
-        else:
-            removedPath = nav.removePathFromFavorites(userInput)
-            if len(removedPath) > 0:
-                print("Entry " + removedPath + " removed from favorites menu.")
-            else:
-                status = 1 # forward user input as regular input
-    return (status, userInput, "")
-
-def isValidFavoritesEntryNr(userInput):
-    return nav.isValidFavoritesEntryNr(userInput)
-
-def displayQuickNavigationHistory():
-    nav.displayFormattedQuickNavigationHistory()
-
-def isValidQuickNavHistoryEntryNr(userInput):
-    return nav.isValidQuickNavHistoryEntryNr(userInput)
+    """ Function used for displaying specific navigation menus """
+    def __displayFormattedNavFileContent(self, fileContent, firstRowNr = 0, limit = -1):
+        nrOfRows = len(fileContent)
+        assert nrOfRows > 0, "Attempt to display an empty navigation menu"
+        limit = nrOfRows if limit < 0 or limit > nrOfRows else limit
+        assert limit != 0, "Zero entries limit detected, not permitted"
+        beginCharsToDisplayForDirName = navset.max_nr_of_item_name_chars // 2 #first characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
+        endCharsToDisplayForDirName = beginCharsToDisplayForDirName - navset.max_nr_of_item_name_chars #last characters to be displayed for a directory name exceeding the maximum number of chars to be displayed
+        beginCharsToDisplayForPath = navset.max_nr_of_path_chars // 2 #first characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
+        endCharsToDisplayForPath = beginCharsToDisplayForPath - navset.max_nr_of_path_chars #last characters to be displayed for an absolute path exceeding the maximum number of chars to be displayed
+        if firstRowNr < limit and firstRowNr >= 0:
+            print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format('', '- PARENT DIR -', '- DIR NAME -', '- DIR PATH -'))
+            for rowNr in range(firstRowNr, limit):
+                dirPath = fileContent[rowNr].strip('\n')
+                dirName = os.path.basename(dirPath) if dirPath != "/" else "*root"
+                parentDir = os.path.basename(str(Path(dirPath).parent))
+                if len(parentDir) == 0:
+                    parentDir = "*root"
+                elif len(parentDir)-1 > navset.max_nr_of_item_name_chars:
+                    parentDir = parentDir[0:beginCharsToDisplayForDirName] + "..." + parentDir[endCharsToDisplayForDirName-1:]
+                if len(dirName)-1 > navset.max_nr_of_item_name_chars:
+                    dirName = dirName[0:beginCharsToDisplayForDirName] + "..." + dirName[endCharsToDisplayForDirName-1:]
+                if len(dirPath)-1 > navset.max_nr_of_path_chars:
+                    dirPath = dirPath[0:beginCharsToDisplayForPath] + "..." + dirPath[endCharsToDisplayForPath-1:]
+                print('{0:<5s} {1:<40s} {2:<40s} {3:<85s}'.format(str(rowNr+1), parentDir, dirName, dirPath))

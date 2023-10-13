@@ -1,304 +1,298 @@
-import sys, os
-import nav_cmd_common as nvcdcmn, shared_nav_functions as ns, navigation_settings as navset, system_settings as sysset
+import sys, os, time
+import nav_cmd_common as nvcdcmn, navigation_settings as navset, system_settings as sysset
 
-""" navigation history/favorites menu init/access functions """
-def initNavMenus():
-    # ensure all required files and dirs exist
-    if not os.path.exists(navset.log_dir):
-        os.makedirs(navset.log_dir)
-    with open(navset.r_hist_file, "a") as rHist, open(navset.p_str_hist_file, "a") as pStrHist, open(navset.p_num_hist_file, "a") as pNumHist, open(navset.e_str_hist_file, "a") as eStrHist, open(navset.e_num_hist_file, "a") as eNumHist, \
-         open(navset.l_hist_file, "a"), open (navset.fav_file, "a"), open(sysset.input_storage_file, "a"), open(sysset.output_storage_file, "a"):
-        rHist.close() # close, in use by next functions
-        pStrHist.close() # close, in use by next functions
-        pNumHist.close() # close, in use by next functions
-        doHistoryCleanup() #clean all invalid paths from history (except the most visited ones from persistent history)
-        nvcdcmn.limitEntriesNr(navset.r_hist_file, navset.r_hist_max_entries) # limit the number of entries from recent navigation history files to the maximum allowed and get unified (recent + persistent) history
-        consolidateHistory()
+class NavigationBackend:
+    def __init__(self):
+        self.recentHistory = []
+        self.persistentHistory = {}
+        self.excludedHistory = {}
+        self.dailyLog = []
+        self.consolidatedHistory = []
+        self.favorites = []
+        self.addedToFavorites = []
+        self.removedFromFavorites = []
+        self.openingTime = time.time()
+        self.__loadNavigationFiles()
+        self.__doHistoryCleanup()
+        self.__consolidateHistory()
+        self.__computeFavorites()
 
-def doHistoryCleanup():
-    pHistCleanedUp = 0
-    rHistCleanedUp = 0
-    with open(navset.p_str_hist_file, "r") as pStrHist, open(navset.p_num_hist_file, "r") as pNumHist, open(navset.r_hist_file, "r") as rHist:
-        # clean up persistent history (except the most visited paths)
-        pStrHistList = pStrHist.readlines()
-        pNumHistList = pNumHist.readlines()
-        assert len(pStrHistList) == len(pNumHistList), "The number of elements in p_str_hist_file is different from the number contained in p_num_hist_file"
-        pStrHistListUpdated = []
-        pNumHistListUpdated = []
-        if len(pStrHistList) > navset.p_hist_max_entries:
-            pStrHistListUpdated = pStrHistList[0:navset.p_hist_max_entries].copy()
-            pNumHistListUpdated = pNumHistList[0:navset.p_hist_max_entries].copy()
-            for index in range(navset.p_hist_max_entries, len(pStrHistList)):
-                if os.path.exists(pStrHistList[index].strip("\n")):
-                    pStrHistListUpdated.append(pStrHistList[index])
-                    pNumHistListUpdated.append(pNumHistList[index])
-                else:
-                    pHistCleanedUp += 1
-        # clean up recent history
-        rHistEntriesUpdated = []
-        for entry in rHist.readlines():
-            if os.path.exists(entry.strip('\n')):
-                rHistEntriesUpdated.append(entry)
+    def getConsolidatedHistoryInfo(self):
+        return (self.consolidatedHistory.copy(), len(self.recentHistory))
+
+    def getFavorites(self):
+        return self.favorites.copy()
+
+    def choosePath(self, menuChoice, userInput, filteredContent):
+        content = filteredContent if menuChoice in ["-fh", "-ff"] else self.favorites if menuChoice == "-f" else self.consolidatedHistory
+        return nvcdcmn.getMenuEntry(userInput, content)
+
+    def isMenuEmpty(self, menuChoice):
+        assert menuChoice in ["-h", "-f"], "Invalid menu option argument detected"
+        return len(self.excludedHistory if menuChoice == "-f" else self.consolidatedHistory) == 0
+
+    def updateNavigationHistory(self, dirPath):
+        assert len(dirPath) > 0, "Empty path argument detected"
+        # handle recent history
+        if dirPath in self.recentHistory:
+            self.recentHistory.remove(dirPath)
+        elif len(self.recentHistory) == navset.r_hist_max_entries:
+            self.recentHistory.pop(len(self.recentHistory)-1)
+        self.recentHistory = [dirPath] + self.recentHistory
+        # handle persistent/excluded history
+        if dirPath not in self.dailyLog:
+            self.dailyLog.append(dirPath)
+            if dirPath in self.excludedHistory.keys():
+                self.excludedHistory[dirPath] += 1
+            elif dirPath in self.persistentHistory.keys():
+                self.persistentHistory[dirPath] += 1
             else:
-                rHistCleanedUp += 1
-        # write back if entries have been cleaned up
-        if pHistCleanedUp > 0:
-            pStrHist.close()
-            pNumHist.close()
-            with open(navset.p_str_hist_file, "w") as pStrHist, open(navset.p_num_hist_file, "w") as pNumHist:
-                for index in range(len(pStrHistListUpdated)):
-                    pStrHist.write(pStrHistListUpdated[index])
-                    pNumHist.write(pNumHistListUpdated[index])
-        if rHistCleanedUp > 0:
-            rHist.close()
-            with open(navset.r_hist_file, "w") as rHist:
-                for entry in rHistEntriesUpdated:
-                    rHist.write(entry)
-    #print("Cleaned up persistent history entries: " + str(pHistCleanedUp))
-    #print("Cleaned up recent history entries: " + str(rHistCleanedUp))
+                self.persistentHistory[dirPath] = 1
+        self.__consolidateHistory()
 
-def choosePath(menuChoice, userInput, filteredContent):
-    result = (":3", "", "")
-    if menuChoice in ["-fh", "-ff"]:
-        result = nvcdcmn.getMenuEntry(userInput, filteredContent)
-    else:
-        with open(navset.fav_file if menuChoice == "-f" else navset.hist_file, "r") as fPath:
-            result = nvcdcmn.getMenuEntry(userInput, fPath.readlines())
-    return result
+    def clearHistory(self):
+        self.recentHistory.clear()
+        self.persistentHistory.clear()
+        self.consolidatedHistory.clear()
+        self.dailyLog.clear()
+        # favorites are not erased but the corresponding excluded history should have the visits count reset for each included path
+        for path in self.excludedHistory.keys():
+            self.excludedHistory[path] = 0
 
-def displayFormattedRecentHistContent():
-    with open(navset.hist_file, "r") as hist, open(navset.r_hist_file, "r") as rHist:
-        ns.displayFormattedNavFileContent(hist.readlines(), 0, len(rHist.readlines()))
+    def buildFilteredNavigationHistory(self, filterKey, filteredContent):
+        assert len(filterKey) > 0, "Empty filter key found"
+        return nvcdcmn.buildFilteredPersistentHistory(self.persistentHistory, filterKey, navset.max_filtered_hist_entries, filteredContent)
 
-def displayFormattedPersistentHistContent():
-    with open(navset.hist_file, "r") as hist, open(navset.r_hist_file, "r") as rHist:
-        ns.displayFormattedNavFileContent(hist.readlines(), len(rHist.readlines()))
+    def buildFilteredFavorites(self, filterKey, filteredContent):
+        assert len(filterKey) > 0, "Empty filter key found"
+        return nvcdcmn.buildFilteredHistory(self.excludedHistory.keys(), filterKey, navset.max_filtered_fav_entries, filteredContent)
 
-def displayFormattedFilteredContent(filteredContent, totalNrOfMatches):
-    ns.displayFormattedNavFileContent(filteredContent, 0)
-    print("")
-    print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
-    if totalNrOfMatches > len(filteredContent):
-        print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
+    def addPathToFavorites(self, pathToAdd):
+        assert len(pathToAdd) > 0, "Empty path argument detected"
+        shouldAddToFavorites = True
+        for path in self.excludedHistory:
+            if path.lower() == pathToAdd.lower():
+                shouldAddToFavorites = False
+                break
+        if shouldAddToFavorites:
+            nrOfPathVisits = self.persistentHistory.get(pathToAdd)
+            if nrOfPathVisits is not None:
+                del self.persistentHistory[pathToAdd]
+                self.__consolidateHistory()
+            else:
+                nrOfPathVisits = 0
+            self.excludedHistory[pathToAdd] = nrOfPathVisits
+            if pathToAdd in self.removedFromFavorites:
+                self.removedFromFavorites.remove(pathToAdd)
+            self.addedToFavorites.append(pathToAdd)
+            self.__computeFavorites()
+        return shouldAddToFavorites
 
-def isMenuEmpty(menuChoice):
-    assert menuChoice in ["-h", "-f"], "Invalid menu option argument detected"
-    return os.path.getsize(navset.fav_file if menuChoice == "-f" else navset.hist_file) == 0
+    def removePathFromFavorites(self, pathToRemove):
+        pathRemoved = False
+        # remove from excluded history, update favorites; move to persistent history if visited at least once
+        if pathToRemove in self.favorites:
+            assert pathToRemove in self.excludedHistory, "Favorites path not contained in excluded history!"
+            nrOfRemovedPathVisits = self.excludedHistory[pathToRemove]
+            if nrOfRemovedPathVisits > 0:
+                self.persistentHistory[pathToRemove] = nrOfRemovedPathVisits
+                self.__consolidateHistory()
+            del self.excludedHistory[pathToRemove]
+            if pathToRemove in self.addedToFavorites:
+                self.addedToFavorites.remove(pathToRemove)
+            self.removedFromFavorites.append(pathToRemove)
+            self.__computeFavorites()
+            pathRemoved = True
+        return pathRemoved
 
-""" navigation history update functions """
-def updateNavigationHistory(visitedDirPath):
-    assert len(visitedDirPath) > 0, "Empty path argument detected"
-    nvcdcmn.updateHistory(visitedDirPath, navset.l_hist_file, navset.r_hist_file, navset.r_hist_max_entries, navset.p_str_hist_file, navset.p_num_hist_file, navset.e_str_hist_file, navset.e_num_hist_file)
+    def isValidQuickNavHistoryEntryNr(self, userInput):
+        isValid = False
+        if len(userInput) > 0 and userInput.isdigit():
+            quickNavEntryNr = int(userInput)
+            isValid = quickNavEntryNr > 0 and quickNavEntryNr <= len(self.recentHistory) and quickNavEntryNr <= navset.q_hist_max_entries
+        return isValid
 
-def consolidateHistory():
-    with open(navset.r_hist_file, 'r') as rHist, open(navset.p_str_hist_file, 'r') as pStrHist, open(navset.hist_file, 'w') as hist:
-        rHistDict = {}
+    def removeMissingDir(self, pathToRemove):
+        assert len(pathToRemove) > 0, "Empty path argument detected"
+        if pathToRemove in self.dailyLog:
+            self.dailyLog.remove(pathToRemove)
+        removedFromRecentHistory = False
+        if pathToRemove in self.recentHistory:
+            self.recentHistory.remove(pathToRemove)
+            removedFromRecentHistory = True
+        removedFromPersistentHistory = False
+        if pathToRemove in self.persistentHistory:
+            del self.persistentHistory[pathToRemove]
+            removedFromPersistentHistory = True
+        elif pathTorRemove in self.excludedHistory:
+            del self.excludedHistory[pathToRemove]
+            self.__computeFavorites()
+        else:
+            assert False, "Removed entry neither present in persistent, nor in excluded history!"
+        if removedFromRecentHistory or removedFromPersistentHistory:
+            self.__consolidateHistory()
+        return pathToRemove
+
+    def mapMissingDir(self, replacedPath, replacingPath):
+        replacedPathInPHist = (replacedPath in self.persistentHistory)
+        assert replacedPathInPHist or replacedPath in self.excludedHistory, "Path to replace not found in persistent/excluded history!"
+        assert len(replacingPath) > 0, "Empty replacing path argument detected!"
+        replacedPathInRHist = (replacedPath in self.recentHistory)
+        # handle path to replace: remove it from all required files
+        if replacedPath in self.dailyLog:
+            self.dailyLog.remove(replacedPath)
+        if replacedPathInRHist:
+            self.recentHistory.remove(replacedPath)
+        replacedPathVisits = self.persistentHistory.pop(replacedPath) if replacedPathInPHist else self.excludedHistory.pop(replacedPath)
+        # handle replacing path
+        replacingPathVisits = 0
+        replacingPathVisitsIncreasedInPHist = False
+        if replacingPath in self.persistentHistory:
+            replacingPathVisits = self.persistentHistory[replacingPath]
+            if replacedPathVisits > replacingPathVisits:
+                self.persistentHistory[replacingPath] = replacedPathVisits
+                replacingPathVisitsIncreasedInPHist = True
+        elif replacingPath in self.excludedHistory:
+            replacingPathVisits = self.excludedHistory[replacingPath]
+            if replacedPathVisits > replacingPathVisits:
+                self.excludedHistory[replacingPath] = replacedPathVisits
+        else: # new path, neither contained in history, nor in favorites (possibly old directory renamed or newly created directory)
+            if replacedPathInPHist:
+                self.persistentHistory[replacingPath] = replacedPathVisits
+            else:
+                self.excludedHistory[replacingPath] = replacedPathVisits
+        # final touch: consolidate history, recompute favorites
+        if replacedPathInRHist or replacedPathInPHist or replacingPathVisitsIncreasedInPHist:
+            self.__consolidateHistory()
+        if not replacedPathInPHist:
+            self.__computeFavorites()
+        return (replacedPath, replacingPath)
+
+    def closeNavigation(self):
+        navigationFilesReconciled = False
+        if self.__relevantNavigationFilesModifiedAfterStartup():
+            self.__reconcileNavigationFiles()
+            navigationFilesReconciled = True
+        self.__saveNavigationFiles()
+        return navigationFilesReconciled
+
+    def __loadNavigationFiles(self, shouldOverrideRecentHistory = True):
+        if shouldOverrideRecentHistory:
+            nvcdcmn.loadBasicFiles(navset.r_hist_file, navset.r_hist_max_entries, navset.l_hist_file, navset.p_str_hist_file, navset.p_num_hist_file, self.recentHistory, self.dailyLog, self.persistentHistory)
+        else:
+            # recent history loaded in temporary variable and discarded in order to keep the content of the "current" recent history
+            recentHistoryTemp = []
+            nvcdcmn.loadBasicFiles(navset.r_hist_file, navset.r_hist_max_entries, navset.l_hist_file, navset.p_str_hist_file, navset.p_num_hist_file, recentHistoryTemp, self.dailyLog, self.persistentHistory)
+        if os.path.isfile(navset.e_str_hist_file) and os.path.isfile(navset.e_num_hist_file):
+            nvcdcmn.readFromPermHist(navset.e_str_hist_file, navset.e_num_hist_file, self.excludedHistory)
+
+    def __saveNavigationFiles(self):
+        nvcdcmn.writeBackToTempHist(self.recentHistory, navset.r_hist_file, self.dailyLog, navset.log_dir, navset.l_hist_file)
+        nvcdcmn.writeBackToPermHist(self.persistentHistory, navset.p_str_hist_file, navset.p_num_hist_file)
+        nvcdcmn.writeBackToPermHist(self.excludedHistory, navset.e_str_hist_file, navset.e_num_hist_file)
+
+    def __relevantNavigationFilesModifiedAfterStartup(self):
+        filesModified = False
+        for path in [navset.p_str_hist_file, navset.e_str_hist_file]:
+            if os.path.isfile(path) and os.path.getmtime(path) > self.openingTime:
+                print ("modified path: " + path)
+                filesModified = True
+                break
+        return filesModified
+
+    def __reconcileNavigationFiles(self):
+        currentPersistentHistory = self.persistentHistory.copy()
+        currentExcludedHistory = self.excludedHistory.copy()
+        currentDailyLog = self.dailyLog.copy()
+        self.__loadNavigationFiles(shouldOverrideRecentHistory = False) # member variables will contain the persistent/excluded history and the daily log of previous session
+        # current recent history overrides the recent history of previous session, however the no longer existing paths should be removed
+        for path in self.recentHistory:
+            if not os.path.exists(path):
+                self.recentHistory.remove(path)
+        # add current persistent history content to persistent/excluded history of previous session, reconcile number of visits
+        for path, visitsCount in currentPersistentHistory.items():
+            if path in self.persistentHistory:
+                if visitsCount > self.persistentHistory[path]:
+                    self.persistentHistory[path] = visitsCount
+            elif path in self.excludedHistory:
+                newVisitsCount = visitsCount if visitsCount > self.excludedHistory[path] else self.excludedHistory[path]
+                if path in self.removedFromFavorites:
+                    self.persistentHistory[path] = newVisitsCount
+                    del self.excludedHistory[path]
+                else:
+                    self.excludedHistory[path] = newVisitsCount
+            elif os.path.exists(path):
+                self.persistentHistory[path] = visitsCount
+            else:
+                pass # discard entry by not adding it back to resulting (reconciled) persistent history
+        # add current excluded history content to excluded/persistent history of previous session, reconcile number of visits
+        for path, visitsCount in currentExcludedHistory.items():
+            if path in self.excludedHistory:
+                if visitsCount > self.excludedHistory[path]:
+                    self.excludedHistory[path] = visitsCount
+            elif path in self.persistentHistory:
+                newVisitsCount = visitsCount if visitsCount > self.persistentHistory[path] else self.persistentHistory[path]
+                if path in self.addedToFavorites:
+                    self.excludedHistory[path] = newVisitsCount
+                    del self.persistentHistory[path]
+                else:
+                    self.persistentHistory[path] = newVisitsCount
+            elif os.path.exists(path):
+                self.excludedHistory[path] = visitsCount
+            else:
+                pass # discard entry by not adding it back to resulting (reconciled) excluded history
+        # remove paths from resulting persistent history that neither exist any longer nor are contained within persistent/excluded history of the current session
+        for path in self.persistentHistory.keys():
+            if not (path in currentPersistentHistory or path in currentExcludedHistory or os.path.exists(path)):
+                del self.persistenHistory[path]
+        # remove paths from resulting excluded history that neither exist any longer nor are contained within excluded/persistent history of the current session
+        for path in self.excludedHistory.keys():
+            if not (path in currentPersistentHistory or path in currentExcludedHistory or os.path.exists(path)):
+                del self.excludedHistory[path]
+        # daily logs of current and previous session to be consolidated; any entry that is not contained within reconciled persistent/excluded history should be removed
+        for path in self.dailyLog:
+            if not (path in self.persistentHistory or path in self.excludedHistory):
+                self.dailyLog.remove(path)
+        for path in currentDailyLog:
+            if not path in self.dailyLog and (path in self.persistentHistory or path in self.excludedHistory):
+                self.dailyLog.append(path)
+
+    def __doHistoryCleanup(self):
+        # clean up persistent history (except the most visited paths)
+        if len(self.persistentHistory) > navset.p_hist_max_entries:
+            persistentHistorySortedPaths = []
+            for path, visitsCount in sorted(self.persistentHistory.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+                persistentHistorySortedPaths.append(path)
+            for index in range(navset.p_hist_max_entries, len(persistentHistorySortedPaths)):
+                currentPath = persistentHistorySortedPaths[index]
+                if not os.path.exists(currentPath):
+                    del self.persistentHistory[currentPath]
+        # clean up recent history
+        for path in self.recentHistory:
+            if not os.path.exists(path):
+                self.recentHistory.remove(path)
+
+    def __consolidateHistory(self):
         pHistDict = {}
-        for entry in rHist.readlines():
-            rHistDict[entry.strip('\n')] = os.path.basename(entry.strip('\n'))
         limit = 0
-        for entry in pStrHist.readlines():
-            pHistDict[entry.strip('\n')] = os.path.basename(entry.strip('\n'))
-            limit = limit + 1
+        for path, visitsCount in sorted(self.persistentHistory.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
             if (limit == navset.p_hist_max_entries):
                 break
-        for entry in rHistDict.items():
-            hist.write(entry[0] + '\n')
-        for entry in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0])):
-            hist.write(entry[0] + '\n')
+            pHistDict[path] = os.path.basename(path)
+            limit += 1
+        self.consolidatedHistory = self.recentHistory.copy()
+        for path, visitsCount in sorted(pHistDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
+            self.consolidatedHistory.append(path)
 
-def buildFilteredNavigationHistory(filteredContent, filterKey):
-    assert len(filterKey) > 0, "Empty filter key found"
-    return nvcdcmn.buildFilteredHistory(filteredContent, filterKey, navset.p_str_hist_file, navset.max_filtered_hist_entries)
-
-def buildFilteredFavorites(filteredContent, filterKey):
-    assert len(filterKey) > 0, "Empty filter key found"
-    return nvcdcmn.buildFilteredHistory(filteredContent, filterKey, navset.e_str_hist_file, navset.max_filtered_fav_entries)
-
-def clearHistory():
-    with open(navset.r_hist_file, "w"), open(navset.p_str_hist_file, "w"), open(navset.p_num_hist_file, "w"), open(navset.hist_file, "w"), open(navset.l_hist_file, "w"), open(navset.e_str_hist_file, "w") as eStrHist, open(navset.e_num_hist_file, "w") as eNumHist, open(navset.fav_file, "r") as fav:
-        #re-create excluded history with 0 number of visits for each entry
-        for entry in fav.readlines():
-            eStrHist.write(entry)
-            eNumHist.write('0\n')
-
-""" add/remove from favorites functions """
-def isContainedInFavorites(pathToAdd):
-    assert len(pathToAdd) > 0, "Empty path argument detected"
-    alreadyAddedToFavorites = False
-    with open(navset.fav_file, "r") as fav:
-        favContent = fav.readlines()
-        for entry in favContent:
-            if entry.strip('\n') == pathToAdd:
-                alreadyAddedToFavorites = True
-                break
-    return alreadyAddedToFavorites
-
-def addPathToFavorites(pathToAdd):
-    assert len(pathToAdd) > 0, "Empty path argument detected"
-    nrOfPathVisits = ns.removePathFromPermHistoryFile(navset.p_str_hist_file, navset.p_num_hist_file, pathToAdd)
-    with open(navset.e_str_hist_file, "a") as eStrHist, open(navset.e_num_hist_file, "a") as eNumHist, open(navset.fav_file, "a") as fav:
-        eStrHist.write(pathToAdd + '\n')
-        if nrOfPathVisits is not -1:
-            eNumHist.write(str(nrOfPathVisits) + '\n')
-            consolidateHistory()
-        else:
-            eNumHist.write("0\n")
-        fav.write(pathToAdd + '\n')
-        fav.close() # close, in use by sortFavorites()
-        ns.sortFavorites(navset.fav_file)
-
-def removePathFromFavorites(userInput):
-    def addToPersistentHistory():
-        pHistUpdateDict = {}
-        nvcdcmn.readFromPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file)
-        pHistUpdateDict[pathToRemove] = int(nrOfRemovedPathVisits)
-        nvcdcmn.writeBackToPermHist(pHistUpdateDict, navset.p_str_hist_file, navset.p_num_hist_file, True)
-        consolidateHistory()
-    pathToRemove = ""
-    # remove from favorites file, re-sort, remove from excluded history and move to persistent history if visited at least once
-    if ns.isValidFavoritesEntryNr(userInput):
-        with open(navset.fav_file, "r") as fav:
-            favFileContent = fav.readlines()
-            pathToRemove = favFileContent[int(userInput)-1]
-            favFileContent.remove(pathToRemove)
-            fav.close()
-            with open(navset.fav_file, "w") as fav:
-                for entry in favFileContent:
-                    fav.write(entry)
-                fav.close() # close, in use by sortFavorites()
-                ns.sortFavorites(navset.fav_file)
-                pathToRemove = pathToRemove.strip('\n')
-                nrOfRemovedPathVisits = ns.removePathFromPermHistoryFile(navset.e_str_hist_file, navset.e_num_hist_file, pathToRemove)
-                # move to persistent history if at least once visited
-                if nrOfRemovedPathVisits > 0:
-                    addToPersistentHistory()
-    return pathToRemove
-
-def isValidFavoritesEntryNr(userInput):
-    return ns.isValidFavoritesEntryNr(userInput)
-
-def displayFormattedFavoritesContent():
-    with open(navset.fav_file, "r") as fav:
-        ns.displayFormattedNavFileContent(fav.readlines())
-
-def isFavEmpty():
-    return os.path.getsize(navset.fav_file) == 0
-
-""" missing item removal / mapping from navigation history/favorites menu """
-def removeMissingDir(pathToRemove):
-    assert len(pathToRemove) > 0, "Empty path argument detected"
-    with open(navset.fav_file, "r") as fav:
-        ns.removePathFromTempHistoryFile(navset.l_hist_file, pathToRemove)
-        removedFromPHist = False
-        removedFromRHist = ns.removePathFromTempHistoryFile(navset.r_hist_file, pathToRemove)
-        favContent = []
-        isInFavFile = False
-        for entry in fav.readlines():
-            if entry.strip('\n') == pathToRemove:
-                isInFavFile = True
-            else:
-                favContent.append(entry)
-        if isInFavFile:
-            fav.close()
-            with open(navset.fav_file, "w") as fav:
-                for entry in favContent:
-                    fav.write(entry)
-            ns.removePathFromPermHistoryFile(navset.e_str_hist_file, navset.e_num_hist_file, pathToRemove)
-        else:
-            removedFromPHist = ns.removePathFromPermHistoryFile(navset.p_str_hist_file, navset.p_num_hist_file, pathToRemove) is not -1
-        if removedFromRHist or removedFromPHist:
-            consolidateHistory()
-    return pathToRemove
-
-def mapMissingDir(pathToReplace, replacingPath):
-    def buildFavContent(favContent):
-        with open(navset.fav_file, "r") as fav:
-            for entry in fav.readlines():
-                favContent.append(entry.strip('\n'))
-    def resortAndWriteBackToFav(favContent):
+    def __computeFavorites(self):
         favDict = {}
-        for entry in favContent:
-            favDict[entry] = os.path.basename(entry)
-        with open(navset.fav_file, "w") as fav:
-            for entry in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0])):
-                fav.write(entry[0] + '\n')
-    def writeBackToFav(favContent):
-        with open(navset.fav_file, "w") as fav:
-            for entry in favContent:
-                fav.write(entry + '\n')
-    assert len(pathToReplace) > 0, "Empty argument for 'path to replace' detected"
-    assert len(replacingPath) > 0, "Empty argument for 'replacing path' detected"
-    favContent = []
-    pHistDict = {}
-    eHistDict = {}
-    favBuilt = False
-    isPathToReplaceInFav = False
-    reSortPHist = False
-    reSortFav = False
-    # first remove the dir to be replaced from the daily log file if there
-    ns.removePathFromTempHistoryFile(navset.l_hist_file, pathToReplace)
-    # remove from recent history if there
-    removedFromRHist = ns.removePathFromTempHistoryFile(navset.r_hist_file, pathToReplace)
-    # handle persistent and excluded history files update
-    nvcdcmn.readFromPermHist(pHistDict, navset.p_str_hist_file, navset.p_num_hist_file)
-    nvcdcmn.readFromPermHist(eHistDict, navset.e_str_hist_file, navset.e_num_hist_file)
-    if pathToReplace in pHistDict:
-        pathToReplaceVisits = pHistDict[pathToReplace]
-        pHistDict.pop(pathToReplace)
-    else:
-        #get content of fav file but only modify the excluded history for the moment
-        buildFavContent(favContent)
-        favBuilt = True
-        pathToReplaceVisits = eHistDict[pathToReplace]
-        eHistDict.pop(pathToReplace)
-        isPathToReplaceInFav = True
-    if replacingPath in pHistDict:
-        replacingPathVisits = pHistDict[replacingPath]
-        if pathToReplaceVisits > replacingPathVisits:
-            pHistDict[replacingPath] = pathToReplaceVisits
-            reSortPHist = True
-        if isPathToReplaceInFav:
-            favContent.remove(pathToReplace)
-    elif replacingPath in eHistDict:
-        if not favBuilt:
-            buildFavContent(favContent)
-            favBuilt = True
-        replacingPathVisits = eHistDict[replacingPath]
-        if pathToReplaceVisits > replacingPathVisits:
-            eHistDict[replacingPath] = pathToReplaceVisits
-        if isPathToReplaceInFav:
-            favContent.remove(pathToReplace)
-    else:
-        if isPathToReplaceInFav:
-            eHistDict[replacingPath] = pathToReplaceVisits
-            favContent.remove(pathToReplace)
-            favContent.append(replacingPath)
-            reSortFav = True
-        else:
-            pHistDict[replacingPath] = pathToReplaceVisits
-            reSortPHist = True
-    # write back to files
-    if isPathToReplaceInFav:
-        nvcdcmn.writeBackToPermHist(eHistDict, navset.e_str_hist_file, navset.e_num_hist_file)
-        if reSortFav == True: #old path had been replaced by an unvisited file
-            resortAndWriteBackToFav(favContent)
-            if removedFromRHist:
-                consolidateHistory()
-        else:
-            writeBackToFav(favContent) #old path had been removed and taken over by a visited path from persistent history/favorites
-            if replacingPath in pHistDict and reSortPHist == True: #replacing path is in persistent history and the number of visits had been increased (taken over from the replaced path)
-                nvcdcmn.writeBackToPermHist(pHistDict, navset.p_str_hist_file, navset.p_num_hist_file, True)
-                consolidateHistory()
-            elif removedFromRHist:
-                consolidateHistory()
-    else:
-        nvcdcmn.writeBackToPermHist(pHistDict, navset.p_str_hist_file, navset.p_num_hist_file, True) #always re-sort persistent history when path to be replaced is there
-        if replacingPath in eHistDict:
-            nvcdcmn.writeBackToPermHist(eHistDict, navset.e_str_hist_file, navset.e_num_hist_file)
-        consolidateHistory()
-    return (pathToReplace, replacingPath)
+        for path in self.excludedHistory.keys():
+            favDict[path] = os.path.basename(path)
+        self.favorites.clear()
+        for path, dirName in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
+            self.favorites.append(path)
 
+""" navigation helper functions """
 def getReplacingDirPath(replacingDir):
     replacingDirPath = ":4"
     with open(sysset.input_storage_file, "w") as inputStorage:
@@ -313,7 +307,6 @@ def getReplacingDirPath(replacingDir):
             replacingDirPath = outputStorage.readline().strip('\n')
     return replacingDirPath
 
-""" Functions related to goto process """
 def retrieveTargetDirPath(gtDirectory):
     # build a command that validates the goto process and helps retrieve the full path of the target directory
     directory = navset.home_dir if len(gtDirectory) == 0 else gtDirectory
@@ -330,24 +323,6 @@ def retrieveTargetDirPath(gtDirectory):
             with open(sysset.input_storage_file, "r") as inputStorage:
                 targetDirPath = inputStorage.readline().strip('\n')
     return targetDirPath
-
-""" Functions related to quick navigation """
-
-def displayFormattedQuickNavigationHistory():
-    with open(navset.r_hist_file, "r") as rHist:
-        ns.displayFormattedNavFileContent(rHist.readlines(), 0, navset.q_hist_max_entries)
-
-# a positive result guarantees validity of user provided quick navigation history entry
-def isValidQuickNavHistoryEntryNr(userInput):
-    isValid = False
-    if len(userInput) > 0 and userInput.isdigit():
-        quickNavEntryNr = int(userInput)
-        if quickNavEntryNr <= navset.q_hist_max_entries and quickNavEntryNr > 0:
-            rHistEntriesCount = 0
-            with open(navset.r_hist_file, "r") as rHist:
-                rHistEntriesCount = len(rHist.readlines())
-            isValid = quickNavEntryNr <= rHistEntriesCount
-    return isValid
 
 """ Functions related to Finder synchronization """
 

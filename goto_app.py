@@ -36,13 +36,8 @@ class Application:
                 if not isRestoreSuccessful:
                     print("")
                     print("Warning! Unable to restore Finder to fallback directory. Sync with Finder is disabled.")
-            prevCommand = self.cmd.getPreviousCommand()
             if userInput not in {"?", "?clip", "?ren"}:
-                if len(prevCommand) > 0:
-                    prevCommandFinishingStatus = "successfully" if self.cmd.getPreviousCommandSuccess() else "with errors"
-                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.nav.isSyncWithFinderEnabled(), prevCommand, prevCommandFinishingStatus, self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.isQuickNavHistEnabled)
-                else:
-                    out.displayGeneralOutput(self.nav.getPreviousDirectory(), self.nav.isSyncWithFinderEnabled(), navigationFilter = self.nav.getPreviousNavigationFilter(), commandsFilter = self.cmd.getPreviousCommandsFilter(), clipboardAction = self.clipboard.getActionLabel(), clipboardKeyword = self.clipboard.getKeyword(), clipboardSourceDir = self.clipboard.getSourceDir(), recursiveTargetDir = self.recursiveTransfer.getTargetDir(), isQuickNavHistEnabled = self.isQuickNavHistEnabled)
+                self.__displayGeneralOutput()
             try:
                 userInput = input()
                 userInput = userInput.strip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history or other errors might occur (depending on input use case)
@@ -52,7 +47,7 @@ class Application:
                     self.__handleUserInput(userInput)
             except (KeyboardInterrupt, EOFError): # CTRL + C, CTRL + D (latter one causes EOFError)
                 keyInterruptOccurred = True
-                self.__handleCloseApplication(prevCommand)
+                self.__handleCloseApplication(self.cmd.getPreviousCommand())
 
     def __handleUserInput(self, userInput):
         #any input starting with < and continuing with a character different from < is considered a quick navigation history request (no matter if valid or not, e.g. <a is invalid)
@@ -80,7 +75,7 @@ class Application:
             navHistInput = userInput[1:].lstrip(' ')
             isInputOk = True
             if len(navHistInput) > 0:
-                isInputOk = nav.isValidFavoritesEntryNr(navHistInput)
+                isInputOk = self.nav.isValidFavoritesEntryNr(navHistInput)
                 if not isInputOk:
                     print("Invalid favorites entry number!")
             if isInputOk:
@@ -146,14 +141,14 @@ class Application:
             result = self.cmd.editAndExecutePreviousCommand()
             self.appStatus = 2 if result[0] == 0 else self.appStatus
         elif userInput == "+>":
-            nav.addDirToFavorites()
+            self.nav.addDirToFavorites()
         elif userInput == "->":
-            result = nav.removeDirFromFavorites()
+            result = self.nav.removeDirFromFavorites()
             self.appStatus = 1 if result[0] == 1 else self.appStatus
         elif userInput == ":clearnavigation":
-            nav.clearVisitedDirsMenu()
+            self.nav.clearVisitedDirsMenu()
         elif userInput == ":clearcommands":
-            cmd.clearCommandHistory()
+            self.cmd.clearCommandsHistory()
         elif userInput in [":c", ":m", ":y", ":ec", ":dc"]:
             self.__handleClipboardInput(userInput)
         elif userInput in [":td", ":M", ":C", ":etd", ":dtd"]:
@@ -226,7 +221,7 @@ class Application:
         result = None  # a valid result should contain: (status code, passed input, passed output)
         if self.currentContext in ["--execute", "--edit"]:
             self.currentFilter = userInput
-            result = self.cmd.visitCommandMenu(self.currentContext, userInput)
+            result = self.cmd.visitCommandsMenu(self.currentContext, userInput)
             self.appStatus = 2 if result[0] == 0 else 1 if result[0] == 1 else self.appStatus
         elif self.currentContext in ["-f", "-h"]:
             result = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.cmd.getPreviousCommand())
@@ -261,31 +256,74 @@ class Application:
         if len(self.currentContext) > 0: #quick history is only accessible from main navigation page (including help menus) - it should be visible when accessed!
             print("Quick navigation history not accessible from current context. Please try again!")
         elif self.isQuickNavHistEnabled:
-            if nav.isValidQuickNavHistoryEntryNr(navHistInput):
+            if self.nav.isValidQuickNavHistoryEntryNr(navHistInput):
                 isQuickNavPossible = True
             else:
                 print("Invalid quick history entry number! Please try again.")
         else:
             print("Quick history is disabled. Please enable it and try again!")
         return isQuickNavPossible
+
     def __handleHelpRequest(self, helpInput, out):
         if helpInput == "?":
-            out.displayHelp(self.isQuickNavHistEnabled)
+            self.__displayGeneralHelp()
         elif helpInput == "?clip":
-            out.displayClipboardHelp(self.isQuickNavHistEnabled)
+            self.__displayClipboardHelp()
         elif helpInput == "?ren":
-            out.displayRenamingHelp(self.isQuickNavHistEnabled)
+            self.__displayRenamingHelp()
         else:
             assert False, "Invalid help option"
 
     def __handleCloseApplication(self, previousCommand):
         self.nav.closeFinderWhenSyncOff()
+        navModifiedByPreviousSession = self.nav.closeNavigation()
+        cmdModifiedByPreviousSession = self.cmd.closeCommands()
         os.system("clear")
         print("You exited the navigation app.")
         print("")
+        if navModifiedByPreviousSession or cmdModifiedByPreviousSession:
+            print("The navigation and/or commands environment had been modified by a previous script session.")
+            print("All modifications have been reconciled.")
+            print("")
         out.printCurrentDir("Last visited")
         print("Last executed shell command: ", end='')
         print(previousCommand) if len(previousCommand) > 0 else print("none")
+        print("")
+
+    def __displayGeneralOutput(self):
+        prevCommand = self.cmd.getPreviousCommand()
+        prevCommandFinishingStatus = ""
+        if len(prevCommand) > 0:
+            prevCommandFinishingStatus = "successfully" if self.cmd.getPreviousCommandSuccess() else "with errors"
+        out.displayGeneralOutputUpperSection(self.nav.getPreviousDirectory(), prevCommand, prevCommandFinishingStatus)
+        if self.isQuickNavHistEnabled:
+            self.__displayQuickNavigationHistory()
+        out.displayGeneralOutputLowerSection(self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.nav.isSyncWithFinderEnabled())
+
+    def __displayGeneralHelp(self):
+        out.displayGeneralHelp()
+        if self.isQuickNavHistEnabled:
+            self.__displayQuickNavigationHistory()
+        out.displayHelpMenuFooter()
+
+    def __displayClipboardHelp(self):
+        out.displayClipboardHelp()
+        if self.isQuickNavHistEnabled:
+            self.__displayQuickNavigationHistory()
+        out.displayHelpMenuFooter()
+
+    def __displayRenamingHelp(self):
+        out.displayRenamingHelp()
+        if self.isQuickNavHistEnabled:
+            self.__displayQuickNavigationHistory()
+        out.displayHelpMenuFooter()
+
+    def __displayQuickNavigationHistory(self):
+        print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+        print("")
+        print("Last visited directories (enter < or ,, followed by entry number to re-visit the directory or its parent):")
+        print("")
+        self.nav.displayQuickNavigationHistory()
         print("")
 
 application = Application()

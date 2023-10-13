@@ -1,75 +1,108 @@
-import sys, os
-import shared_cmd_functions as cs, nav_cmd_common as nvcdcmn, commands_settings as cmdset, system_settings as sysset
+import sys, os, time
+import nav_cmd_common as nvcdcmn, commands_settings as cmdset, system_settings as sysset
 
-""" command history menu init/access functions """
-def initCmdMenus():
-    #ensure all required files and dirs exist
-    if not os.path.exists(cmdset.c_log_dir):
-        os.makedirs(cmdset.c_log_dir)
-    with open(cmdset.c_r_hist_file, "a") as crHist, open(cmdset.c_p_str_hist_file, "a") as cpStrHist, open(cmdset.c_p_num_hist_file, "a") as cpNumHist:
-        crHist.close() # close, in use by limitEntriesNr()
-        nvcdcmn.limitEntriesNr(cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries)
-        cpStrHist.close() # close, in use by consolidatedHistory()
-        cpNumHist.close() # close, in use by consolidatedHistory()
-        consolidateCommandHistory()
+class CommandsBackend:
+    def __init__(self):
+        self.recentCommandsHistory = []
+        self.persistentCommandsHistory = {}
+        self.dailyCommandsLog = []
+        self.consolidatedCommandsHistory = []
+        self.openingTime = time.time()
+        self.__loadCommandsFiles()
+        self.__consolidateCommandsHistory()
 
-def chooseCommand(userInput):
-    result = (":3", "", "")
-    with open(cmdset.c_hist_file, "r") as cHist:
-        result = nvcdcmn.getMenuEntry(userInput, cHist.readlines())
-    return result
+    def getConsolidatedCommandsHistoryInfo(self):
+        return (self.consolidatedCommandsHistory.copy(), len(self.recentCommandsHistory))
 
-def chooseFilteredCommand(userInput, filteredContent):
-    return nvcdcmn.getMenuEntry(userInput, filteredContent)
+    def chooseCommand(self, userInput):
+        return nvcdcmn.getMenuEntry(userInput, self.consolidatedCommandsHistory)
 
-def isCommandMenuEmpty():
-    return os.path.getsize(cmdset.c_hist_file) == 0
+    def chooseFilteredCommand(self, userInput, filteredContent):
+        return nvcdcmn.getMenuEntry(userInput, filteredContent)
 
-def displayFormattedRecentCmdHistContent():
-    with open(cmdset.c_hist_file, "r") as cHist, open(cmdset.c_r_hist_file, "r") as crHist:
-        cs.displayFormattedCmdFileContent(cHist.readlines(), 0, len(crHist.readlines()))
+    def isCommandsMenuEmpty(self):
+        return len(self.consolidatedCommandsHistory) == 0
 
-def displayFormattedPersistentCmdHistContent():
-    with open(cmdset.c_hist_file, "r") as cHist, open(cmdset.c_r_hist_file, "r") as crHist:
-        cs.displayFormattedCmdFileContent(cHist.readlines(), len(crHist.readlines()))
+    def updateCommandsHistory(self, command):
+        assert len(command) > 0, "Empty command argument detected"
+        # handle recent history
+        if command in self.recentCommandsHistory:
+            self.recentCommandsHistory.remove(command)
+        elif len(self.recentCommandsHistory) == cmdset.c_r_hist_max_entries:
+            self.recentCommandsHistory.pop(len(self.recentCommandsHistory)-1)
+        self.recentCommandsHistory = [command] + self.recentCommandsHistory
+        # handle persistent history
+        if command not in self.dailyCommandsLog:
+            self.dailyCommandsLog.append(command)
+            if command in self.persistentCommandsHistory.keys():
+                self.persistentCommandsHistory[command] += 1
+            else:
+                self.persistentCommandsHistory[command] = 1
+        self.__consolidateCommandsHistory()
 
-def displayFormattedFilteredCmdHistContent(filteredContent, totalNrOfMatches):
-    cs.displayFormattedCmdFileContent(filteredContent, 0)
-    print("")
-    print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
-    if totalNrOfMatches > len(filteredContent):
-        print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
+    def clearCommandsHistory(self):
+        self.recentCommandsHistory.clear()
+        self.persistentCommandsHistory.clear()
+        self.consolidatedCommandsHistory.clear()
+        self.dailyCommandsLog.clear()
 
+    def buildFilteredCommandsHistory(self, filterKey, filteredContent):
+        assert len(filterKey) > 0, "Empty filter key found"
+        return nvcdcmn.buildFilteredPersistentHistory(self.persistentCommandsHistory, filterKey, cmdset.max_filtered_c_hist_entries, filteredContent)
 
-""" command history update functions """
-def updateCommandHistory(command):
-    assert len(command) > 0, "Empty command argument detected"
-    nvcdcmn.updateHistory(command, cmdset.c_l_hist_file, cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
+    def closeCommands(self):
+        commandsFilesReconciled = False
+        if self.__relevantCommandsFilesModifiedAfterStartup():
+            self.__reconcileCommandsFiles()
+            commandsFilesReconciled = True
+        self.__saveCommandsFiles()
+        return commandsFilesReconciled
 
-def buildFilteredCommandHistory(filteredContent, filterKey):
-    assert len(filterKey) > 0, "Empty filter key found"
-    return nvcdcmn.buildFilteredHistory(filteredContent, filterKey, cmdset.c_p_str_hist_file, cmdset.max_filtered_c_hist_entries)
+    def __loadCommandsFiles(self, shouldOverrideRecentHistory = True):
+        if shouldOverrideRecentHistory:
+            nvcdcmn.loadBasicFiles(cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries, cmdset.c_l_hist_file, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file, self.recentCommandsHistory, self.dailyCommandsLog, self.persistentCommandsHistory)
+        else:
+            # recent commands history loaded in temporary variable and discarded in order to keep the content of the "current" recent history
+            recentCommandsHistoryTemp = []
+            nvcdcmn.loadBasicFiles(cmdset.c_r_hist_file, cmdset.c_r_hist_max_entries, cmdset.c_l_hist_file, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file, recentCommandsHistoryTemp, self.dailyCommandsLog, self.persistentCommandsHistory)
 
-def clearCommandHistory():
-    with open(cmdset.c_r_hist_file, "w"), open(cmdset.c_p_str_hist_file, "w"), open(cmdset.c_p_num_hist_file, "w"), open(cmdset.c_hist_file, "w"), open(cmdset.c_l_hist_file, "w"):
-        print("", end='')
+    def __saveCommandsFiles(self):
+        nvcdcmn.writeBackToTempHist(self.recentCommandsHistory, cmdset.c_r_hist_file, self.dailyCommandsLog, cmdset.c_log_dir, cmdset.c_l_hist_file)
+        nvcdcmn.writeBackToPermHist(self.persistentCommandsHistory, cmdset.c_p_str_hist_file, cmdset.c_p_num_hist_file)
 
-def consolidateCommandHistory():
-    with open(cmdset.c_r_hist_file, 'r') as crHist, open(cmdset.c_p_str_hist_file, 'r') as cpStrHist, open(cmdset.c_hist_file, 'w') as cHist:
-        crHistEntries = crHist.readlines()
-        cpStrHistEntries = []
+    def __relevantCommandsFilesModifiedAfterStartup(self):
+        return os.path.isfile(cmdset.c_p_str_hist_file) and os.path.getmtime(cmdset.c_p_str_hist_file) > self.openingTime
+
+    def __reconcileCommandsFiles(self):
+        currentPersistentCommandsHistory = self.persistentCommandsHistory.copy()
+        currentDailyCommandsLog = self.dailyCommandsLog.copy()
+        self.__loadCommandsFiles(shouldOverrideRecentHistory = False)
+        # consolidate current and saved persistent history, reconcile number of times a command was executed
+        for command, executionsCount in currentPersistentCommandsHistory.items():
+            if command in self.persistentCommandsHistory.keys():
+                if executionsCount > self.persistentCommandsHistory[command]:
+                    self.persistentCommandsHistory[command] = executionsCount
+            else:
+                self.persistentCommandsHistory[command] = executionsCount
+        # consolidate daily logs
+        for command in currentDailyCommandsLog:
+            if command not in self.dailyCommandsLog:
+                self.dailyCommandsLog.append(command)
+
+    def __consolidateCommandsHistory(self):
+        cpHistEntries = []
         limit = 0
-        for entry in cpStrHist.readlines():
-            cpStrHistEntries.append(entry)
-            limit = limit + 1
-            if limit == cmdset.c_p_hist_max_entries:
-                break;
-        cpStrHistEntries.sort()
-        for entry in crHistEntries:
-            cHist.write(entry)
-        for entry in cpStrHistEntries:
-            cHist.write(entry)
+        for command, executionsCount in sorted(self.persistentCommandsHistory.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
+            if (limit == cmdset.c_p_hist_max_entries):
+                break
+            cpHistEntries.append(command)
+            limit += 1
+        cpHistEntries.sort(key = lambda k: k.lower())
+        self.consolidatedCommandsHistory = self.recentCommandsHistory.copy()
+        for command in cpHistEntries:
+            self.consolidatedCommandsHistory.append(command)
 
+""" command execution helper functions """
 def isSensitiveCommand(command):
     assert len(command) > 0, "Empty command argument detected"
     isSensitive = False
@@ -82,12 +115,10 @@ def isSensitiveCommand(command):
 def getMinCommandSize():
     return cmdset.min_command_size
 
-""" command execution helper functions """
 def buildShellCommand(command):
     assert len(command) > 0, "Empty command argument detected"
-    sourceConfigFileCmd = "source ~/.bashrc;" #include .bashrc to ensure the aliases and scripts work
     getExitCodeCmd = "echo $? > " + sysset.output_storage_file #exit code (used by Python to determine if the command finished successfully or not)
-    shellCommandToExecute = sourceConfigFileCmd + "\n" + command + "\n" + getExitCodeCmd
+    shellCommandToExecute = command + "\n" + getExitCodeCmd
     return shellCommandToExecute
 
 def retrieveCommandExecResult():
