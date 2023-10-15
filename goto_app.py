@@ -275,7 +275,6 @@ class Application:
             assert False, "Invalid help option"
 
     def __handleCloseApplication(self, previousCommand):
-        self.nav.closeFinderWhenSyncOff()
         navModifiedByPreviousSession = self.nav.closeNavigation()
         cmdModifiedByPreviousSession = self.cmd.closeCommands()
         os.system("clear")

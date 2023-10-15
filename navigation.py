@@ -38,7 +38,7 @@ class Navigation:
                 print("Current directory remains unchanged: " + currentDir)
             # update current directory in Finder if sync enabled
             if self.syncWithFinderEnabled:
-                nav.doFinderSync()
+                os.system(nav.buildFinderSyncCommand())
         if not status is 0:
             print("Error when attempting to change directory! Possible causes: ")
             print(" - chosen directory path does not exist or has been deleted")
@@ -173,6 +173,9 @@ class Navigation:
 
     """ requests closing the navigation functionality in an orderly manner when application gets closed """
     def closeNavigation(self):
+        if self.syncWithFinderEnabled:
+            self.syncWithFinderEnabled = False
+            os.system(nav.buildCloseFinderCommand())
         return self.nav.closeNavigation()
 
     """ performs first Finder sync (when application gets launched) """
@@ -181,37 +184,33 @@ class Navigation:
             self.syncWithFinderInitialized = True
             self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
             if self.syncWithFinderEnabled:
-                nav.doFinderSync()
+                os.system(nav.buildFinderSyncCommand())
 
     """ toggles the synchronization of the terminal with Finder on/off """
     def toggleSyncWithFinder(self):
         assert self.syncWithFinderInitialized, "No initialization performed for Finder synchronization"
         sysfunc.setFinderSyncEnabled(not self.syncWithFinderEnabled)
         self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
-        print("Finder synchronization enabled") if self.syncWithFinderEnabled == True else print("Finder synchronization disabled")
         if self.syncWithFinderEnabled:
-            nav.doFinderSync()
+            print("Enabling Finder synchronisation...")
+            os.system(nav.buildFinderSyncCommand())
         else:
-            nav.closeFinderWhenSyncOff()
+            print("Disabling Finder synchronisation...")
+            os.system(nav.buildCloseFinderCommand())
+        print("Done!")
 
     """ restores the Finder sync after fallback, fallback dir becomes current Finder dir """
     def restoreFinderToFallbackDir(self):
         assert self.syncWithFinderEnabled and not sysfunc.isFinderSyncEnabled(), "Invalid scenario, no fallback occured"
         success = False
-        nav.closeFinderWhenSyncOff()
+        os.system(nav.buildCloseFinderCommand())
         sysfunc.setFinderSyncEnabled(self.syncWithFinderEnabled)
         #ensure sync with Finder was re-enabled in system functionality (only then re-open Finder)
         self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
         if self.syncWithFinderEnabled:
             success = True
-            nav.doFinderSync()
+            os.system(nav.buildFinderSyncCommand())
         return success
-
-    """ closes Finder when sync is no longer applicable (e.g. application is closed) """
-    def closeFinderWhenSyncOff(self):
-        if self.syncWithFinderEnabled:
-            self.syncWithFinderEnabled = False
-            nav.closeFinderWhenSyncOff()
 
     """
     The status returned by this method can have following values:
