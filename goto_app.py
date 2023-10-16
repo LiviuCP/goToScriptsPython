@@ -29,13 +29,7 @@ class Application:
         print("Welcome to navigation app!")
         self.nav.initSyncWithFinder()
         while userInput is not "!" and not keyInterruptOccurred:
-            if sysfunc.isFinderSyncEnabled():
-                assert self.nav.isSyncWithFinderEnabled(), "Invalid Finder sync setting" # this assert could only fire if Finder sync had not been enabled through Application (entering ":s")
-            elif self.nav.isSyncWithFinderEnabled():
-                isRestoreSuccessful = self.nav.restoreFinderToFallbackDir() # fallback scenario occurred, Finder should be restored accordingly
-                if not isRestoreSuccessful:
-                    print("")
-                    print("Warning! Unable to restore Finder to fallback directory. Sync with Finder is disabled.")
+            self.nav.checkSyncWithFinder()
             if userInput not in {"?", "?clip", "?ren"}:
                 self.__displayGeneralOutput()
             try:

@@ -199,8 +199,18 @@ class Navigation:
             os.system(nav.buildCloseFinderCommand())
         print("Done!")
 
+    """ checks if synchronisation with Finder is valid and in-line with system settings; in case a fallback occurred restores the Finder sync to the fallback directory """
+    def checkSyncWithFinder(self):
+        if sysfunc.isFinderSyncEnabled():
+            assert self.syncWithFinderEnabled, "Invalid Finder sync setting" # sync enabled through another channel, not by request issued to Navigation
+        elif self.syncWithFinderEnabled: #fallback occurred, sync with Finder needs to be restored to fallback dir
+            isRestoreSuccessful = self.__restoreFinderToFallbackDir()
+            if not isRestoreSuccessful:
+                print("")
+                print("Warning! Unable to restore Finder to fallback directory. Sync with Finder is disabled.")
+
     """ restores the Finder sync after fallback, fallback dir becomes current Finder dir """
-    def restoreFinderToFallbackDir(self):
+    def __restoreFinderToFallbackDir(self):
         assert self.syncWithFinderEnabled and not sysfunc.isFinderSyncEnabled(), "Invalid scenario, no fallback occured"
         success = False
         os.system(nav.buildCloseFinderCommand())
