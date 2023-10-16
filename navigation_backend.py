@@ -242,13 +242,19 @@ class NavigationBackend:
             else:
                 pass # discard entry by not adding it back to resulting (reconciled) excluded history
         # remove paths from resulting persistent history that neither exist any longer nor are contained within persistent/excluded history of the current session
+        persistentHistoryPathsToDelete = []
         for path in self.persistentHistory.keys():
             if not (path in currentPersistentHistory or path in currentExcludedHistory or os.path.exists(path)):
-                del self.persistenHistory[path]
+                persistentHistoryPathsToDelete.append(path)
+        for path in persistentHistoryPathsToDelete:
+            del self.persistentHistory[path]
         # remove paths from resulting excluded history that neither exist any longer nor are contained within excluded/persistent history of the current session
+        excludedHistoryPathsToDelete = []
         for path in self.excludedHistory.keys():
             if not (path in currentPersistentHistory or path in currentExcludedHistory or os.path.exists(path)):
-                del self.excludedHistory[path]
+                excludedHistoryPathsToDelete.append(path)
+        for path in excludedHistoryPathsToDelete:
+            del self.excludedHistory[path]
         # daily logs of current and previous session to be consolidated; any entry that is not contained within reconciled persistent/excluded history should be removed
         for path in self.dailyLog:
             if not (path in self.persistentHistory or path in self.excludedHistory):
