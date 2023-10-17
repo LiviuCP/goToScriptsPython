@@ -1,9 +1,8 @@
 import sys, os
-import system_functionality as sysfunc, navigation as nav, navigation_settings as navset
+import navigation_settings as navset
 
-def displayGeneralOutputUpperSection(prevDir, prevCommand, prevCommandFinishingStatus):
-    syncResult = sysfunc.syncCurrentDir()
-    assert not syncResult[1], "Current dir fallback not allowed"
+def displayGeneralOutputUpperSection(currentDir, prevDir, prevCommand, prevCommandFinishingStatus):
+    assert os.path.exists(currentDir), "Invalid current directory path!"
     previousDirectory = "none" if len(prevDir) == 0 else prevDir
     lastCommand = "none"
     lastCommandFinishingStatus = ""
@@ -14,14 +13,14 @@ def displayGeneralOutputUpperSection(prevDir, prevCommand, prevCommandFinishingS
     print("")
     print("*********************************************************************************************************************************************************")
     print("")
-    print("Current directory: " + syncResult[0])
+    print("Current directory: " + currentDir)
     print("Previous directory: " + previousDirectory)
     print("")
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Directory content (hidden items are excluded):")
     print("")
-    displayCurrentDirContent()
+    displayDirContent(currentDir)
     print("")
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
@@ -60,12 +59,12 @@ def displayGeneralOutputLowerSection(navigationFilter, commandsFilter, clipboard
     print("Enter ? for the list of of available commands or ! to quit navigation mode.")
     print("")
 
-def displayCurrentDirContent():
+def displayDirContent(dirPath):
     beginCharsToDisplay = navset.max_nr_of_item_name_chars // 2 #first characters to be displayed for a filename exceeding navset.max_nr_of_item_name_chars
     endCharsToDisplay = beginCharsToDisplay - navset.max_nr_of_item_name_chars #last characters to be displayed for a filename exceeding navset.max_nr_of_item_name_chars
     dirContent = []
     printAllItems = True
-    for dirItem in os.listdir("."):
+    for dirItem in os.listdir(dirPath):
         if dirItem[0] != ".": #exclude hidden files/directories
             if os.path.isdir(dirItem):
                 dirItem = dirItem + "/"
@@ -85,14 +84,6 @@ def displayCurrentDirContent():
     else:
         print("Number of items contained in the directory: " + str(nrOfItems))
 
-def displayQuickNavigationHistory():
-    print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
-    print("")
-    print("Last visited directories (enter < or ,, followed by entry number to re-visit the directory or its parent):")
-    print("")
-    nav.displayQuickNavigationHistory()
-    print("")
-
 # to be updated: number of columns should be dynamically determined depending on screen size and number of files/dirs contained in current dir
 def printDirContentToColumns(content):
     nrColumns = 4
@@ -107,7 +98,7 @@ def printDirContentToColumns(content):
         print('{0:<40s} {1:<40s} {2:<40s} {3:<40s}'.format(content[baseIndex], content[baseIndex + 1], content[baseIndex + 2], content[baseIndex + 3]))
     print("")
 
-def displayGeneralHelp():
+def displayGeneralHelp(currentDir, fallbackOccurred):
     os.system("clear")
     print("Navigation functions")
     print("")
@@ -148,10 +139,10 @@ def displayGeneralHelp():
     print("Multiple search filters are allowed for navigation history, favorites and command history filtering (only results matching all filters are being displayed).")
     print("Use comma to separate the filters. Regex is supported.")
     print("")
-    printCurrentDir()
+    printCurrentDir(currentDir, fallbackOccurred)
     print("")
 
-def displayClipboardHelp():
+def displayClipboardHelp(currentDir, fallbackOccurred):
     os.system("clear")
     print("Clipboard functions")
     print("")
@@ -177,10 +168,10 @@ def displayClipboardHelp():
     print("")
     print("Press ? to check general help instructions.")
     print("")
-    printCurrentDir()
+    printCurrentDir(currentDir, fallbackOccurred)
     print("")
 
-def displayRenamingHelp():
+def displayRenamingHelp(currentDir, fallbackOccurred):
     os.system("clear")
     print("Renaming functions")
     print("")
@@ -204,7 +195,7 @@ def displayRenamingHelp():
     print("")
     print("Press ? to check general help instructions.")
     print("")
-    printCurrentDir()
+    printCurrentDir(currentDir, fallbackOccurred)
     print("")
 
 def displayHelpMenuFooter():
@@ -212,10 +203,9 @@ def displayHelpMenuFooter():
     print("Enter ! to quit navigation mode.")
     print("")
 
-def printCurrentDir(label = "Current"):
-    currentDirSyncResult = sysfunc.syncCurrentDir()
-    fallbackLabel = "(fallback)" if currentDirSyncResult[1] else ""
-    print(label + " directory " + fallbackLabel + ": " + currentDirSyncResult[0])
+def printCurrentDir(currentDir, fallbackOccurred, label = "Current"):
+    fallbackLabel = "(fallback)" if fallbackOccurred else ""
+    print(label + " directory " + fallbackLabel + ": " + currentDir)
 
 def printFallbackMessage(header = "Unable to perform operation!"):
     print(header)

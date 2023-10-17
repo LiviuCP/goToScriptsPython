@@ -259,12 +259,13 @@ class Application:
         return isQuickNavPossible
 
     def __handleHelpRequest(self, helpInput, out):
+        syncResult = sysfunc.syncCurrentDir()
         if helpInput == "?":
-            self.__displayGeneralHelp()
+            self.__displayGeneralHelp(syncResult[0], syncResult[1])
         elif helpInput == "?clip":
-            self.__displayClipboardHelp()
+            self.__displayClipboardHelp(syncResult[0], syncResult[1])
         elif helpInput == "?ren":
-            self.__displayRenamingHelp()
+            self.__displayRenamingHelp(syncResult[0], syncResult[1])
         else:
             assert False, "Invalid help option"
 
@@ -278,35 +279,38 @@ class Application:
             print("The navigation and/or commands environment had been modified by a previous script session.")
             print("All modifications have been reconciled.")
             print("")
-        out.printCurrentDir("Last visited")
+        syncResult = sysfunc.syncCurrentDir()
+        out.printCurrentDir(syncResult[0], syncResult[1], "Last visited")
         print("Last executed shell command: ", end='')
         print(previousCommand) if len(previousCommand) > 0 else print("none")
         print("")
 
     def __displayGeneralOutput(self):
+        syncResult = sysfunc.syncCurrentDir()
+        assert not syncResult[1], "Current dir fallback not allowed, should have already been performed!"
         prevCommand = self.cmd.getPreviousCommand()
         prevCommandFinishingStatus = ""
         if len(prevCommand) > 0:
             prevCommandFinishingStatus = "successfully" if self.cmd.getPreviousCommandSuccess() else "with errors"
-        out.displayGeneralOutputUpperSection(self.nav.getPreviousDirectory(), prevCommand, prevCommandFinishingStatus)
+        out.displayGeneralOutputUpperSection(syncResult[0], self.nav.getPreviousDirectory(), prevCommand, prevCommandFinishingStatus)
         if self.isQuickNavHistEnabled:
             self.__displayQuickNavigationHistory()
         out.displayGeneralOutputLowerSection(self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.nav.isSyncWithFinderEnabled())
 
-    def __displayGeneralHelp(self):
-        out.displayGeneralHelp()
+    def __displayGeneralHelp(self, currentDir, fallbackOccurred):
+        out.displayGeneralHelp(currentDir, fallbackOccurred)
         if self.isQuickNavHistEnabled:
             self.__displayQuickNavigationHistory()
         out.displayHelpMenuFooter()
 
-    def __displayClipboardHelp(self):
-        out.displayClipboardHelp()
+    def __displayClipboardHelp(self, currentDir, fallbackOccurred):
+        out.displayClipboardHelp(currentDir, fallbackOccurred)
         if self.isQuickNavHistEnabled:
             self.__displayQuickNavigationHistory()
         out.displayHelpMenuFooter()
 
-    def __displayRenamingHelp(self):
-        out.displayRenamingHelp()
+    def __displayRenamingHelp(self, currentDir, fallbackOccurred):
+        out.displayRenamingHelp(currentDir, fallbackOccurred)
         if self.isQuickNavHistEnabled:
             self.__displayQuickNavigationHistory()
         out.displayHelpMenuFooter()
