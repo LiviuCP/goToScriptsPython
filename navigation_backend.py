@@ -206,7 +206,7 @@ class NavigationBackend:
         currentDailyLog = self.dailyLog.copy()
         self.__loadNavigationFiles(shouldOverrideRecentHistory = False) # member variables will contain the persistent/excluded history and the daily log of previous session
         # current recent history overrides the recent history of previous session, however the no longer existing paths should be removed
-        for path in self.recentHistory:
+        for path in self.recentHistory[:]:
             if not os.path.exists(path):
                 self.recentHistory.remove(path)
         # add current persistent history content to persistent/excluded history of previous session, reconcile number of visits
@@ -256,7 +256,7 @@ class NavigationBackend:
         for path in excludedHistoryPathsToDelete:
             del self.excludedHistory[path]
         # daily logs of current and previous session to be consolidated; any entry that is not contained within reconciled persistent/excluded history should be removed
-        for path in self.dailyLog:
+        for path in self.dailyLog[:]:
             if not (path in self.persistentHistory or path in self.excludedHistory):
                 self.dailyLog.remove(path)
         for path in currentDailyLog:
@@ -274,7 +274,7 @@ class NavigationBackend:
                 if not os.path.exists(currentPath):
                     del self.persistentHistory[currentPath]
         # clean up recent history
-        for path in self.recentHistory:
+        for path in self.recentHistory[:]:
             if not os.path.exists(path):
                 self.recentHistory.remove(path)
 
