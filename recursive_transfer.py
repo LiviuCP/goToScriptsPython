@@ -61,7 +61,7 @@ class RecursiveTransfer:
         return self.targetDir
     def transferItemsToTargetDir(self, copy = True):
         syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current directory fallback not allowed"
+        assert not syncResult[1], "Current directory fallback not allowed, should have already been performed!"
         actionLabel = "copy" if copy == True else "move"
         if len(self.targetDir) == 0:
             print("No target directory has been setup.")
@@ -85,7 +85,7 @@ class RecursiveTransfer:
                 print()
                 print("2. Items contained (hidden ones are excluded):")
                 print()
-                out.displayCurrentDirContent()
+                out.displayDirContent(syncResult[0])
                 print()
                 print("3. Recursive clipboard operation: ", end='')
                 print(actionLabel)
