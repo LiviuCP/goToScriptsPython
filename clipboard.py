@@ -13,7 +13,7 @@ class Clipboard:
             print("Clipboard erased!")
     def createAction(self, copy = True):
         syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current directory fallback not allowed"
+        assert not syncResult[1], "Current directory fallback not allowed, should have already been performed!"
         status = 0 #default status, successful execution
         self.action = "cp -irv" if copy == True else "mv -iv"
         actionLabel = "copy" if copy == True else "move"
@@ -22,7 +22,7 @@ class Clipboard:
         print()
         print("2. Items contained (hidden ones are excluded):")
         print()
-        out.displayCurrentDirContent()
+        out.displayDirContent(syncResult[0])
         print()
         print("3. Clipboard action: ", end='')
         print(actionLabel)

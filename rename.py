@@ -9,7 +9,7 @@ def rename(chosenOption):
         print("")
         print("2. Items contained (hidden ones are excluded):")
         print("")
-        out.displayCurrentDirContent()
+        out.displayDirContent(currentDir)
         print("")
         print("3. Renaming information")
         print("")
@@ -103,7 +103,7 @@ def rename(chosenOption):
                         renamingDone = True
             sortAscending = not sortAscending #change direction
     syncResult = sysfunc.syncCurrentDir()
-    assert not syncResult[1], "Current directory fallback not allowed"
+    assert not syncResult[1], "Current directory fallback not allowed, should have already been performed!"
     assert chosenOption in rn.available_options, "The option argument is invalid"
     if rn.areRenameableItemsInCurrentDir():
         shouldRename = False
