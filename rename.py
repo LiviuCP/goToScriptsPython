@@ -13,11 +13,11 @@ def rename(chosenOption):
         print("")
         print("3. Renaming information")
         print("")
-        print("Rename operation: " + rn.available_options_labels[chosenOption])
+        print(f"Rename operation: {rn.available_options_labels[chosenOption]}")
         valueToAddPrefix = "Initial numeric value" if chosenOption in {'A', 'P', 'I', 'R'} else "Value"
-        print(valueToAddPrefix + " to add: " + valueToAdd) if len(valueToAdd) > 0 else print("", end='')
-        print("Position: " + str(position)) if position >= 0 else print("", end='')
-        print("Number of removed characters: " + str(nrOfRemovedCharacters)) if nrOfRemovedCharacters > 0 else print("", end='')
+        print(f"{valueToAddPrefix} to add: {valueToAdd}") if len(valueToAdd) > 0 else print("", end='')
+        print(f"Position: {str(position)}") if position >= 0 else print("", end='')
+        print(f"Number of removed characters: {str(nrOfRemovedCharacters)}") if nrOfRemovedCharacters > 0 else print("", end='')
         print("")
     """
     This function should return a tuple consisting of following fields:
@@ -97,7 +97,7 @@ def rename(chosenOption):
                         os.rename(entry, tempItemName)
                         os.rename(renamingMap[entry], entry)
                         os.rename(tempItemName, renamingMap[entry])
-                        print("Items " + entry + " and " + renamingMap[entry] + " swapped!") # these rare (if ever existing) situations need to be captured
+                        print(f"Items {entry} and {renamingMap[entry]} swapped!") # these rare (if ever existing) situations need to be captured
                         renamingMap[renamingMap[entry]] = ""
                         renamingMap[entry] = ""
                         renamingDone = True
@@ -134,7 +134,7 @@ def rename(chosenOption):
             doRenameItems(renamingMap)
             print("Items renamed")
         elif status > 0:
-            print("Cannot rename the items. " + rn.status_messages[status])
+            print(f"Cannot rename the items. {rn.status_messages[status]}")
         else:
             print("Renaming aborted")
     else:

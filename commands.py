@@ -20,24 +20,24 @@ class Commands:
     """ execute new command """
     def executeCommand(self, command):
         assert len(command) > 0, "Empty argument detected for 'command'"
-        print("Entered command is being executed: " + command)
+        print(f"Entered command is being executed: {command}")
         print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
         result = self.__executeCommand(command)
         finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
         print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-        print("Entered command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
+        print(f"Entered command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
         return result
 
     """ execute (repeat) previous command """
     def executePreviousCommand(self):
         result = None
         if len(self.previousCommand) > 0:
-            print("Repeated command is being executed: " + self.previousCommand)
+            print(f"Repeated command is being executed: {self.previousCommand}")
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
             result = self.__executeCommand(self.previousCommand)
             finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            print("Repeated command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
+            print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
         else:
             print("No shell command previously executed")
         return result
@@ -68,17 +68,17 @@ class Commands:
             print("")
             self.__displayFormattedCmdFileContent(filteredContent, 0)
             print("")
-            print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
+            print(f"\tThe search returned {str(totalNrOfMatches)} match(es).")
             if totalNrOfMatches > len(filteredContent):
                 print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
         def displayPageFooter(currentDir, filterKey = ""):
             print("")
-            print("Current directory: " + currentDir)
+            print(f"Current directory: {currentDir}")
             print("Last executed shell command: ", end='')
             print(self.previousCommand) if len(self.previousCommand) > 0 else print("none")
             print("")
             if len(filterKey) > 0:
-                print("Applied filter: " + filterKey)
+                print(f"Applied filter: {filterKey}")
                 print("")
             print("Enter command number.")
             print("Enter :t to toggle to ", end='')
@@ -148,12 +148,12 @@ class Commands:
                         status = result[0]
                         print("Command aborted. You returned to navigation menu.")
                 if commandToExecute is not None:
-                    print("Repeated command is being executed: " + commandToExecute)
+                    print(f"Repeated command is being executed: {commandToExecute}")
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                     result = self.__executeCommand(commandToExecute)
                     finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                    print("Repeated command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
+                    print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
             else:
                 result = self.__editAndExecuteCommand(commandsHistoryEntry)
                 if result[0] != 0:
@@ -193,12 +193,12 @@ class Commands:
             out.displayFallbackMessage()
         elif commandLength > 0 and commandToExecute[commandLength-1] != ':':
             commandType = "Edited" if previousCommand != "" else "Entered"
-            print(commandType + " command is being executed: " + commandToExecute)
+            print(f"{commandType} command is being executed: {commandToExecute}")
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
             result = self.__executeCommand(commandToExecute)
             finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            print(commandType + " command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
+            print(f"{commandType} command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
             passedInput = result[1]
         else:
             print("Command aborted. You returned to navigation menu.")

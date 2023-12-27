@@ -18,10 +18,10 @@ class RecursiveTransfer:
         if len(self.targetDir) == 0:
             print("No target directory has been setup.")
         elif not os.path.isdir(self.targetDir):
-            print("Invalid target directory: " + self.targetDir)
+            print(f"Invalid target directory: {self.targetDir}")
             print("Please setup a valid target directory!")
         else:
-            print("The target directory path for recursive move/copy is: " + self.targetDir)
+            print(f"The target directory path for recursive move/copy is: {self.targetDir}")
             print("Can start transfer operations from current dir: ", end='')
             print("NO") if self.targetDir == syncResult[0] else print("YES")
     def setTargetDir(self, directory = ""):
@@ -47,7 +47,7 @@ class RecursiveTransfer:
                         isValidDir = True
         if isValidDir:
             print("Set new target directory for recursive moving/copying.")
-            print("Target path: " + self.targetDir)
+            print(f"Target path: {self.targetDir}")
         else:
             print("Error when attempting to setup target directory! Possible causes: ")
             print(" - chosen directory path does not exist or has been deleted")
@@ -66,14 +66,14 @@ class RecursiveTransfer:
         if len(self.targetDir) == 0:
             print("No target directory has been setup.")
         elif not os.path.isdir(self.targetDir):
-            print("Invalid target directory: " + self.targetDir)
+            print(f"Invalid target directory: {self.targetDir}")
             print("Please setup a valid target directory!")
         elif self.targetDir == syncResult[0]:
             print("The source and target directory are the same.")
-            print("Cannot enter recursive " + actionLabel + " mode.")
+            print(f"Cannot enter recursive {actionLabel} mode.")
         else:
             os.system("clear")
-            print("Entered recursive " + actionLabel + " mode")
+            print(f"Entered recursive {actionLabel} mode")
             print()
             print("*********************************************************************************************************************************************************")
             print()
@@ -90,7 +90,7 @@ class RecursiveTransfer:
                 print("3. Recursive clipboard operation: ", end='')
                 print(actionLabel)
                 print()
-                print("4. Destination directory: " + self.targetDir)
+                print(f"4. Destination directory: {self.targetDir}")
                 print()
                 print("5. Previously used keyword: ", end='')
                 print(keyword) if keyword != "" else print("none")
@@ -105,10 +105,10 @@ class RecursiveTransfer:
                 if syncResult[1]:
                     out.printFallbackMessage("Recursive " + actionLabel + " mode aborted!")
                 elif not os.path.isdir(self.targetDir):
-                    print("Recursive " + actionLabel + " mode aborted!")
-                    print("Invalid target directory (probably deleted): " + self.targetDir)
+                    print(f"Recursive {actionLabel} mode aborted!")
+                    print(f"Invalid target directory (probably deleted): {self.targetDir}")
                 elif len(keyword) == 0 or keyInterruptOccurred:
-                    print("Exited recursive " + actionLabel + " mode")
+                    print(f"Exited recursive {actionLabel} mode")
                 else:
                     command = action + " " + keyword + ' \"' + self.targetDir + '\";'
                     os.system(command)

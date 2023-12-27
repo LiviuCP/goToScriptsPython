@@ -195,7 +195,7 @@ class NavigationBackend:
         filesModified = False
         for path in [navset.p_str_hist_file, navset.e_str_hist_file]:
             if os.path.isfile(path) and os.path.getmtime(path) > self.openingTime:
-                print ("modified path: " + path)
+                print (f"modified path: {path}")
                 filesModified = True
                 break
         return filesModified

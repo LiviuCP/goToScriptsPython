@@ -26,11 +26,11 @@ class Navigation:
             status = 0
             os.chdir(currentDir)
             if (prevDir != currentDir):
-                print("Switched to new directory: " + currentDir)
+                print(f"Switched to new directory: {currentDir}")
                 self.nav.updateNavigationHistory(currentDir)
                 self.previousDirectory = prevDir
             else:
-                print("Current directory remains unchanged: " + currentDir)
+                print(f"Current directory remains unchanged: {currentDir}")
         if not status is 0:
             print("Error when attempting to change directory! Possible causes: ")
             print(" - chosen directory path does not exist or has been deleted")
@@ -60,14 +60,14 @@ class Navigation:
             status = int(dirPath[1])
             passedInput = menuVisitResult[1]
             if dirPath == ":4":
-                print("There are no entries in the " + menuName + " menu.")
+                print(f"There are no entries in the {menuName} menu.")
         elif dirPath == ":2":
             status = int(dirPath[1])
-            print("You exited the " + menuName + " menu!")
+            print(f"You exited the {menuName} menu!")
         elif dirPath != ":3":
             if not os.path.isdir(dirPath):
                 if menuVisitResult[1] == ":parent" or menuVisitResult[1] == ":preceding-":
-                    print("Invalid parent directory path: " + dirPath)
+                    print(f"Invalid parent directory path: {dirPath}")
                     print("The directory might have been moved, renamed or deleted.")
                     print()
                     print("Please remove or map the directory and/or child directories within history and/or favorites menus.")
@@ -103,12 +103,12 @@ class Navigation:
         if len(pathToAdd) > 0:
             pathAdded = self.nav.addPathToFavorites(pathToAdd)
             if pathAdded:
-                print("Directory " + pathToAdd + " added to favorites.")
+                print(f"Directory {pathToAdd} added to favorites.")
             else:
-                print("Directory " + pathToAdd + " already added to favorites.")
+                print(f"Directory {pathToAdd} already added to favorites.")
         else:
             os.system("clear")
-            print("Directory " + dirPath + " does not exist, has been deleted or you might not have the required access level.")
+            print(f"Directory {dirPath} does not exist, has been deleted or you might not have the required access level.")
             print("Cannot add to favorites.")
 
     """ removes dir from favorite paths """
@@ -118,7 +118,7 @@ class Navigation:
             print('')
             self.__displayFormattedNavFileContent(self.nav.getFavorites())
             print('')
-            print("Current directory: " + currentDir)
+            print(f"Current directory: {currentDir}")
             print('')
             print("Enter the number of the directory to be removed from favorites.")
             print("Enter ! to quit this dialog.")
@@ -142,9 +142,9 @@ class Navigation:
                 if pathToRemove is not None:
                     pathRemoved = self.nav.removePathFromFavorites(pathToRemove)
                     if pathRemoved:
-                        print("Entry " + pathToRemove + " removed from favorites menu.")
+                        print(f"Entry {pathToRemove} removed from favorites menu.")
                     else:
-                        print("Error! Entry " + pathToRemove + " could not be removed from favorites menu.")
+                        print(f"Error! Entry {pathToRemove} could not be removed from favorites menu.")
                 else:
                     status = 1 # forward user input as regular input
         return (status, userInput, "")
@@ -184,7 +184,7 @@ class Navigation:
         missingDirPath = path
         menuType = "history" if menu == "-h" else "favorites"
         os.system("clear")
-        print("Invalid directory path: " + missingDirPath)
+        print(f"Invalid directory path: {missingDirPath}")
         print("The directory might have been moved, renamed or deleted.")
         print("")
         print("Please choose the required action: ")
@@ -200,12 +200,12 @@ class Navigation:
         elif userChoice == "!r":
             removedPath = self.nav.removeMissingDir(missingDirPath)
             os.system("clear")
-            print("Entry " + removedPath + " has been removed from the menus.")
+            print(f"Entry {removedPath} has been removed from the menus.")
         # map missing directory to a valid replacing dir
         elif userChoice == "!m":
             doMapping = True
             os.system("clear")
-            print("Missing directory: " + missingDirPath)
+            print(f"Missing directory: {missingDirPath}")
             print("")
             print("Enter the name and/or path of the replacing directory.")
             print("Enter < for mapping from history menu and > for mapping from favorites.")
@@ -226,7 +226,7 @@ class Navigation:
                 elif menuVisitResult[0] == ":4":
                     status = 4
                     doMapping = False
-                    print("There are no entries in the " + menuName + " menu. Cannot perform mapping.")
+                    print(f"There are no entries in the {menuName} menu. Cannot perform mapping.")
                 elif menuVisitResult[0] == ":2":
                     status = 2
                     doMapping = False
@@ -246,8 +246,8 @@ class Navigation:
                     self.previousDirectory = syncResult[0] # prev dir to be updated to current dir in case of successful mapping
                     mappingResult = self.nav.mapMissingDir(missingDirPath, replacingDirPath)
                     os.system("clear")
-                    print("Missing directory: " + mappingResult[0])
-                    print("Replacing directory: " + mappingResult[1])
+                    print(f"Missing directory: {mappingResult[0]}")
+                    print(f"Replacing directory: {mappingResult[1]}")
                     print("")
                     print("Mapping performed successfully, navigating to replacing directory ...")
                     print("")
@@ -255,12 +255,12 @@ class Navigation:
                 else:
                     status = 4
                     os.system("clear")
-                    print("The chosen replacing directory (" + replacingDir + ") does not exist, has been deleted, you might not have the required access level or an internal error occurred.")
+                    print(f"The chosen replacing directory ({replacingDir}) does not exist, has been deleted, you might not have the required access level or an internal error occurred.")
                     print("Cannot perform mapping.")
         elif userChoice == "!":
             status = 2
             os.system("clear")
-            print("You exited the " + menuType +  " menu")
+            print(f"You exited the {menuType} menu")
         else:
             status = 1
         return (status, userChoice, "")
@@ -288,25 +288,25 @@ class Navigation:
             print("")
             self.__displayFormattedNavFileContent(filteredContent, 0)
             print("")
-            print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
+            print(f"\tThe search returned {str(totalNrOfMatches)} match(es).")
             if totalNrOfMatches > len(filteredContent):
                 print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
         def displayPageFooter(currentDir, choice, filterKey = ""):
             toggleDict = {"-h" : "FAVORITE DIRECTORIES", "-f" : "VISITED DIRECTORIES", "-fh" : "FILTERED FAVORITE DIRECTORIES", "-ff" : "FILTERED VISITED DIRECTORIES"}
             print("")
-            print("Current directory: " + currentDir)
+            print(f"Current directory: {currentDir}")
             print("Last executed shell command: ", end='')
             print(previousCommand) if len(previousCommand) > 0 else print("none")
             print("")
             if len(filterKey) > 0:
-                print("Applied filter: " + filterKey)
+                print(f"Applied filter: {filterKey}")
                 print("")
             print("Enter the number of the directory you want to navigate to. ", end='')
             print("To navigate to parent directory enter character ',' before the number.")
             print("To set the directory as target dir enter '+' before the number. ", end='')
             print("Enter '-' to set its parent as target.")
             print("")
-            print("Enter :t to toggle to " + toggleDict[choice] + ".")
+            print(f"Enter :t to toggle to {toggleDict[choice]}.")
             print("")
             print("Enter ! to quit.")
             print("")

@@ -35,8 +35,8 @@ class Clipboard:
         os.system("clear")
         if len(self.keyword) > 0 and not keyInterruptOccurred:
             self.sourceDir = syncResult[0]
-            print("The " + actionLabel + " command has been successfully built.")
-            print("Keyword: " + self.keyword)
+            print(f"The {actionLabel} command has been successfully built.")
+            print(f"Keyword: {self.keyword}")
             print("Please choose the destination directory and paste when ready.")
         else:
             self.erase()
@@ -59,9 +59,9 @@ class Clipboard:
         else:
             print("The clipboard has following status: ")
             print()
-            print("Action: " + self.action)
-            print("Source directory: " + self.sourceDir)
-            print("Keyword: " + self.keyword)
+            print(f"Action: {self.action}")
+            print(f"Source directory: {self.sourceDir}")
+            print(f"Keyword: {self.keyword}")
             print("Can apply to current directory: ", end='')
             print("NO") if self.sourceDir == syncResult[0] else print("YES")
     def applyAction(self):
@@ -76,10 +76,10 @@ class Clipboard:
             if not os.path.isdir(self.sourceDir):
                 print("The source directory contained in clipboard is invalid.")
                 print("It might have been deleted, renamed or moved.")
-                print("Directory path: " + self.sourceDir)
+                print(f"Directory path: {self.sourceDir}")
                 status = 2
             elif self.sourceDir == destDir:
-                print("Cannot " + actionLabel + ". Source and destination directory are the same.")
+                print(f"Cannot {actionLabel}. Source and destination directory are the same.")
                 status = 3
             else:
                 cdCommand = "cd " + self.sourceDir + ";" + "\n"
@@ -87,7 +87,7 @@ class Clipboard:
                 clipboardCommandStatus = "status=$?;" + "\n"
                 writeStatusToFile = "echo $status > " + self.outPath + ";" + "\n"
                 command = cdCommand + clipboardCommand + clipboardCommandStatus + writeStatusToFile
-                print("Started the " + actionLabel + " operation.")
+                print(f"Started the {actionLabel} operation.")
                 print()
                 os.system(command)
                 status = 4 # error/exception during execution of move/copy command
@@ -96,9 +96,9 @@ class Clipboard:
                     print()
                     if executionStatus == "0":
                         status = 0 # success
-                        print("Finished the " + actionLabel + " operation")
+                        print(f"Finished the {actionLabel} operation")
                     else:
-                        print("The " + actionLabel + " operation finished with errors.")
+                        print(f"The {actionLabel} operation finished with errors.")
                         print("Please check the source and destination directories.")
                     if actionLabel == "move":
                         print("For a new operation please add items to clipboard.")
