@@ -18,9 +18,9 @@ class Navigation:
     """ core function for visiting directories """
     def goTo(self, gtDirectory):
         status = -1
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current dir fallback not allowed"
-        prevDir = syncResult[0] # current directory path (should become previous dir after goto)
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current dir fallback not allowed"
+        prevDir = syncedCurrentDir # current directory path (should become previous dir after goto)
         currentDir = nav.retrieveTargetDirPath(gtDirectory) # target directory path (should become current directory after goto)
         if len(currentDir) > 0 and not common.hasPathInvalidCharacters(currentDir): # even if the directory is valid we should ensure it does not have characters like backslash (might cause undefined behavior)
             status = 0
@@ -53,8 +53,8 @@ class Navigation:
         passedInput = ""
         dirPath = menuVisitResult[0]
         menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "filtered history" if menuChoice == "-fh" else "filtered favorites"
-        syncResult = sysfunc.syncCurrentDir()
-        if syncResult[1]:
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        if fallbackPerformed:
             out.printFallbackMessage()
         elif dirPath in [":1", ":4"]:
             status = int(dirPath[1])
@@ -123,8 +123,8 @@ class Navigation:
             print("Enter the number of the directory to be removed from favorites.")
             print("Enter ! to quit this dialog.")
             print('')
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current dir fallback not allowed"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current dir fallback not allowed"
         status = 0 # default status, successful removal or aborted by user
         userInput = ""
         favorites = self.nav.getFavorites()
@@ -132,7 +132,7 @@ class Navigation:
             print("There are no entries in the favorites menu.")
             status = 4
         else:
-            displayFavoritesEntryRemovalDialog(syncResult[0])
+            displayFavoritesEntryRemovalDialog(syncedCurrentDir)
             userInput = input()
             os.system("clear")
             if userInput == '!':
@@ -176,8 +176,8 @@ class Navigation:
     4 - replacing directory to which mapping is requested does not exist
     """
     def __handleMissingDir(self, path, menu):
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current dir fallback not allowed"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current dir fallback not allowed"
         assert len(path) > 0, "Empty 'missing path' argument detected"
         assert menu in ["-h", "-f"], "Invalid menu type option passed as argument"
         status = 0 # default status, successful missing directory path mapping or removal
@@ -193,8 +193,8 @@ class Navigation:
         print("! to quit")
         print("")
         userChoice = input()
-        syncResult = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible right before the user entered the choice
-        if syncResult[1]:
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible right before the user entered the choice
+        if fallbackPerformed:
             out.printFallbackMessage()
         # remove directory from history, don't map to anything
         elif userChoice == "!r":
@@ -212,15 +212,15 @@ class Navigation:
             print("Enter ! to quit mapping.")
             print("")
             replacingDir = input()
-            syncResult = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible during the mapping process before user entered any mapping input
-            if syncResult[1]:
+            syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible during the mapping process before user entered any mapping input
+            if fallbackPerformed:
                 doMapping = False
                 out.printFallbackMessage()
             elif replacingDir == "<" or replacingDir == ">":
                 menuName = "history" if replacingDir == "<" else "favorites"
                 menuVisitResult = self.__visitNavigationMenu("-h" if replacingDir == "<" else "-f")
-                syncResult = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible during the mapping process while in history/favorites menu
-                if syncResult[1]:
+                syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible during the mapping process while in history/favorites menu
+                if fallbackPerformed:
                     doMapping = False
                     out.printFallbackMessage()
                 elif menuVisitResult[0] == ":4":
@@ -243,7 +243,7 @@ class Navigation:
             if doMapping == True:
                 replacingDirPath = nav.getReplacingDirPath(replacingDir)
                 if replacingDirPath != ":4":
-                    self.previousDirectory = syncResult[0] # prev dir to be updated to current dir in case of successful mapping
+                    self.previousDirectory = syncedCurrentDir # prev dir to be updated to current dir in case of successful mapping
                     mappingResult = self.nav.mapMissingDir(missingDirPath, replacingDirPath)
                     os.system("clear")
                     print(f"Missing directory: {mappingResult[0]}")
@@ -310,8 +310,8 @@ class Navigation:
             print("")
             print("Enter ! to quit.")
             print("")
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current dir fallback not allowed"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current dir fallback not allowed"
         assert menuChoice in ["-f", "-ff", "-h", "-fh"], "Wrong menu option provided"
         filteredEntries = []
         if menuChoice in ["-fh", "-ff"]:
@@ -324,14 +324,14 @@ class Navigation:
             os.system("clear")
             if len(filteredEntries) > 0:
                 displayFilteredMenu(menuChoice, filteredEntries, totalNrOfMatches)
-                displayPageFooter(syncResult[0], menuChoice, appliedFilterKey)
+                displayPageFooter(syncedCurrentDir, menuChoice, appliedFilterKey)
                 userInput = input()
                 os.system("clear")
         elif len(userInput) == 0:
             os.system("clear")
             if not self.nav.isMenuEmpty(menuChoice):
                 displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
-                displayPageFooter(syncResult[0], menuChoice)
+                displayPageFooter(syncedCurrentDir, menuChoice)
                 userInput = input()
                 os.system("clear")
         # process user choice

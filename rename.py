@@ -102,33 +102,33 @@ def rename(chosenOption):
                         renamingMap[entry] = ""
                         renamingDone = True
             sortAscending = not sortAscending #change direction
-    syncResult = sysfunc.syncCurrentDir()
-    assert not syncResult[1], "Current directory fallback not allowed, should have already been performed!"
+    syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+    assert not fallbackPerformed, "Current directory fallback not allowed, should have already been performed!"
     assert chosenOption in rn.available_options, "The option argument is invalid"
     if rn.areRenameableItemsInCurrentDir():
         shouldRename = False
         status = 0 # default status, no errors
-        renamingParams = promptForRenameParameters(syncResult[0], chosenOption)
+        renamingParams = promptForRenameParameters(syncedCurrentDir, chosenOption)
         assert len(renamingParams) == 4, "Incorrect number of tuple values"
         os.system("clear")
-        syncResult = sysfunc.syncCurrentDir() # sync required after user entered the renaming params (in case the current dir became inaccessible in the meantime)
-        if not syncResult[1] and not renamingParams[0]:
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # sync required after user entered the renaming params (in case the current dir became inaccessible in the meantime)
+        if not fallbackPerformed and not renamingParams[0]:
             buildParams = (renamingParams[1], renamingParams[2], renamingParams[3])
             renamingMap = dict()
             status = rn.buildRenamingMap(chosenOption, buildParams, renamingMap)
             assert status in range(3), "Unknown status code for renaming map build"
             if status == 0:
-                simulateRenaming(syncResult[0], renamingMap, chosenOption, buildParams) # give the user a hint about how the renamed files will look like; a renaming decision is then expected from user
+                simulateRenaming(syncedCurrentDir, renamingMap, chosenOption, buildParams) # give the user a hint about how the renamed files will look like; a renaming decision is then expected from user
                 try:
                     decision = common.getInputWithTextCondition("Would you like to continue? (y - yes, n - no (exit)) ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
                                                                 "Invalid choice selected. Please try again")
-                    syncResult = sysfunc.syncCurrentDir() # sync required after user decided for renaming (or not) after simulation (in case the current dir became inaccessible in the meantime)
-                    if not syncResult[1] and decision.lower() == 'y':
+                    syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # sync required after user decided for renaming (or not) after simulation (in case the current dir became inaccessible in the meantime)
+                    if not fallbackPerformed and decision.lower() == 'y':
                         shouldRename = True
                 except (KeyboardInterrupt, EOFError):
                     shouldRename = False
                 os.system("clear")
-        if syncResult[1]:
+        if fallbackPerformed:
             out.printFallbackMessage()
         elif shouldRename:
             doRenameItems(renamingMap)

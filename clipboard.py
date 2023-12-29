@@ -12,17 +12,17 @@ class Clipboard:
         if displayMessage == True:
             print("Clipboard erased!")
     def createAction(self, copy = True):
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current directory fallback not allowed, should have already been performed!"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current directory fallback not allowed, should have already been performed!"
         status = 0 #default status, successful execution
         self.action = "cp -irv" if copy == True else "mv -iv"
         actionLabel = "copy" if copy == True else "move"
         print("1. Current directory:")
-        print(syncResult[0])
+        print(syncedCurrentDir)
         print()
         print("2. Items contained (hidden ones are excluded):")
         print()
-        out.displayDirContent(syncResult[0])
+        out.displayDirContent(syncedCurrentDir)
         print()
         print("3. Clipboard action: ", end='')
         print(actionLabel)
@@ -34,7 +34,7 @@ class Clipboard:
             keyInterruptOccurred = True
         os.system("clear")
         if len(self.keyword) > 0 and not keyInterruptOccurred:
-            self.sourceDir = syncResult[0]
+            self.sourceDir = syncedCurrentDir
             print(f"The {actionLabel} command has been successfully built.")
             print(f"Keyword: {self.keyword}")
             print("Please choose the destination directory and paste when ready.")
@@ -48,8 +48,8 @@ class Clipboard:
                 print("Please try again.")
         return status
     def display(self):
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current directory fallback not allowed"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current directory fallback not allowed"
         if len(self.action) == 0:
             print("The clipboard is empty!")
         elif not os.path.isdir(self.sourceDir):
@@ -63,16 +63,16 @@ class Clipboard:
             print(f"Source directory: {self.sourceDir}")
             print(f"Keyword: {self.keyword}")
             print("Can apply to current directory: ", end='')
-            print("NO") if self.sourceDir == syncResult[0] else print("YES")
+            print("NO") if self.sourceDir == syncedCurrentDir else print("YES")
     def applyAction(self):
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current directory fallback not allowed"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current directory fallback not allowed"
         if len(self.action) == 0:
             print("Error! The clipboard is empty.")
             status = 1
         else:
             actionLabel = "move" if self.action == "mv -iv" else "copy"
-            destDir = syncResult[0]
+            destDir = syncedCurrentDir
             if not os.path.isdir(self.sourceDir):
                 print("The source directory contained in clipboard is invalid.")
                 print("It might have been deleted, renamed or moved.")

@@ -13,8 +13,8 @@ class RecursiveTransfer:
         if displayMessage == True:
             print("The target directory has been erased.")
     def displayTargetDir(self):
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current directory fallback not allowed"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current directory fallback not allowed"
         if len(self.targetDir) == 0:
             print("No target directory has been setup.")
         elif not os.path.isdir(self.targetDir):
@@ -23,13 +23,13 @@ class RecursiveTransfer:
         else:
             print(f"The target directory path for recursive move/copy is: {self.targetDir}")
             print("Can start transfer operations from current dir: ", end='')
-            print("NO") if self.targetDir == syncResult[0] else print("YES")
+            print("NO") if self.targetDir == syncedCurrentDir else print("YES")
     def setTargetDir(self, directory = ""):
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current directory fallback not allowed"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current directory fallback not allowed"
         isValidDir = False
         if len(directory) == 0:
-            self.targetDir = syncResult[0]
+            self.targetDir = syncedCurrentDir
             isValidDir = True
         else:
             # build and execute command
@@ -60,15 +60,15 @@ class RecursiveTransfer:
     def getTargetDir(self):
         return self.targetDir
     def transferItemsToTargetDir(self, copy = True):
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current directory fallback not allowed, should have already been performed!"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current directory fallback not allowed, should have already been performed!"
         actionLabel = "copy" if copy == True else "move"
         if len(self.targetDir) == 0:
             print("No target directory has been setup.")
         elif not os.path.isdir(self.targetDir):
             print(f"Invalid target directory: {self.targetDir}")
             print("Please setup a valid target directory!")
-        elif self.targetDir == syncResult[0]:
+        elif self.targetDir == syncedCurrentDir:
             print("The source and target directory are the same.")
             print(f"Cannot enter recursive {actionLabel} mode.")
         else:
@@ -81,11 +81,11 @@ class RecursiveTransfer:
             keyword = ""
             while True:
                 print("1. Current directory:")
-                print(syncResult[0])
+                print(syncedCurrentDir)
                 print()
                 print("2. Items contained (hidden ones are excluded):")
                 print()
-                out.displayDirContent(syncResult[0])
+                out.displayDirContent(syncedCurrentDir)
                 print()
                 print("3. Recursive clipboard operation: ", end='')
                 print(actionLabel)
@@ -101,8 +101,8 @@ class RecursiveTransfer:
                 except (KeyboardInterrupt, EOFError):
                     keyInterruptOccurred = True
                 os.system("clear")
-                syncResult = sysfunc.syncCurrentDir() # handle the situation when current dir becomes inaccessible during recursive transferring process
-                if syncResult[1]:
+                syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the situation when current dir becomes inaccessible during recursive transferring process
+                if fallbackPerformed:
                     out.printFallbackMessage("Recursive " + actionLabel + " mode aborted!")
                 elif not os.path.isdir(self.targetDir):
                     print(f"Recursive {actionLabel} mode aborted!")

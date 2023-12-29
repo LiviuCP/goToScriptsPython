@@ -6,10 +6,10 @@ from os.path import expanduser
 
 # if a valid absolute path is fed as argument the unchanged path (without any ending '/') is returned
 def getAbsoluteDirPath(dirPath):
-    syncResult = sysfunc.syncCurrentDir()
-    assert not syncResult[1], "Current directory fallback not allowed"
+    syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+    assert not fallbackPerformed, "Current directory fallback not allowed"
     if len(dirPath) == 0:
-        pathToAdd = syncResult[0]
+        pathToAdd = syncedCurrentDir
     else:
         pathToAdd = dirPath
         with open(sysset.input_storage_file, "w") as inputStorage:

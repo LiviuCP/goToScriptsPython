@@ -86,8 +86,8 @@ class Commands:
             print("")
             print("Enter ! to quit.")
             print("")
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current dir fallback not allowed"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current dir fallback not allowed"
         status = 0 # default status (normal execution)
         passedInput = ""
         assert mode in ["--edit", "--execute"], "Invalid mode argument provided"
@@ -98,7 +98,7 @@ class Commands:
             userInput = ""
         elif len(filterKey) == 0:
             displayCmdHistMenu(mode)
-            displayPageFooter(syncResult[0])
+            displayPageFooter(syncedCurrentDir)
             userInput = input()
             os.system("clear")
         else:
@@ -111,15 +111,15 @@ class Commands:
                 userInput = ""
             else:
                 displayFilteredCmdHistMenu(filteredEntries, mode, totalNrOfMatches)
-                displayPageFooter(syncResult[0], appliedFilterKey)
+                displayPageFooter(syncedCurrentDir, appliedFilterKey)
                 userInput = input()
                 os.system("clear")
         # process user choice
         userInput = userInput.strip()
         choiceResult = self.cmd.chooseCommand(userInput) if len(filterKey) == 0 else self.cmd.chooseFilteredCommand(userInput, filteredEntries)
         commandsHistoryEntry = choiceResult[0]
-        syncResult = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice
-        if syncResult[1]:
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice
+        if fallbackPerformed:
             out.displayFallbackMessage()
         elif commandsHistoryEntry in [":1", ":2"]:
             status = int(commandsHistoryEntry[1])
@@ -135,7 +135,7 @@ class Commands:
                     print(commandToExecute)
                     print("")
                     print("Current directory: ")
-                    print(syncResult[0])
+                    print(syncedCurrentDir)
                     print("")
                     print("Are you sure you want to continue?")
                     print("")
@@ -188,8 +188,8 @@ class Commands:
         readline.set_pre_input_hook() # ensure any further input is no longer pre-filled
         os.system("clear")
         commandLength = len(commandToExecute)
-        syncResult = sysfunc.syncCurrentDir() #in case current dir gets unreachable before user enters input ...
-        if syncResult[1]:
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() #in case current dir gets unreachable before user enters input ...
+        if fallbackPerformed:
             out.displayFallbackMessage()
         elif commandLength > 0 and commandToExecute[commandLength-1] != ':':
             commandType = "Edited" if previousCommand != "" else "Entered"

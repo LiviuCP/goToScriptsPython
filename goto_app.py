@@ -12,8 +12,8 @@ class Application:
     def __init__(self):
         self.currentContext = "" # main context
         self.currentFilter = "" # should change to a non-empty value each time the user filters the navigation/command history (otherwise it should be reset to an empty value)
-        syncResult = sysfunc.syncCurrentDir() # TODO: at next refactoring phase check if status code should remain 0 for fallback or a dedicated status code should be chosen (maybe 5?)
-        self.nav = nav.Navigation(syncResult[0])
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # TODO: at next refactoring phase check if status code should remain 0 for fallback or a dedicated status code should be chosen (maybe 5?)
+        self.nav = nav.Navigation(syncedCurrentDir)
         self.cmd = cmd.Commands()
         self.clipboard = clip.Clipboard()
         self.recursiveTransfer = rt.RecursiveTransfer()
@@ -255,13 +255,13 @@ class Application:
         return isQuickNavPossible
 
     def __handleHelpRequest(self, helpInput, out):
-        syncResult = sysfunc.syncCurrentDir()
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
         if helpInput == "?":
-            self.__displayGeneralHelp(syncResult[0], syncResult[1])
+            self.__displayGeneralHelp(syncedCurrentDir, fallbackPerformed)
         elif helpInput == "?clip":
-            self.__displayClipboardHelp(syncResult[0], syncResult[1])
+            self.__displayClipboardHelp(syncedCurrentDir, fallbackPerformed)
         elif helpInput == "?ren":
-            self.__displayRenamingHelp(syncResult[0], syncResult[1])
+            self.__displayRenamingHelp(syncedCurrentDir, fallbackPerformed)
         else:
             assert False, "Invalid help option"
 
@@ -275,20 +275,20 @@ class Application:
             print("The navigation and/or commands environment had been modified by a previous script session.")
             print("All modifications have been reconciled.")
             print("")
-        syncResult = sysfunc.syncCurrentDir()
-        out.printCurrentDir(syncResult[0], syncResult[1], "Last visited")
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        out.printCurrentDir(syncedCurrentDir, fallbackPerformed, "Last visited")
         print("Last executed shell command: ", end='')
         print(previousCommand) if len(previousCommand) > 0 else print("none")
         print("")
 
     def __displayGeneralOutput(self):
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current dir fallback not allowed, should have already been performed!"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current dir fallback not allowed, should have already been performed!"
         prevCommand = self.cmd.getPreviousCommand()
         prevCommandFinishingStatus = ""
         if len(prevCommand) > 0:
             prevCommandFinishingStatus = "successfully" if self.cmd.getPreviousCommandSuccess() else "with errors"
-        out.displayGeneralOutputUpperSection(syncResult[0], self.nav.getPreviousDirectory(), prevCommand, prevCommandFinishingStatus)
+        out.displayGeneralOutputUpperSection(syncedCurrentDir, self.nav.getPreviousDirectory(), prevCommand, prevCommandFinishingStatus)
         if self.isQuickNavHistEnabled:
             self.__displayQuickNavigationHistory()
         out.displayGeneralOutputLowerSection(self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir())
