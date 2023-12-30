@@ -103,9 +103,7 @@ class Commands:
             os.system("clear")
         else:
             self.previousCommandsFilter = filterKey
-            filterResult = self.cmd.buildFilteredCommandsHistory(filterKey, filteredEntries)
-            totalNrOfMatches = filterResult[0]
-            appliedFilterKey = filterResult[1]
+            totalNrOfMatches, appliedFilterKey = self.cmd.buildFilteredCommandsHistory(filterKey, filteredEntries)
             if len(filteredEntries) == 0:
                 print("There are no entries in the filtered command history menu.")
                 userInput = ""
@@ -116,18 +114,19 @@ class Commands:
                 os.system("clear")
         # process user choice
         userInput = userInput.strip()
-        choiceResult = self.cmd.chooseCommand(userInput) if len(filterKey) == 0 else self.cmd.chooseFilteredCommand(userInput, filteredEntries)
-        commandsHistoryEntry = choiceResult[0]
+        commandsHistoryEntry, chooseCommandPassedInput, chooseCommandPassedOutput = self.cmd.chooseCommand(userInput) if len(filterKey) == 0 else self.cmd.chooseFilteredCommand(userInput, filteredEntries)
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice
         if fallbackPerformed:
             out.displayFallbackMessage()
         elif commandsHistoryEntry in [":1", ":2"]:
             status = int(commandsHistoryEntry[1])
-            passedInput = choiceResult[1]
+            passedInput = chooseCommandPassedInput
             if status == 2:
                 print("You exited the command menu!")
         elif commandsHistoryEntry not in [":3", ":4"]:
-            result = (status, "", "")
+            commandExecStatus = status
+            passedCommandExecInput = ""
+            passedCommandExecOutput = ""
             if mode == "--execute":
                 commandToExecute = commandsHistoryEntry
                 if cmd.isSensitiveCommand(commandToExecute):
@@ -144,21 +143,21 @@ class Commands:
                     os.system("clear")
                     if choice.lower() == "n":
                         commandToExecute = None
-                        result = (2, "", "")
-                        status = result[0]
+                        commandExecStatus = 2
+                        status = commandExecStatus
                         print("Command aborted. You returned to navigation menu.")
                 if commandToExecute is not None:
                     print(f"Repeated command is being executed: {commandToExecute}")
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                    result = self.__executeCommand(commandToExecute)
+                    commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand(commandToExecute)
                     finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                     print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
             else:
-                result = self.__editAndExecuteCommand(commandsHistoryEntry)
-                if result[0] != 0:
+                commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__editAndExecuteCommand(commandsHistoryEntry)
+                if commandExecStatus != 0:
                     status = 2 #aborted by user
-            passedInput = result[1]
+            passedInput = passedCommandExecInput
         return (status, passedInput, "")
 
     """ resets the commands history """
