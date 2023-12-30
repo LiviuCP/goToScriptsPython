@@ -48,17 +48,16 @@ class Navigation:
     # negative statuses are special statuses and will be retrieved in conjunction with special characters preceding valid entry numbers (like + -> status -1); path is forwarded as input and used by main app
     def executeGoToFromMenu(self, menuChoice, userInput = "", previousCommand = ""):
         assert menuChoice in ["-f", "-ff", "-h", "-fh"], "Invalid menuChoice argument"
-        menuVisitResult = self.__visitNavigationMenu(menuChoice, userInput, previousCommand)
+        dirPath, menuVisitPassedInput, menuVisitPassedOutput = self.__visitNavigationMenu(menuChoice, userInput, previousCommand)
         status = 0 # default status, normal execution or missing dir successful removal/mapping
         passedInput = ""
-        dirPath = menuVisitResult[0]
         menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "filtered history" if menuChoice == "-fh" else "filtered favorites"
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
         if fallbackPerformed:
             out.printFallbackMessage()
         elif dirPath in [":1", ":4"]:
             status = int(dirPath[1])
-            passedInput = menuVisitResult[1]
+            passedInput = menuVisitPassedInput
             if dirPath == ":4":
                 print(f"There are no entries in the {menuName} menu.")
         elif dirPath == ":2":
@@ -66,7 +65,7 @@ class Navigation:
             print(f"You exited the {menuName} menu!")
         elif dirPath != ":3":
             if not os.path.isdir(dirPath):
-                if menuVisitResult[1] == ":parent" or menuVisitResult[1] == ":preceding-":
+                if menuVisitPassedInput in [":parent", ":preceding-"]:
                     print(f"Invalid parent directory path: {dirPath}")
                     print("The directory might have been moved, renamed or deleted.")
                     print()
@@ -76,17 +75,15 @@ class Navigation:
                         menuChoice = "-h"
                     elif menuChoice == "-ff": #entries from filtered favorites are actually part of favorites so they should be handled as a missing favorites entry case
                         menuChoice = "-f"
-                    handleResult = self.__handleMissingDir(dirPath, menuChoice)
-                    if handleResult[0] == 1:
+                    handleMissingDirStatus, handleMissingDirPassedInput, handleMissingDirPassedOutput = self.__handleMissingDir(dirPath, menuChoice)
+                    if handleMissingDirStatus == 1:
                         status = 1 #forward user input
-                        passedInput = handleResult[1]
-            elif menuVisitResult[1] == ":preceding+" or menuVisitResult[1] == ":preceding-":
+                        passedInput = handleMissingDirPassedInput
+            elif menuVisitPassedInput in [":preceding+", ":preceding-"]:
                 status = -1
                 passedInput = dirPath
             else:
-                goToResult = self.goTo(dirPath)
-                status = goToResult[0]
-                passedInput = goToResult[1]
+                status, passedInput, passedGoToOutput = self.goTo(dirPath)
         else:
             status = 3
             passedInput = ""
@@ -218,23 +215,23 @@ class Navigation:
                 out.printFallbackMessage()
             elif replacingDir == "<" or replacingDir == ">":
                 menuName = "history" if replacingDir == "<" else "favorites"
-                menuVisitResult = self.__visitNavigationMenu("-h" if replacingDir == "<" else "-f")
+                dirPath, menuVisitPassedInput, menuVisitPassedOutput = self.__visitNavigationMenu("-h" if replacingDir == "<" else "-f")
                 syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible during the mapping process while in history/favorites menu
                 if fallbackPerformed:
                     doMapping = False
                     out.printFallbackMessage()
-                elif menuVisitResult[0] == ":4":
+                elif dirPath == ":4":
                     status = 4
                     doMapping = False
                     print(f"There are no entries in the {menuName} menu. Cannot perform mapping.")
-                elif menuVisitResult[0] == ":2":
+                elif dirPath == ":2":
                     status = 2
                     doMapping = False
                     print("Mapping aborted.")
-                elif menuVisitResult[0] == ":1":
-                    replacingDir = menuVisitResult[1] #input mirrored back, "normal" input interpreted as user entered path
+                elif dirPath == ":1":
+                    replacingDir = menuVisitPassedInput #input mirrored back, "normal" input interpreted as user entered path
                 else:
-                    replacingDir = menuVisitResult[0] #path retrieved from menu
+                    replacingDir = dirPath #path retrieved from menu
             elif replacingDir == "!":
                 status = 2
                 doMapping = False
@@ -244,14 +241,14 @@ class Navigation:
                 replacingDirPath = nav.getReplacingDirPath(replacingDir)
                 if replacingDirPath != ":4":
                     self.previousDirectory = syncedCurrentDir # prev dir to be updated to current dir in case of successful mapping
-                    mappingResult = self.nav.mapMissingDir(missingDirPath, replacingDirPath)
+                    replacedPath, replacingPath = self.nav.mapMissingDir(missingDirPath, replacingDirPath)
                     os.system("clear")
-                    print(f"Missing directory: {mappingResult[0]}")
-                    print(f"Replacing directory: {mappingResult[1]}")
+                    print(f"Missing directory: {replacedPath}")
+                    print(f"Replacing directory: {replacingPath}")
                     print("")
                     print("Mapping performed successfully, navigating to replacing directory ...")
                     print("")
-                    self.goTo(mappingResult[1])
+                    self.goTo(replacingPath)
                 else:
                     status = 4
                     os.system("clear")
@@ -317,9 +314,7 @@ class Navigation:
         if menuChoice in ["-fh", "-ff"]:
             assert len(userInput) > 0, "No filter has been provided for filtered navigation menu"
             self.previousNavigationFilter = userInput
-            filterResult = self.nav.buildFilteredNavigationHistory(userInput, filteredEntries) if menuChoice == "-fh" else self.nav.buildFilteredFavorites(userInput, filteredEntries)
-            totalNrOfMatches = filterResult[0]
-            appliedFilterKey = filterResult[1]
+            totalNrOfMatches, appliedFilterKey = self.nav.buildFilteredNavigationHistory(userInput, filteredEntries) if menuChoice == "-fh" else self.nav.buildFilteredFavorites(userInput, filteredEntries)
             userInput = "" #input should be reset to correctly account for the case when the resulting filtered history menu is empty
             os.system("clear")
             if len(filteredEntries) > 0:
