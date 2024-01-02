@@ -64,7 +64,8 @@ def rename(chosenOption):
         assert len(renamingMap) > 0, "Empty renaming map detected"
         assert chosenOption in rn.available_options, "The option argument is invalid"
         assert len(buildParams) == 3, "The number of renaming map build parameters is not correct"
-        displayRenameInfo(currentDir, chosenOption, buildParams[0], buildParams[1], buildParams[2])
+        valueToAdd, position, nrOfRemovedCharacters = buildParams
+        displayRenameInfo(currentDir, chosenOption, valueToAdd, position, nrOfRemovedCharacters)
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         print("Renaming of all items (except hidden ones) is about to proceed!")
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -108,12 +109,11 @@ def rename(chosenOption):
     if rn.areRenameableItemsInCurrentDir():
         shouldRename = False
         status = 0 # default status, no errors
-        renamingParams = promptForRenameParameters(syncedCurrentDir, chosenOption)
-        assert len(renamingParams) == 4, "Incorrect number of tuple values"
+        shouldAbort, valueToAdd, position, nrOfRemovedCharacters = promptForRenameParameters(syncedCurrentDir, chosenOption)
         os.system("clear")
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # sync required after user entered the renaming params (in case the current dir became inaccessible in the meantime)
-        if not fallbackPerformed and not renamingParams[0]:
-            buildParams = (renamingParams[1], renamingParams[2], renamingParams[3])
+        if not fallbackPerformed and not shouldAbort:
+            buildParams = (valueToAdd, position, nrOfRemovedCharacters)
             renamingMap = dict()
             status = rn.buildRenamingMap(chosenOption, buildParams, renamingMap)
             assert status in range(3), "Unknown status code for renaming map build"
