@@ -47,6 +47,22 @@ class Application:
             userInput = userInput.strip(' ')
             isQuickNavHistInput = len(userInput) > 1 and ((userInput[0] == "<" and userInput[1] != "<") or userInput[0:2] == ",,")
             return isQuickNavHistInput
+        def isSwitchToMainContextRequired(appExecInfo):
+            isSwitchRequired = True
+            if appExecInfo is not None:
+                appExecStatus, appExecPassedInput, appExecPassedOutput = appExecInfo
+                isSwitchRequired = appExecStatus != 1 or (appExecPassedInput != ":t" and not isQuickNavigationRequested(appExecPassedInput))
+            return isSwitchRequired
+        def computeNewAppStatus(appExecInfo, currentStatus, requiredNewStatus = -1, checkInputForwarding = False):
+            resultingStatus = currentStatus
+            if appExecInfo is not None:
+                status, passedInput, passedOutput = appExecInfo
+                if checkInputForwarding:
+                    if status == 1:
+                        resultingStatus = status
+                elif status == 0:
+                    resultingStatus = requiredNewStatus
+            return resultingStatus
         os.system("clear")
         self.appStatus = 0
         self.passedInput = ""
@@ -62,7 +78,7 @@ class Application:
         elif len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
             result = self.__setContext(contexts_dict[userInput[0:2]], userInput[2:])
             #return to main context only if the user hasn't chosen to toggle or no quick navigation has been attempted (same for the below cases)
-            shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
+            shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif len(userInput) >= 1 and userInput[0] == ">":
             navHistInput = userInput[1:].lstrip(' ')
             isInputOk = True
@@ -72,7 +88,7 @@ class Application:
                     print("Invalid favorites entry number!")
             if isInputOk:
                 result = self.__setContext(contexts_dict[userInput[0]], navHistInput)
-                shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
+                shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif len(userInput) >= 1 and userInput[0] == "<":
             navHistInput = userInput[1:]
             isInputOk = True
@@ -80,46 +96,46 @@ class Application:
                 isInputOk = self.__isQuickNavigationPossible(navHistInput)
             if isInputOk:
                 result = self.__setContext(contexts_dict[userInput[0]], navHistInput)
-                shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
+                shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif userInput in [":n", ":N"]:
             prevNavigationFilter = self.nav.getPreviousNavigationFilter()
             if len(prevNavigationFilter) > 0:
                 contexts_dictKey = "<<" if userInput == ":n" else ">>"
                 result = self.__setContext(contexts_dict[contexts_dictKey], prevNavigationFilter)
-                shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
+                shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
             else:
                 print("No navigation filter previously entered.")
         elif len(userInput) >= 2 and userInput[0:2] == ",,":
             navHistInput = userInput[2:]
             if self.__isQuickNavigationPossible(navHistInput):
                 result = self.__setContext(contexts_dict["<"], "," + navHistInput)
-                shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
+                shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
             result = self.__setContext(contexts_dict[userInput[0:2]], userInput[2:])
-            shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
+            shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif userInput in [":f", ":F"]:
             prevCommandsFilter = self.cmd.getPreviousCommandsFilter()
             if len(prevCommandsFilter) > 0:
                 contexts_dictKey = ":<" if userInput == ":f" else "::"
                 result = self.__setContext(contexts_dict[contexts_dictKey], prevCommandsFilter)
-                shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
+                shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
             else:
                 print("No commands filter previously entered.")
         elif userInput == ":t":
             newContext = context_switch_dict[self.currentContext]
             if len(newContext) > 0:
                 result = self.__setContext(newContext, self.currentFilter)
-                shouldSwitchToMainContext = (result is  None) or (result[0] != 1) or (result[1] != ":t" and not isQuickNavigationRequested(result[1]))
+                shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
             else:
                 print("Unable to toggle, not in the right menu!")
         elif userInput == ",":
             result = self.nav.goToPreviousDirectory()
-            self.appStatus = 4 if result[0] == 0 else self.appStatus
+            self.appStatus = computeNewAppStatus(result, self.appStatus, 4)
         elif len(userInput) >= 1 and userInput[0] == ";":
             ancestorDirPath = common.computeAncestorDirRelativePath(userInput[1:])
             if len(ancestorDirPath) > 0:
                 result = self.nav.goTo(ancestorDirPath)
-                self.appStatus = 4 if result[0] == 0 else self.appStatus
+                self.appStatus = computeNewAppStatus(result, self.appStatus, 4)
             else:
                 print("Invalid ancestor directory data provided!")
                 print("")
@@ -127,16 +143,16 @@ class Application:
                 print("No other character types are allowed.")
         elif userInput == ":-":
             result = self.cmd.executePreviousCommand()
-            if result is not None:
-                self.appStatus = 2 if result[0] == 0 else self.appStatus # force updating previous command and its finishing status (although command is just repeated); the command might for example finish with errors although when previously executed it finished successfully (e.g. when removing a file and then attempting to remove it again)
+            # force updating previous command and its finishing status (although command is just repeated); the command might for example finish with errors although when previously executed it finished successfully (e.g. when removing a file and then attempting to remove it again)
+            self.appStatus = computeNewAppStatus(result, self.appStatus, 2)
         elif userInput == ":":
             result = self.cmd.editAndExecutePreviousCommand()
-            self.appStatus = 2 if result[0] == 0 else self.appStatus
+            self.appStatus = computeNewAppStatus(result, self.appStatus, 2)
         elif userInput == "+>":
             self.nav.addDirToFavorites()
         elif userInput == "->":
             result = self.nav.removeDirFromFavorites()
-            self.appStatus = 1 if result[0] == 1 else self.appStatus
+            self.appStatus = computeNewAppStatus(result, self.appStatus, checkInputForwarding = True)
         elif userInput == ":clearnavigation":
             self.nav.clearVisitedDirsMenu()
         elif userInput == ":clearcommands":
@@ -161,7 +177,7 @@ class Application:
                 self.appStatus = 2
             else:
                 result = self.nav.goTo(userInput)
-                self.appStatus = 4 if result[0] == 0 else self.appStatus
+                self.appStatus = computeNewAppStatus(result, self.appStatus, 4)
         if result is not None:
             self.passedInput = result[1]
         if shouldSwitchToMainContext:
@@ -208,29 +224,32 @@ class Application:
             assert self.currentContext in ["-fh", "-ff", "--execute", "--edit"], "Invalid filter keyword within current context"
         self.currentContext = newContext
         self.currentFilter = ""
-        result = None  # a valid result should contain: (status code, passed input, passed output)
+        status = None
+        passedInput = ""
+        passedOutput = ""
         if self.currentContext in ["--execute", "--edit"]:
             self.currentFilter = userInput
-            result = self.cmd.visitCommandsMenu(self.currentContext, userInput)
-            self.appStatus = 2 if result[0] == 0 else 1 if result[0] == 1 else self.appStatus
+            status, passedInput, passedOutput = self.cmd.visitCommandsMenu(self.currentContext, userInput)
+            self.appStatus = 2 if status == 0 else 1 if status == 1 else self.appStatus
         elif self.currentContext in ["-f", "-h"]:
-            result = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.cmd.getPreviousCommand())
+            status, passedInput, passedOutput = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.cmd.getPreviousCommand())
             if len(userInput) > 0:
-                self.appStatus = 4 if result[0] == 0 else 1 if (result[0] == 1 or result[0] == 4) else self.appStatus #forward user input if history menu is empty and the user enters <[entry_nr] (result == 4)
+                self.appStatus = 4 if status == 0 else 1 if status in [1, 4] else self.appStatus #forward user input if history menu is empty and the user enters <[entry_nr] (status == 4)
             else:
-                self.appStatus = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.appStatus
-                if result[0] == -1:
-                    self.recursiveTransfer.setTargetDir(result[1])
+                self.appStatus = 4 if status <= 0 else 1 if status == 1 else self.appStatus
+                if status == -1:
+                    self.recursiveTransfer.setTargetDir(passedInput)
         elif self.currentContext in ["-fh", "-ff"]:
             if len(userInput) > 0:
                 self.currentFilter = userInput
-                result = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.cmd.getPreviousCommand())
-                self.appStatus = 4 if result[0] <= 0 else 1 if result[0] == 1 else self.appStatus
-                if result[0] == -1:
-                    self.recursiveTransfer.setTargetDir(result[1])
+                status, passedInput, passedOutput = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.cmd.getPreviousCommand())
+                self.appStatus = 4 if status <= 0 else 1 if status == 1 else self.appStatus
+                if status == -1:
+                    self.recursiveTransfer.setTargetDir(passedInput)
             else:
                 print("No filter keyword entered. Cannot filter ", end='')
                 print("navigation history.") if self.currentContext == "-fh" else print("favorites.")
+        result = (status, passedInput, passedOutput) if status is not None else None
         return result
 
     def __handleFallbackPerformed(self):
