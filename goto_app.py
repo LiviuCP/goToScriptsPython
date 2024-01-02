@@ -68,10 +68,10 @@ class Application:
         self.passedInput = ""
         shouldSwitchToMainContext = True
         result = None # a valid result should contain: (status code, passed input, passed output)
+        syncedCurrentDir = "" # actually not used, just for tuple unpacking (see below)
         fallbackPerformed = False
         if userInput not in ["!", "?", "?ren", "?clip"]:
-            syncResult = sysfunc.syncCurrentDir()
-            fallbackPerformed = syncResult[1]
+            syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
         if fallbackPerformed:
             out.printFallbackMessage()
             self.__handleFallbackPerformed()

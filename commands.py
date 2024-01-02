@@ -194,11 +194,11 @@ class Commands:
             commandType = "Edited" if previousCommand != "" else "Entered"
             print(f"{commandType} command is being executed: {commandToExecute}")
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            result = self.__executeCommand(commandToExecute)
+            commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand(commandToExecute)
             finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
             print(f"{commandType} command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
-            passedInput = result[1]
+            passedInput = passedCommandExecInput
         else:
             print("Command aborted. You returned to navigation menu.")
             status = 2 #aborted by user
