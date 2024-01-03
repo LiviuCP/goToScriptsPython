@@ -63,9 +63,9 @@ def setPathAutoComplete():
         if len(dirContent) > 1 or dirContent[0] != dirPath:
             dirContent = [os.path.join(dirName, name) for name in dirContent]
         # terminate path with slash for directory to enable further auto-completion
-        for index in range(len(dirContent)):
-            if (dirContent[index].startswith('~') and dirContent[index] != "~/" and os.path.isdir(expanduser('~') + dirContent[index][1:])) or \
-               (os.path.isdir(dirContent[index]) and dirContent[index] not in ["~/", "./", "../"]):
+        for index, entry in enumerate(dirContent):
+            if (entry.startswith('~') and entry != "~/" and os.path.isdir(expanduser('~') + entry[1:])) or \
+               (os.path.isdir(entry) and entry not in ["~/", "./", "../"]):
                 dirContent[index] += os.path.sep
         return dirContent
     def pathCompleter(inputText, state):
@@ -119,8 +119,8 @@ def hasPathInvalidCharacters(path):
     assert path is not None and len(path) > 0, "Invalid path argument detected"
     invalidChars = {'\\'} # further characters considered invalid to be added here
     hasInvalidCharacters = False
-    for index in range(len(path)):
-        if path[index] in invalidChars:
+    for char in path:
+        if char in invalidChars:
             hasInvalidCharacters = True
             break
     return hasInvalidCharacters

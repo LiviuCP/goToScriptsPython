@@ -71,8 +71,8 @@ def readFromPermHist(strHistFile, numHistFile, histDict):
         numHistList = numHist.readlines()
         assert len(strHistList) == len(numHistList), "The number of entries contained in file " + strHistFile + " is different from the number contained in file" + numHistFile
         histDict.clear()
-        for index in range(len(strHistList)):
-            histDict[strHistList[index].strip('\n')] = int(numHistList[index].strip('\n'))
+        for strEntry, numEntry in zip(strHistList, numHistList):
+            histDict[strEntry.strip('\n')] = int(numEntry.strip('\n'))
 
 def writeBackToTempHist(rHistEntries, rHistFile, dailyLog, logDir, dailyLogFile):
     with open(rHistFile, "w") as rHist:
