@@ -57,8 +57,8 @@ def loadBasicFiles(rHistFile, rHistMaxEntries, lHistFile, pStrHistFile, pNumHist
         pHistDict.clear()
         for entry in recentHistory:
             rHistEntries.append(entry)
-        for entry in persistentHistory.items():
-            pHistDict[entry[0]] = entry[1]
+        for strEntry, numEntry in persistentHistory.items():
+            pHistDict[strEntry] = numEntry
         if os.path.isfile(lHistFile):
             dailyLog.clear()
             with open(lHistFile, "r") as lHist:
@@ -97,9 +97,7 @@ def writeBackToPermHist(histDict, strHistFile, numHistFile, shouldSort = False):
 
 def buildFilteredPersistentHistory(pHistDict, filterKeyword, maxFilteredHistEntries, filteredContent):
     assert len(filterKeyword) > 0, "Empty filter key found"
-    rawHistoryContent = []
-    for path, count in sorted(pHistDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-        rawHistoryContent.append(path)
+    rawHistoryContent = [path for path, count in sorted(pHistDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True)]
     return buildFilteredHistory(rawHistoryContent, filterKeyword, maxFilteredHistEntries, filteredContent)
 
 def buildFilteredHistory(rawContent, filterKeyword, maxFilteredHistEntries, filteredContent):

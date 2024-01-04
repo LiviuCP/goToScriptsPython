@@ -45,13 +45,11 @@ def getMenuEntry(menuContent, userInput):
 def setPathAutoComplete():
     def getDirectoryContent(dirPath):
         dirName = os.path.dirname(dirPath)
+        dirContent = []
         if dirPath.startswith(os.path.sep):
             dirContent = os.listdir(dirName)
         elif dirPath in ["~", ".", ".."]:
-            dirContent = []
-            for entry in os.listdir(os.curdir):
-                if entry.startswith(dirPath):
-                    dirContent.append(entry)
+            dirContent = [entry for entry in os.listdir(os.curdir) if entry.startswith(dirPath)]
             dirContent.append(dirPath + os.path.sep)
         elif dirPath.startswith("~") and dirPath[1] == os.path.sep:
             dirContent = os.listdir(expanduser('~') + dirName[1:])
