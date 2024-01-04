@@ -56,7 +56,7 @@ class NavigationBackend:
         self.consolidatedHistory.clear()
         self.dailyLog.clear()
         # favorites are not erased but the corresponding excluded history should have the visits count reset for each included path
-        for path in self.excludedHistory.keys():
+        for path in self.excludedHistory:
             self.excludedHistory[path] = 0
 
     def buildFilteredNavigationHistory(self, filterKey, filteredContent):
@@ -195,7 +195,6 @@ class NavigationBackend:
         filesModified = False
         for path in [navset.p_str_hist_file, navset.e_str_hist_file]:
             if os.path.isfile(path) and os.path.getmtime(path) > self.openingTime:
-                print (f"modified path: {path}")
                 filesModified = True
                 break
         return filesModified
@@ -243,14 +242,14 @@ class NavigationBackend:
                 pass # discard entry by not adding it back to resulting (reconciled) excluded history
         # remove paths from resulting persistent history that neither exist any longer nor are contained within persistent/excluded history of the current session
         persistentHistoryPathsToDelete = []
-        for path in self.persistentHistory.keys():
+        for path in self.persistentHistory:
             if not (path in currentPersistentHistory or path in currentExcludedHistory or os.path.exists(path)):
                 persistentHistoryPathsToDelete.append(path)
         for path in persistentHistoryPathsToDelete:
             del self.persistentHistory[path]
         # remove paths from resulting excluded history that neither exist any longer nor are contained within excluded/persistent history of the current session
         excludedHistoryPathsToDelete = []
-        for path in self.excludedHistory.keys():
+        for path in self.excludedHistory:
             if not (path in currentPersistentHistory or path in currentExcludedHistory or os.path.exists(path)):
                 excludedHistoryPathsToDelete.append(path)
         for path in excludedHistoryPathsToDelete:
@@ -292,7 +291,7 @@ class NavigationBackend:
 
     def __computeFavorites(self):
         favDict = {}
-        for path in self.excludedHistory.keys():
+        for path in self.excludedHistory:
             favDict[path] = os.path.basename(path)
         self.favorites.clear()
         for path, dirName in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
