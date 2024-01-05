@@ -68,14 +68,10 @@ def buildRenamingMap(choice, buildParams, renamingMap):
             number = int(currentValue) + 1
             currentValue = str(common.addPaddingZeroes(str(number), len(valueToAdd)))
         return (renamingString, (currentValue, position, nrOfRemovedCharacters))
+    # the values from the renaming map should be different from each other meaning each item is renamed with a different string from the other ones
     def isValidRenamingMap(renamingMap):
-        isValid = False
-        valuesList = []
-        for entry in renamingMap.items():
-            valuesList.append(entry[1])
-        if len(dict.fromkeys(valuesList)) == len(renamingMap):
-            isValid = True
-        return isValid
+        valuesList = [value for key,value in renamingMap.items()]
+        return len(dict.fromkeys(valuesList)) == len(renamingMap)
     assert areRenameableItemsInCurrentDir(), "The current dir is empty or all items are hidden"
     assert choice in available_options, "The choice argument is invalid"
     assert len(buildParams) == 3, "The number of rename map build parameters is not correct"
@@ -85,11 +81,8 @@ def buildRenamingMap(choice, buildParams, renamingMap):
         assert str(valueToAdd).isdigit(), "Non-numeric value detected for numeric rename operation"
     status = 0 # default code, succesfull creation of renamingMap
     transmittedBuildParams = buildParams
-    curDirItems = []
     # exclude hidden files/dirs to avoid accidentally renaming any essential item
-    for entry in os.listdir(os.curdir):
-        if not entry.startswith('.'):
-            curDirItems.append(entry)
+    curDirItems = [entry for entry in os.listdir(os.curdir) if not entry.startswith('.')]
     curDirItems.sort(key = lambda k: k.lower())
     #fixed number of characters the numeric string should have (for fixed strings it doesn't matter so we set it 0) to have all numbers aligned
     requestedNrOfCharacters = len(str(int(valueToAdd) + len(curDirItems) - 1))  if isNumericRenameRequested else 0
