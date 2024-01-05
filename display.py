@@ -13,8 +13,8 @@ def displayGeneralOutputUpperSection(currentDir, prevDir, prevCommand, prevComma
     print("")
     print("*********************************************************************************************************************************************************")
     print("")
-    print("Current directory: " + currentDir)
-    print("Previous directory: " + previousDirectory)
+    print(f"Current directory: {currentDir}")
+    print(f"Previous directory: {previousDirectory}")
     print("")
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
@@ -25,7 +25,7 @@ def displayGeneralOutputUpperSection(currentDir, prevDir, prevCommand, prevComma
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Last executed shell command", end='')
-    print(" (finished " + lastCommandFinishingStatus + "):") if lastCommandFinishingStatus != "" else print(":")
+    print(f" (finished {lastCommandFinishingStatus}):") if lastCommandFinishingStatus != "" else print(":")
     print(lastCommand)
     print("")
 
@@ -40,7 +40,7 @@ def displayGeneralOutputLowerSection(navigationFilter, commandsFilter, clipboard
     if len(clipboardAction) > 0:
         assert len(clipboardKeyword) > 0, "Invalid clipboard keyword"
         assert len(clipboardSourceDir) > 0, "Invalid clipboard source dir"
-        print(clipboardAction + " (keyword: " + clipboardKeyword + ")")
+        print(f"{clipboardAction} (keyword: {clipboardKeyword})")
     else:
         print("none")
     print("Clipboard source directory: ", end='')
@@ -79,10 +79,10 @@ def displayDirContent(dirPath):
         printAllItems = False
         dirContent = dirContent[:navset.max_nr_of_displayed_items]
     printDirContentToColumns(dirContent)
-    if printAllItems == False:
-        print("Number of items contained in the directory (" + str(nrOfItems) + ") exceeds the displayed ones (" + str(navset.max_nr_of_displayed_items) + ")! Type :ls -p | less to display all directory items.")
+    if not printAllItems:
+        print(f"Number of items contained in the directory ({str(nrOfItems)}) exceeds the displayed ones ({str(navset.max_nr_of_displayed_items)})! Type :ls -p | less to display all directory items.")
     else:
-        print("Number of items contained in the directory: " + str(nrOfItems))
+        print(f"Number of items contained in the directory: {str(nrOfItems)}")
 
 # to be updated: number of columns should be dynamically determined depending on screen size and number of files/dirs contained in current dir
 def printDirContentToColumns(content):
@@ -205,7 +205,7 @@ def displayHelpMenuFooter():
 
 def printCurrentDir(currentDir, fallbackOccurred, label = "Current"):
     fallbackLabel = "(fallback)" if fallbackOccurred else ""
-    print(label + " directory " + fallbackLabel + ": " + currentDir)
+    print(f"{label} directory {fallbackLabel}: {currentDir}")
 
 def printFallbackMessage(header = "Unable to perform operation!"):
     print(header)

@@ -6,10 +6,10 @@ from os.path import expanduser
 
 # if a valid absolute path is fed as argument the unchanged path (without any ending '/') is returned
 def getAbsoluteDirPath(dirPath):
-    syncResult = sysfunc.syncCurrentDir()
-    assert not syncResult[1], "Current directory fallback not allowed"
+    syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+    assert not fallbackPerformed, "Current directory fallback not allowed"
     if len(dirPath) == 0:
-        pathToAdd = syncResult[0]
+        pathToAdd = syncedCurrentDir
     else:
         pathToAdd = dirPath
         with open(sysset.input_storage_file, "w") as inputStorage:
@@ -45,13 +45,11 @@ def getMenuEntry(menuContent, userInput):
 def setPathAutoComplete():
     def getDirectoryContent(dirPath):
         dirName = os.path.dirname(dirPath)
+        dirContent = []
         if dirPath.startswith(os.path.sep):
             dirContent = os.listdir(dirName)
         elif dirPath in ["~", ".", ".."]:
-            dirContent = []
-            for entry in os.listdir(os.curdir):
-                if entry.startswith(dirPath):
-                    dirContent.append(entry)
+            dirContent = [entry for entry in os.listdir(os.curdir) if entry.startswith(dirPath)]
             dirContent.append(dirPath + os.path.sep)
         elif dirPath.startswith("~") and dirPath[1] == os.path.sep:
             dirContent = os.listdir(expanduser('~') + dirName[1:])
@@ -63,9 +61,9 @@ def setPathAutoComplete():
         if len(dirContent) > 1 or dirContent[0] != dirPath:
             dirContent = [os.path.join(dirName, name) for name in dirContent]
         # terminate path with slash for directory to enable further auto-completion
-        for index in range(len(dirContent)):
-            if (dirContent[index].startswith('~') and dirContent[index] != "~/" and os.path.isdir(expanduser('~') + dirContent[index][1:])) or \
-               (os.path.isdir(dirContent[index]) and dirContent[index] not in ["~/", "./", "../"]):
+        for index, entry in enumerate(dirContent):
+            if (entry.startswith('~') and entry != "~/" and os.path.isdir(expanduser('~') + entry[1:])) or \
+               (os.path.isdir(entry) and entry not in ["~/", "./", "../"]):
                 dirContent[index] += os.path.sep
         return dirContent
     def pathCompleter(inputText, state):
@@ -119,8 +117,8 @@ def hasPathInvalidCharacters(path):
     assert path is not None and len(path) > 0, "Invalid path argument detected"
     invalidChars = {'\\'} # further characters considered invalid to be added here
     hasInvalidCharacters = False
-    for index in range(len(path)):
-        if path[index] in invalidChars:
+    for char in path:
+        if char in invalidChars:
             hasInvalidCharacters = True
             break
     return hasInvalidCharacters

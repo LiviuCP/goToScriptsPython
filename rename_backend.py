@@ -39,66 +39,60 @@ def buildRenamingMap(choice, buildParams, renamingMap):
         assert choice in available_options, "The choice argument is invalid"
         assert len(buildParams) == 3, "The number of rename map build parameters is not correct"
         assert len(filename) > 0, "Empty filename passed"
-        result = ""
-        currentValue = buildParams[0] # this value is used for modifying the first build param in case it needs to be incremented; it is returned to sender either modified (incremented) or unchanged
+        valueToAdd, position, nrOfRemovedCharacters = buildParams
+        renamingString = ""
+        currentValue = valueToAdd # this value is used for modifying the first build param in case it needs to be incremented; it is returned to sender either modified (incremented) or unchanged
         if choice in number_adding_options:
             assert currentValue.isdigit(), "Non-numeric value transmitted for incremental append"
         if choice in position_requiring_options:
-            assert str(buildParams[1]).isdigit and buildParams[1] >= 0, "Invalid insert position parameter"
+            assert str(position).isdigit and position >= 0, "Invalid insert position parameter"
         if choice in string_removal_options:
-            assert str(buildParams[2]).isdigit and buildParams[2] > 0, "Invalid number of characters parameter"
-            availableCharacters = len(filename) - buildParams[1] if buildParams[1] < len(filename) else 0
-            nrOfCharacters = min(availableCharacters, buildParams[2])
+            assert str(nrOfRemovedCharacters).isdigit and nrOfRemovedCharacters > 0, "Invalid number of characters parameter"
+            availableCharacters = len(filename) - position if position < len(filename) else 0
+            nrOfCharacters = min(availableCharacters, nrOfRemovedCharacters)
         if choice in appending_options:
-            result = filename + currentValue
+            renamingString = filename + currentValue
         elif choice in prepending_options:
-            result = currentValue + filename
+            renamingString = currentValue + filename
         elif choice in inserting_options:
-            if buildParams[1] < len(filename):
-                result = filename[0:buildParams[1]] + currentValue + filename[buildParams[1]:len(filename)]
+            if position < len(filename):
+                renamingString = filename[0:position] + currentValue + filename[position:len(filename)]
         elif choice == deleting_option:
             if availableCharacters > 0:
-                result = filename[0:buildParams[1]] + filename[(buildParams[1] + buildParams[2]):]
+                renamingString = filename[0:position] + filename[(position + nrOfRemovedCharacters):]
         elif choice in replacing_options:
             if availableCharacters > 0:
-                strippedFilename = filename[0:buildParams[1]] + filename[(buildParams[1] + buildParams[2]):]
-                result = strippedFilename[0:buildParams[1]] + currentValue + strippedFilename[buildParams[1]:len(strippedFilename)]
+                strippedFilename = filename[0:position] + filename[(position + nrOfRemovedCharacters):]
+                renamingString = strippedFilename[0:position] + currentValue + strippedFilename[position:len(strippedFilename)]
         if choice in number_adding_options:
             number = int(currentValue) + 1
-            currentValue = str(common.addPaddingZeroes(str(number), len(buildParams[0])))
-        return (result, (currentValue, buildParams[1], buildParams[2]))
+            currentValue = str(common.addPaddingZeroes(str(number), len(valueToAdd)))
+        return (renamingString, (currentValue, position, nrOfRemovedCharacters))
+    # the values from the renaming map should be different from each other meaning each item is renamed with a different string from the other ones
     def isValidRenamingMap(renamingMap):
-        isValid = False
-        valuesList = []
-        for entry in renamingMap.items():
-            valuesList.append(entry[1])
-        if len(dict.fromkeys(valuesList)) == len(renamingMap):
-            isValid = True
-        return isValid
+        valuesList = [value for key,value in renamingMap.items()]
+        return len(dict.fromkeys(valuesList)) == len(renamingMap)
     assert areRenameableItemsInCurrentDir(), "The current dir is empty or all items are hidden"
     assert choice in available_options, "The choice argument is invalid"
     assert len(buildParams) == 3, "The number of rename map build parameters is not correct"
+    valueToAdd, position, nrOfRemovedCharacters = buildParams
     isNumericRenameRequested = True if choice in number_adding_options else False
     if isNumericRenameRequested:
-        assert str(buildParams[0]).isdigit(), "Non-numeric value detected for numeric rename operation"
+        assert str(valueToAdd).isdigit(), "Non-numeric value detected for numeric rename operation"
     status = 0 # default code, succesfull creation of renamingMap
     transmittedBuildParams = buildParams
-    curDirItems = []
     # exclude hidden files/dirs to avoid accidentally renaming any essential item
-    for entry in os.listdir(os.curdir):
-        if not entry.startswith('.'):
-            curDirItems.append(entry)
+    curDirItems = [entry for entry in os.listdir(os.curdir) if not entry.startswith('.')]
     curDirItems.sort(key = lambda k: k.lower())
     #fixed number of characters the numeric string should have (for fixed strings it doesn't matter so we set it 0) to have all numbers aligned
-    requestedNrOfCharacters = len(str(int(buildParams[0]) + len(curDirItems) - 1))  if isNumericRenameRequested else 0
+    requestedNrOfCharacters = len(str(int(valueToAdd) + len(curDirItems) - 1))  if isNumericRenameRequested else 0
     if isNumericRenameRequested:
-        transmittedBuildParams = (common.addPaddingZeroes(buildParams[0], requestedNrOfCharacters), buildParams[1], buildParams[2])
+        transmittedBuildParams = (common.addPaddingZeroes(valueToAdd, requestedNrOfCharacters), position, nrOfRemovedCharacters)
     resultingMap = dict()
     for entry in curDirItems:
-        result = createRenamingString(entry, choice, transmittedBuildParams)
-        if len(result[0]) > 0:
-            resultingMap[entry] = result[0]
-        transmittedBuildParams = result[1]
+        renamingString, transmittedBuildParams = createRenamingString(entry, choice, transmittedBuildParams)
+        if len(renamingString) > 0:
+            resultingMap[entry] = renamingString
     if len(curDirItems) == len(resultingMap):
         if isValidRenamingMap(resultingMap):
             for key, value in resultingMap.items():

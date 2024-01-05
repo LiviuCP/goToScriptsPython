@@ -20,24 +20,24 @@ class Commands:
     """ execute new command """
     def executeCommand(self, command):
         assert len(command) > 0, "Empty argument detected for 'command'"
-        print("Entered command is being executed: " + command)
+        print(f"Entered command is being executed: {command}")
         print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
         result = self.__executeCommand(command)
         finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
         print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-        print("Entered command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
+        print(f"Entered command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
         return result
 
     """ execute (repeat) previous command """
     def executePreviousCommand(self):
         result = None
         if len(self.previousCommand) > 0:
-            print("Repeated command is being executed: " + self.previousCommand)
+            print(f"Repeated command is being executed: {self.previousCommand}")
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
             result = self.__executeCommand(self.previousCommand)
             finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            print("Repeated command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
+            print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
         else:
             print("No shell command previously executed")
         return result
@@ -68,17 +68,17 @@ class Commands:
             print("")
             self.__displayFormattedCmdFileContent(filteredContent, 0)
             print("")
-            print("\tThe search returned " + str(totalNrOfMatches) + " match(es).")
+            print(f"\tThe search returned {str(totalNrOfMatches)} match(es).")
             if totalNrOfMatches > len(filteredContent):
                 print("\tFor better visibility only part of them are displayed. Please narrow the search if needed.")
         def displayPageFooter(currentDir, filterKey = ""):
             print("")
-            print("Current directory: " + currentDir)
+            print(f"Current directory: {currentDir}")
             print("Last executed shell command: ", end='')
             print(self.previousCommand) if len(self.previousCommand) > 0 else print("none")
             print("")
             if len(filterKey) > 0:
-                print("Applied filter: " + filterKey)
+                print(f"Applied filter: {filterKey}")
                 print("")
             print("Enter command number.")
             print("Enter :t to toggle to ", end='')
@@ -86,8 +86,8 @@ class Commands:
             print("")
             print("Enter ! to quit.")
             print("")
-        syncResult = sysfunc.syncCurrentDir()
-        assert not syncResult[1], "Current dir fallback not allowed"
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+        assert not fallbackPerformed, "Current dir fallback not allowed"
         status = 0 # default status (normal execution)
         passedInput = ""
         assert mode in ["--edit", "--execute"], "Invalid mode argument provided"
@@ -98,36 +98,35 @@ class Commands:
             userInput = ""
         elif len(filterKey) == 0:
             displayCmdHistMenu(mode)
-            displayPageFooter(syncResult[0])
+            displayPageFooter(syncedCurrentDir)
             userInput = input()
             os.system("clear")
         else:
             self.previousCommandsFilter = filterKey
-            filterResult = self.cmd.buildFilteredCommandsHistory(filterKey, filteredEntries)
-            totalNrOfMatches = filterResult[0]
-            appliedFilterKey = filterResult[1]
+            totalNrOfMatches, appliedFilterKey = self.cmd.buildFilteredCommandsHistory(filterKey, filteredEntries)
             if len(filteredEntries) == 0:
                 print("There are no entries in the filtered command history menu.")
                 userInput = ""
             else:
                 displayFilteredCmdHistMenu(filteredEntries, mode, totalNrOfMatches)
-                displayPageFooter(syncResult[0], appliedFilterKey)
+                displayPageFooter(syncedCurrentDir, appliedFilterKey)
                 userInput = input()
                 os.system("clear")
         # process user choice
         userInput = userInput.strip()
-        choiceResult = self.cmd.chooseCommand(userInput) if len(filterKey) == 0 else self.cmd.chooseFilteredCommand(userInput, filteredEntries)
-        commandsHistoryEntry = choiceResult[0]
-        syncResult = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice
-        if syncResult[1]:
+        commandsHistoryEntry, chooseCommandPassedInput, chooseCommandPassedOutput = self.cmd.chooseCommand(userInput) if len(filterKey) == 0 else self.cmd.chooseFilteredCommand(userInput, filteredEntries)
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice
+        if fallbackPerformed:
             out.displayFallbackMessage()
         elif commandsHistoryEntry in [":1", ":2"]:
             status = int(commandsHistoryEntry[1])
-            passedInput = choiceResult[1]
+            passedInput = chooseCommandPassedInput
             if status == 2:
                 print("You exited the command menu!")
         elif commandsHistoryEntry not in [":3", ":4"]:
-            result = (status, "", "")
+            commandExecStatus = status
+            passedCommandExecInput = ""
+            passedCommandExecOutput = ""
             if mode == "--execute":
                 commandToExecute = commandsHistoryEntry
                 if cmd.isSensitiveCommand(commandToExecute):
@@ -135,7 +134,7 @@ class Commands:
                     print(commandToExecute)
                     print("")
                     print("Current directory: ")
-                    print(syncResult[0])
+                    print(syncedCurrentDir)
                     print("")
                     print("Are you sure you want to continue?")
                     print("")
@@ -144,21 +143,21 @@ class Commands:
                     os.system("clear")
                     if choice.lower() == "n":
                         commandToExecute = None
-                        result = (2, "", "")
-                        status = result[0]
+                        commandExecStatus = 2
+                        status = commandExecStatus
                         print("Command aborted. You returned to navigation menu.")
                 if commandToExecute is not None:
-                    print("Repeated command is being executed: " + commandToExecute)
+                    print(f"Repeated command is being executed: {commandToExecute}")
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                    result = self.__executeCommand(commandToExecute)
+                    commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand(commandToExecute)
                     finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                    print("Repeated command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
+                    print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
             else:
-                result = self.__editAndExecuteCommand(commandsHistoryEntry)
-                if result[0] != 0:
+                commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__editAndExecuteCommand(commandsHistoryEntry)
+                if commandExecStatus != 0:
                     status = 2 #aborted by user
-            passedInput = result[1]
+            passedInput = passedCommandExecInput
         return (status, passedInput, "")
 
     """ resets the commands history """
@@ -188,18 +187,18 @@ class Commands:
         readline.set_pre_input_hook() # ensure any further input is no longer pre-filled
         os.system("clear")
         commandLength = len(commandToExecute)
-        syncResult = sysfunc.syncCurrentDir() #in case current dir gets unreachable before user enters input ...
-        if syncResult[1]:
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() #in case current dir gets unreachable before user enters input ...
+        if fallbackPerformed:
             out.displayFallbackMessage()
         elif commandLength > 0 and commandToExecute[commandLength-1] != ':':
             commandType = "Edited" if previousCommand != "" else "Entered"
-            print(commandType + " command is being executed: " + commandToExecute)
+            print(f"{commandType} command is being executed: {commandToExecute}")
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            result = self.__executeCommand(commandToExecute)
+            commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand(commandToExecute)
             finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            print(commandType + " command finished " + finishingStatus + "! Scroll up to check output (if any) if it exceeds the screen.")
-            passedInput = result[1]
+            print(f"{commandType} command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
+            passedInput = passedCommandExecInput
         else:
             print("Command aborted. You returned to navigation menu.")
             status = 2 #aborted by user
