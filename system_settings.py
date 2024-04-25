@@ -1,5 +1,5 @@
 import os
-from os.path import expanduser, isdir
+from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
 fallback_dir = home_dir #directory used as fallback in case the current directory becomes unavailable (e.g. deleted externally)

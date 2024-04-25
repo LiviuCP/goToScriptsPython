@@ -1,4 +1,4 @@
-import sys, os
+import os
 import navigation_settings as navset
 
 def displayGeneralOutputUpperSection(currentDir, prevDir, prevCommand, prevCommandFinishingStatus):

@@ -1,6 +1,5 @@
-import sys, os, readline
+import os
 import common, navigation_backend as nav, navigation_settings as navset, system_functionality as sysfunc, display as out
-from os.path import isdir
 from pathlib import Path
 
 class Navigation:
@@ -31,7 +30,7 @@ class Navigation:
                 self.previousDirectory = prevDir
             else:
                 print(f"Current directory remains unchanged: {currentDir}")
-        if not status is 0:
+        if status != 0:
             print("Error when attempting to change directory! Possible causes: ")
             print(" - chosen directory path does not exist or has been deleted")
             print(" - chosen path is not a directory or the name has invalid characters")

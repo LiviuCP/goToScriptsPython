@@ -138,7 +138,7 @@ def buildFilteredHistory(rawContent, filterKeyword, maxFilteredHistEntries, filt
             appliedFilterKeywordLength = len(appliedFilterKeyword)
             if appliedFilterKeywordLength >= 2:
                 appliedFilterKeyword = appliedFilterKeyword[0:appliedFilterKeywordLength-2]
-        except Exception as e:
+        except Exception:
             result.clear()
             nrOfMatches = 0
             appliedFilterKeyword = ""

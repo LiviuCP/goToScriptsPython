@@ -1,4 +1,4 @@
-import sys, os, time
+import os, time
 import nav_cmd_common as nvcdcmn, navigation_settings as navset, system_settings as sysset
 
 class NavigationBackend:
@@ -124,7 +124,7 @@ class NavigationBackend:
         if pathToRemove in self.persistentHistory:
             del self.persistentHistory[pathToRemove]
             removedFromPersistentHistory = True
-        elif pathTorRemove in self.excludedHistory:
+        elif pathToRemove in self.excludedHistory:
             del self.excludedHistory[pathToRemove]
             self.__computeFavorites()
         else:

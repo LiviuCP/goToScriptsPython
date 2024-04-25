@@ -1,5 +1,4 @@
 import os
-from os.path import isdir
 import system_settings as sysset
 
 def syncCurrentDir():
@@ -8,7 +7,7 @@ def syncCurrentDir():
     currentDir = ""
     try:
         currentDir = os.getcwd()
-    except BaseException as e:
+    except BaseException:
         currentDir = sysset.fallback_dir.rstrip('/')
         os.chdir(currentDir)
         fallbackPerformed = True

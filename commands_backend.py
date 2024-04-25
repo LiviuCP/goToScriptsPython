@@ -1,4 +1,4 @@
-import sys, os, time
+import os, time
 import nav_cmd_common as nvcdcmn, commands_settings as cmdset, system_settings as sysset
 
 class CommandsBackend:
