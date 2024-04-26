@@ -28,7 +28,7 @@ class Application:
         os.system("clear")
         print("Welcome to navigation app!")
         self.nav.initSyncWithFinder()
-        while userInput is not "!" and not keyInterruptOccurred:
+        while userInput != "!" and not keyInterruptOccurred:
             self.nav.checkSyncWithFinder()
             if userInput not in {"?", "?clip", "?ren"}:
                 self.__displayGeneralOutput()

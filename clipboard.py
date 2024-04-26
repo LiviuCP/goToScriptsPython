@@ -1,5 +1,5 @@
 import os, system_functionality as sysfunc, display as out
-from os.path import expanduser, isdir
+from os.path import expanduser
 
 class Clipboard:
     def __init__(self):

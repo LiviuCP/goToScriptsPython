@@ -1,6 +1,6 @@
 """ Functions usable in any of the application modules """
 
-import os, sys, readline
+import os, readline
 import system_functionality as sysfunc, system_settings as sysset
 from os.path import expanduser
 
