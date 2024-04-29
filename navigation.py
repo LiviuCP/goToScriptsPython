@@ -31,7 +31,7 @@ class Navigation:
             os.chdir(currentDir)
             if (prevDir != currentDir):
                 print(f"Switched to new directory: {currentDir}")
-                self.nav.updateNavigationHistory(currentDir)
+                self.nav.updateHistory(currentDir)
                 self.previousDirectory = prevDir
             else:
                 print(f"Current directory remains unchanged: {currentDir}")
@@ -120,7 +120,7 @@ class Navigation:
         def displayFavoritesEntryRemovalDialog(currentDir):
             print("REMOVE DIRECTORY FROM FAVORITES")
             print('')
-            self.__displayFormattedNavFileContent(self.nav.getFavorites())
+            self.__displayFormattedNavFileContent(self.nav.getFavoritesInfo())
             print('')
             print(f"Current directory: {currentDir}")
             print('')
@@ -131,7 +131,7 @@ class Navigation:
         assert not fallbackPerformed, "Current dir fallback not allowed"
         status = 0 # default status, successful removal or aborted by user
         userInput = ""
-        favorites = self.nav.getFavorites()
+        favorites = self.nav.getFavoritesInfo()
         if len(favorites) == 0:
             print("There are no entries in the favorites menu.")
             status = 4
@@ -155,11 +155,11 @@ class Navigation:
 
     """ used for quick favorite directories access """
     def isValidFavoritesEntryNr(self, userInput):
-        return common.getMenuEntry(self.nav.getFavorites(), userInput) is not None
+        return common.getMenuEntry(self.nav.getFavoritesInfo(), userInput) is not None
 
     """ quick navigation history is part of recent history but can be accessed outside the regular history menus """
     def displayQuickNavigationHistory(self):
-        (consolidatedHistory, recentHistoryEntriesCount) = self.nav.getConsolidatedHistoryInfo()
+        (consolidatedHistory, recentHistoryEntriesCount) = self.nav.getHistoryInfo()
         recentHistory = consolidatedHistory[0: recentHistoryEntriesCount]
         self.__displayFormattedNavFileContent(recentHistory, 0, navset.q_hist_max_entries)
 
@@ -172,7 +172,7 @@ class Navigation:
         if self.syncWithFinderEnabled:
             self.syncWithFinderEnabled = False
             os.system(nav.buildCloseFinderCommand())
-        return self.nav.closeNavigation()
+        return self.nav.close()
 
     """ performs first Finder sync (when application gets launched) """
     def initSyncWithFinder(self):
@@ -319,7 +319,7 @@ class Navigation:
     """ Displays the requested navigation menu and prompts the user to enter the required option """
     def __visitNavigationMenu(self, menuChoice, userInput = "", previousCommand = ""):
         def displayHistMenu():
-            (consolidatedHistory, recentHistoryEntriesCount) = self.nav.getConsolidatedHistoryInfo()
+            (consolidatedHistory, recentHistoryEntriesCount) = self.nav.getHistoryInfo()
             print("VISITED DIRECTORIES")
             print("")
             print("-- RECENTLY VISITED --")
@@ -332,7 +332,7 @@ class Navigation:
         def displayFavoritesMenu():
             print("FAVORITE DIRECTORIES")
             print("")
-            self.__displayFormattedNavFileContent(self.nav.getFavorites())
+            self.__displayFormattedNavFileContent(self.nav.getFavoritesInfo())
         def displayFilteredMenu(choice, filteredContent, totalNrOfMatches):
             assert choice in ["-fh", "-ff"]
             print("FILTERED VISITED DIRECTORIES") if choice == "-fh" else print("FILTERED FAVORITE DIRECTORIES")
@@ -368,7 +368,7 @@ class Navigation:
         if menuChoice in ["-fh", "-ff"]:
             assert len(userInput) > 0, "No filter has been provided for filtered navigation menu"
             self.previousNavigationFilter = userInput
-            totalNrOfMatches, appliedFilterKey = self.nav.buildFilteredNavigationHistory(userInput, filteredEntries) if menuChoice == "-fh" else self.nav.buildFilteredFavorites(userInput, filteredEntries)
+            totalNrOfMatches, appliedFilterKey = self.nav.buildFilteredHistory(userInput, filteredEntries) if menuChoice == "-fh" else self.nav.buildFilteredFavorites(userInput, filteredEntries)
             userInput = "" #input should be reset to correctly account for the case when the resulting filtered history menu is empty
             os.system("clear")
             if len(filteredEntries) > 0:
@@ -378,14 +378,15 @@ class Navigation:
                 os.system("clear")
         elif len(userInput) == 0:
             os.system("clear")
-            if not self.nav.isMenuEmpty(menuChoice):
+            isMenuEmpty = self.nav.isHistoryMenuEmpty() if menuChoice == "-h" else self.nav.isFavoritesMenuEmpty()
+            if not isMenuEmpty:
                 displayHistMenu() if menuChoice == "-h" else displayFavoritesMenu()
                 displayPageFooter(syncedCurrentDir, menuChoice)
                 userInput = input()
                 os.system("clear")
         # process user choice
         userInput = userInput.strip()
-        choiceResult = self.nav.choosePath(menuChoice, userInput, filteredEntries)
+        choiceResult = self.nav.chooseFilteredMenuEntry(userInput, filteredEntries) if menuChoice in ["-fh", "-ff"] else self.nav.chooseHistoryMenuEntry(userInput) if menuChoice == "-h" else self.nav.chooseFavoritesMenuEntry(userInput)
         return choiceResult
 
     """ Function used for displaying specific navigation menus """

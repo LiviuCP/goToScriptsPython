@@ -49,7 +49,7 @@ class Commands:
     """ Displays the requested commands menu and prompts the user to enter the required option """
     def visitCommandsMenu(self, mode, filterKey = ""):
         def displayCmdHistMenu(mode):
-            (consolidatedCommandsHistory, recentCommandsHistoryEntriesCount) = self.cmd.getConsolidatedCommandsHistoryInfo()
+            (consolidatedCommandsHistory, recentCommandsHistoryEntriesCount) = self.cmd.getHistoryInfo()
             print("COMMANDS LIST")
             print("")
             print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
@@ -93,7 +93,7 @@ class Commands:
         assert mode in ["--edit", "--execute"], "Invalid mode argument provided"
         os.system("clear")
         filteredEntries = []
-        if self.cmd.isCommandsMenuEmpty():
+        if self.cmd.isHistoryMenuEmpty():
             print("There are no entries in the command history menu.")
             userInput = ""
         elif len(filterKey) == 0:
@@ -103,7 +103,7 @@ class Commands:
             os.system("clear")
         else:
             self.previousCommandsFilter = filterKey
-            totalNrOfMatches, appliedFilterKey = self.cmd.buildFilteredCommandsHistory(filterKey, filteredEntries)
+            totalNrOfMatches, appliedFilterKey = self.cmd.buildFilteredHistory(filterKey, filteredEntries)
             if len(filteredEntries) == 0:
                 print("There are no entries in the filtered command history menu.")
                 userInput = ""
@@ -114,7 +114,7 @@ class Commands:
                 os.system("clear")
         # process user choice
         userInput = userInput.strip()
-        commandsHistoryEntry, chooseCommandPassedInput, chooseCommandPassedOutput = self.cmd.chooseCommand(userInput) if len(filterKey) == 0 else self.cmd.chooseFilteredCommand(userInput, filteredEntries)
+        commandsHistoryEntry, chooseCommandPassedInput, chooseCommandPassedOutput = self.cmd.chooseHistoryMenuEntry(userInput) if len(filterKey) == 0 else self.cmd.chooseFilteredMenuEntry(userInput, filteredEntries)
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice
         if fallbackPerformed:
             out.displayFallbackMessage()
@@ -162,12 +162,12 @@ class Commands:
 
     """ resets the commands history """
     def clearCommandsHistory(self):
-        self.cmd.clearCommandsHistory()
+        self.cmd.clearHistory()
         print("Content of commands history menu has been erased.")
 
     """ requests closing the commands functionality in an orderly manner when application gets closed """
     def closeCommands(self):
-        return self.cmd.closeCommands()
+        return self.cmd.close()
 
     """ edit an existing command (previous command or from commands history) and then execute it """
     def __editAndExecuteCommand(self, previousCommand):
@@ -213,7 +213,7 @@ class Commands:
         # read command status code, create the status message and update the command history files
         commandExecResult = cmd.retrieveCommandExecResult()
         if len(command) >= cmd.getMinCommandSize():
-            self.cmd.updateCommandsHistory(command)
+            self.cmd.updateHistory(command)
         self.previousCommand = command
         self.previousCommandSuccess = (commandExecResult == 0)
         return (0, command, "")
