@@ -1,4 +1,4 @@
-import nav_cmd_common as nvcdcmn, commands_settings as cmdset, system_settings as sysset
+import nav_cmd_common as nvcdcmn, commands_settings as cmdset
 
 class CommandsBackend(nvcdcmn.NavCmdCommon):
     def __init__(self):
@@ -44,15 +44,3 @@ def isSensitiveCommand(command):
 
 def getMinCommandSize():
     return cmdset.min_command_size
-
-def buildShellCommand(command):
-    assert len(command) > 0, "Empty command argument detected"
-    getExitCodeCmd = "echo $? > " + sysset.output_storage_file #exit code (used by Python to determine if the command finished successfully or not)
-    shellCommandToExecute = command + "\n" + getExitCodeCmd
-    return shellCommandToExecute
-
-def retrieveCommandExecResult():
-    result = -1
-    with open(sysset.output_storage_file, "r") as output:
-        result = int(output.readline().strip('\n'))
-    return result

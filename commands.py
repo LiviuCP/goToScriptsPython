@@ -207,11 +207,7 @@ class Commands:
     """ core command execution function """
     def __executeCommand(self, command):
         assert len(command) > 0, "Empty command has been provided"
-        # build and execute shell command
-        shellCommandToExecute = cmd.buildShellCommand(command)
-        os.system(shellCommandToExecute)
-        # read command status code, create the status message and update the command history files
-        commandExecResult = cmd.retrieveCommandExecResult()
+        commandExecResult = os.system(command)
         if len(command) >= cmd.getMinCommandSize():
             self.cmd.updateHistory(command)
         self.previousCommand = command
