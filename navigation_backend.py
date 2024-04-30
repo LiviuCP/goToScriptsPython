@@ -1,4 +1,4 @@
-import os, subprocess
+import os
 import nav_cmd_common as nvcdcmn, navigation_settings as navset
 
 class NavigationBackend(nvcdcmn.NavCmdCommon):
@@ -247,22 +247,3 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         self.favorites.clear()
         for path, dirName in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
             self.favorites.append(path)
-
-""" navigation helper functions """
-def getReplacingDirPath(replacingDir):
-    replacingDirPath = ":4"
-    result = retrieveTargetDirPath(replacingDir)
-    if len(result) > 0:
-        replacingDirPath = result
-    return replacingDirPath
-
-def retrieveTargetDirPath(gtDirectory):
-    directory = navset.home_dir if len(gtDirectory) == 0 else gtDirectory
-    expandDirCommand = "echo " + directory #if wildcards are being used the full dir name should be expanded
-    result = subprocess.Popen(expandDirCommand, shell=True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-    out,err = result.communicate()
-    out = out.decode("utf-8").strip('\n')
-    targetDirPath = ""
-    if (os.path.isdir(out)):
-        targetDirPath = os.path.abspath(out)
-    return targetDirPath
