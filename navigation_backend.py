@@ -1,5 +1,5 @@
 import os
-import nav_cmd_common as nvcdcmn, navigation_settings as navset, system_settings as sysset
+import nav_cmd_common as nvcdcmn, navigation_settings as navset
 
 class NavigationBackend(nvcdcmn.NavCmdCommon):
     def __init__(self):
@@ -247,38 +247,6 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         self.favorites.clear()
         for path, dirName in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
             self.favorites.append(path)
-
-""" navigation helper functions """
-def getReplacingDirPath(replacingDir):
-    replacingDirPath = ":4"
-    with open(sysset.input_storage_file, "w") as inputStorage:
-        inputStorage.write(replacingDir)
-        inputStorage.close() # file needs to be closed otherwise the below executed BASH command might return unexpected results
-        # build BASH command for retrieving the absolute path of the replacing dir (if exists)
-        command = "input=`head -1 " + sysset.input_storage_file + "`; "
-        command = command + "output=" + sysset.output_storage_file + "; "
-        command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
-        os.system(command)
-        with open(sysset.output_storage_file, "r") as outputStorage:
-            replacingDirPath = outputStorage.readline().strip('\n')
-    return replacingDirPath
-
-def retrieveTargetDirPath(gtDirectory):
-    # build a command that validates the goto process and helps retrieve the full path of the target directory
-    directory = navset.home_dir if len(gtDirectory) == 0 else gtDirectory
-    getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
-    cdCommand = "cd " + '\"' + "$directory" + '\"' + " 2> /dev/null;"
-    executionStatus = "echo $? > " + sysset.output_storage_file + ";"
-    writeTargetDir = "pwd > " + sysset.input_storage_file + ";"
-    goToCommand = getDir + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeTargetDir
-    # execute command and recover the target directory path
-    os.system(goToCommand)
-    targetDirPath = ""
-    with open(sysset.output_storage_file, "r") as outputStorage:
-        if outputStorage.readline().strip('\n') == "0":
-            with open(sysset.input_storage_file, "r") as inputStorage:
-                targetDirPath = inputStorage.readline().strip('\n')
-    return targetDirPath
 
 """ Functions related to Finder synchronization """
 

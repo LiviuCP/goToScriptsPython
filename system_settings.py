@@ -3,8 +3,6 @@ from os.path import expanduser
 
 home_dir = expanduser("~") + "/"
 fallback_dir = home_dir #directory used as fallback in case the current directory becomes unavailable (e.g. deleted externally)
-input_storage_file = home_dir + ".store_input" #used for communication with the UNIX shell (e.g. BASH), namely for writing input that will be read by the shell
-output_storage_file = home_dir + ".store_output" #used for communication with the UNIX shell (e.g. BASH), namely for reading output written by the shell
 
 finder_sync_enabled = False # this setting changes during application runtime when the sync is toggled on/off; however it should normally be set True either at startup or actively (per user request) during runtime
 
