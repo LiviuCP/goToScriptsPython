@@ -1,4 +1,4 @@
-import os
+import os, subprocess
 import nav_cmd_common as nvcdcmn, navigation_settings as navset, system_settings as sysset
 
 class NavigationBackend(nvcdcmn.NavCmdCommon):
@@ -264,18 +264,12 @@ def getReplacingDirPath(replacingDir):
     return replacingDirPath
 
 def retrieveTargetDirPath(gtDirectory):
-    # build a command that validates the goto process and helps retrieve the full path of the target directory
     directory = navset.home_dir if len(gtDirectory) == 0 else gtDirectory
-    getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
-    cdCommand = "cd " + '\"' + "$directory" + '\"' + " 2> /dev/null;"
-    executionStatus = "echo $? > " + sysset.output_storage_file + ";"
-    writeTargetDir = "pwd > " + sysset.input_storage_file + ";"
-    goToCommand = getDir + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeTargetDir
-    # execute command and recover the target directory path
-    os.system(goToCommand)
+    expandDirCommand = "echo " + directory #if wildcards are being used the full dir name should be expanded
+    result = subprocess.Popen(expandDirCommand, shell=True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    out,err = result.communicate()
+    out = out.decode("utf-8").strip('\n')
     targetDirPath = ""
-    with open(sysset.output_storage_file, "r") as outputStorage:
-        if outputStorage.readline().strip('\n') == "0":
-            with open(sysset.input_storage_file, "r") as inputStorage:
-                targetDirPath = inputStorage.readline().strip('\n')
+    if (os.path.isdir(out)):
+        targetDirPath = os.path.abspath(out)
     return targetDirPath
