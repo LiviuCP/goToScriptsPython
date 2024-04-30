@@ -1,5 +1,5 @@
 import os, subprocess
-import nav_cmd_common as nvcdcmn, navigation_settings as navset, system_settings as sysset
+import nav_cmd_common as nvcdcmn, navigation_settings as navset
 
 class NavigationBackend(nvcdcmn.NavCmdCommon):
     def __init__(self):
@@ -251,16 +251,9 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
 """ navigation helper functions """
 def getReplacingDirPath(replacingDir):
     replacingDirPath = ":4"
-    with open(sysset.input_storage_file, "w") as inputStorage:
-        inputStorage.write(replacingDir)
-        inputStorage.close() # file needs to be closed otherwise the below executed BASH command might return unexpected results
-        # build BASH command for retrieving the absolute path of the replacing dir (if exists)
-        command = "input=`head -1 " + sysset.input_storage_file + "`; "
-        command = command + "output=" + sysset.output_storage_file + "; "
-        command = command + "cd $input 2> /dev/null; if [[ $? == 0  ]]; then pwd > \"$output\"; else echo :4 > \"$output\"; fi"
-        os.system(command)
-        with open(sysset.output_storage_file, "r") as outputStorage:
-            replacingDirPath = outputStorage.readline().strip('\n')
+    result = retrieveTargetDirPath(replacingDir)
+    if len(result) > 0:
+        replacingDirPath = result
     return replacingDirPath
 
 def retrieveTargetDirPath(gtDirectory):
