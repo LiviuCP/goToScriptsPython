@@ -1,4 +1,4 @@
-import os
+import os, subprocess
 import nav_cmd_common as nvcdcmn, navigation_settings as navset
 
 class NavigationBackend(nvcdcmn.NavCmdCommon):
@@ -247,6 +247,18 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         self.favorites.clear()
         for path, dirName in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
             self.favorites.append(path)
+
+# helper method, returns absolute path (home dir path for empty argument); no changes if the argument is an absolute path; empty return value for invalid path
+def getAbsoluteDirPath(dirPath):
+    directory = navset.home_dir if len(dirPath) == 0 else dirPath
+    expandDirCommand = "echo " + directory #if wildcards are being used the full dir name should be expanded
+    result = subprocess.Popen(expandDirCommand, shell=True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    out,err = result.communicate()
+    out = out.decode("utf-8").strip('\n')
+    absoluteDirPath = ""
+    if (os.path.isdir(out)):
+        absoluteDirPath = os.path.abspath(out)
+    return absoluteDirPath
 
 """ Functions related to Finder synchronization """
 

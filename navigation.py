@@ -25,7 +25,7 @@ class Navigation:
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
         assert not fallbackPerformed, "Current dir fallback not allowed"
         prevDir = syncedCurrentDir # current directory path (should become previous dir after goto)
-        currentDir = common.getAbsoluteDirPath(gtDirectory) # target directory path (should become current directory after goto)
+        currentDir = nav.getAbsoluteDirPath(gtDirectory) # target directory path (should become current directory after goto)
         if len(currentDir) > 0 and not common.hasPathInvalidCharacters(currentDir): # even if the directory is valid we should ensure it does not have characters like backslash (might cause undefined behavior)
             status = 0
             os.chdir(currentDir)
@@ -108,7 +108,7 @@ class Navigation:
         if len(dirPath) == 0:
             pathToAdd = syncedCurrentDir
         else:
-            pathToAdd = common.getAbsoluteDirPath(dirPath)
+            pathToAdd = nav.getAbsoluteDirPath(dirPath)
         if len(pathToAdd) > 0:
             pathAdded = self.nav.addPathToFavorites(pathToAdd)
             if pathAdded:
@@ -297,7 +297,7 @@ class Navigation:
                 os.system("clear")
                 print("Mapping aborted.")
             if doMapping == True:
-                replacingDirPath = common.getAbsoluteDirPath(replacingDir)
+                replacingDirPath = nav.getAbsoluteDirPath(replacingDir)
                 if len(replacingDirPath) > 0:
                     self.previousDirectory = syncedCurrentDir # prev dir to be updated to current dir in case of successful mapping
                     replacedPath, replacingPath = self.nav.mapMissingDir(missingDirPath, replacingDirPath)
