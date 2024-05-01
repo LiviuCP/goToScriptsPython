@@ -1,5 +1,5 @@
 import os, subprocess
-import nav_cmd_common as nvcdcmn, navigation_settings as navset
+import nav_cmd_common as nvcdcmn, navigation_settings as navset, system_settings as sysset
 
 class NavigationBackend(nvcdcmn.NavCmdCommon):
     def __init__(self):
