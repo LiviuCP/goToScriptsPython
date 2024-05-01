@@ -1,20 +1,7 @@
 """ Functions usable in any of the application modules """
 
-import os, readline, subprocess
-import navigation_settings as navset
+import os, readline
 from os.path import expanduser
-
-# if a valid absolute path is fed as argument the unchanged path (without any ending '/') is returned
-def getAbsoluteDirPath(dirPath):
-    directory = navset.home_dir if len(dirPath) == 0 else dirPath
-    expandDirCommand = "echo " + directory #if wildcards are being used the full dir name should be expanded
-    result = subprocess.Popen(expandDirCommand, shell=True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-    out,err = result.communicate()
-    out = out.decode("utf-8").strip('\n')
-    absoluteDirPath = ""
-    if (os.path.isdir(out)):
-        absoluteDirPath = os.path.abspath(out)
-    return absoluteDirPath
 
 def getNumberOfLines(filePath):
     assert len(filePath) > 0, "Empty file path argument detected"
