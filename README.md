@@ -332,16 +332,18 @@ Note: this setting does not affect storing the command in the "last executed she
 It is possible to mark specific commands as sensitive. This is not done via script execution but by manually modifying the value of the sensitive_commands_keywords variable in commands_settings.py by adding a search keyword to the set. For example if the keyword is 'rm ' every command containing this string will be marked as sensitive (the space is important as you would not like any command containing this substring (like 'echo permanent' to be added to the sensitive area). This functionality is useful for preventing accidental execution of commands that produce irreversible unwanted results. Examples of such commands are: rm, rmdir, mv.
 
 How this actually works:
-- if the user chooses a command from the commands history menu (in execute mode) the script will check if the command string contains one of the substrings that had been added to sensitive_commands_keywords
-- if the command contains (at least) one of these substrings a prompt will be displayed asking the user to confirm the command execution
+- if the user launches a command into execution, the script will check whether the command string contains one of the substrings that had been added to sensitive_commands_keywords
+- if the command contains (at least) one of these substrings, a prompt will be displayed asking the user to confirm the command execution
 - the user should enter y (yes) for confirming and n (no) for declining. The option is case insensitive but should be one of these two.
-- if the operation is confirmed the command will get executed, otherwise it will be cancelled
+- if the operation is confirmed, the command will get executed, otherwise it will be cancelled
 
-Note:
-- the functionality is active only when accesing the command from any commands history (persistent, recent, filtered) only in EXECUTE mode. It does not get applied in EDIT mode or when manually entering a command from navigation mode by preceding it with the : character.
-- also the functionality does not get applied when repeating the previously executed shell command by entering the special option :- from navigation menu
+Note: the functionality is active whenever a command is being launched to execute. This includes:
+- entering a new command (command string preceeded  by ':') and hitting ENTER
+- launching a command from (filtered) commands history menu in execute mode by choosing one of the menu entries
+- editing an existing command (from (filtered) commands history menu or the previous command) and launching it by hitting ENTER
+- repeating the previous command without modifying it (option :-)
 
-I strongly recommend using this option and carefully checking the command string prior to choosing the 'y' option. The principle "better safe than sorry" has a good application in this situation.
+I strongly recommend using this functionality by extending the list of sensitive keywords and carefully checking the command string prior to choosing the 'y' option. The principle "better safe than sorry" has a good application in this situation.
 
 6.8. Quick history
 
