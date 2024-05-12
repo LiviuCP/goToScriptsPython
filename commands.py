@@ -20,24 +20,32 @@ class Commands:
     """ execute new command """
     def executeCommand(self, command):
         assert len(command) > 0, "Empty argument detected for 'command'"
-        print(f"Entered command is being executed: {command}")
-        print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-        result = self.__executeCommand(command)
-        finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
-        print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-        print(f"Entered command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
+        result = (0, "", "")
+        if (cmd.isSensitiveCommand(command)):
+            command = handleSensitiveCommand(command)
+        if command is not None:
+            print(f"Entered command is being executed: {command}")
+            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+            result = self.__executeCommand(command)
+            finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
+            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+            print(f"Entered command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
         return result
 
     """ execute (repeat) previous command """
     def executePreviousCommand(self):
         result = None
         if len(self.previousCommand) > 0:
-            print(f"Repeated command is being executed: {self.previousCommand}")
-            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            result = self.__executeCommand(self.previousCommand)
-            finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
-            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
+            command = self.previousCommand
+            if (cmd.isSensitiveCommand(command)):
+                command = handleSensitiveCommand(command)
+            if command is not None:
+                print(f"Repeated command is being executed: {command}")
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                result = self.__executeCommand(command)
+                finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
         else:
             print("No shell command previously executed")
         return result
@@ -130,22 +138,7 @@ class Commands:
             if mode == "--execute":
                 commandToExecute = commandsHistoryEntry
                 if cmd.isSensitiveCommand(commandToExecute):
-                    print("The following command might cause ireversible changes:")
-                    print(commandToExecute)
-                    print("")
-                    print("Current directory: ")
-                    print(syncedCurrentDir)
-                    print("")
-                    print("Are you sure you want to continue?")
-                    print("")
-                    choice = common.getInputWithTextCondition("Enter your choice (y/n): ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
-                                                          "Invalid choice selected. Please try again")
-                    os.system("clear")
-                    if choice.lower() == "n":
-                        commandToExecute = None
-                        commandExecStatus = 2
-                        status = commandExecStatus
-                        print("Command aborted. You returned to navigation menu.")
+                    commandToExecute = handleSensitiveCommand(commandToExecute)
                 if commandToExecute is not None:
                     print(f"Repeated command is being executed: {commandToExecute}")
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
@@ -153,6 +146,9 @@ class Commands:
                     finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                     print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
+                else:
+                    commandExecStatus = 2
+                    status = commandExecStatus
             else:
                 commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__editAndExecuteCommand(commandsHistoryEntry)
                 if commandExecStatus != 0:
@@ -191,14 +187,19 @@ class Commands:
         if fallbackPerformed:
             out.displayFallbackMessage()
         elif commandLength > 0 and commandToExecute[commandLength-1] != ':':
-            commandType = "Edited" if previousCommand != "" else "Entered"
-            print(f"{commandType} command is being executed: {commandToExecute}")
-            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand(commandToExecute)
-            finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
-            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            print(f"{commandType} command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
-            passedInput = passedCommandExecInput
+            if (cmd.isSensitiveCommand(commandToExecute)):
+                commandToExecute = handleSensitiveCommand(commandToExecute)
+            if commandToExecute is not None:
+                commandType = "Edited" if previousCommand != "" else "Entered"
+                print(f"{commandType} command is being executed: {commandToExecute}")
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand(commandToExecute)
+                finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                print(f"{commandType} command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
+                passedInput = passedCommandExecInput
+            else:
+                status = 2 # sensitive command aborted by user
         else:
             print("Command aborted. You returned to navigation menu.")
             status = 2 #aborted by user
@@ -224,3 +225,22 @@ class Commands:
             for rowNr in range(firstRowNr, limit):
                 command = fileContent[rowNr].strip('\n')
                 print('{0:<10s} {1:<140s}'.format(str(rowNr+1), command))
+
+def handleSensitiveCommand(command):
+    syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
+    assert not fallbackPerformed, "Current dir fallback not allowed"
+    print("The following command might cause ireversible changes:")
+    print(command)
+    print("")
+    print("Current directory: ")
+    print(syncedCurrentDir)
+    print("")
+    print("Are you sure you want to continue?")
+    print("")
+    choice = common.getInputWithTextCondition("Enter your choice (y/n): ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
+                                          "Invalid choice selected. Please try again")
+    os.system("clear")
+    if choice.lower() == "n":
+        command = None
+        print("Command aborted. You returned to navigation menu.")
+    return command
