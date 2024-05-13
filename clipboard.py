@@ -1,9 +1,7 @@
-import os, system_functionality as sysfunc, display as out
-from os.path import expanduser
+import os, subprocess, system_functionality as sysfunc, display as out
 
 class Clipboard:
     def __init__(self):
-        self.outPath = expanduser("~") + "/.store_output"
         self.erase()
     def erase(self, displayMessage = False):
         self.action = ""
@@ -84,27 +82,24 @@ class Clipboard:
             else:
                 cdCommand = "cd " + self.sourceDir + ";" + "\n"
                 clipboardCommand = self.action + " " + self.keyword + ' \"' + destDir + '\";' + "\n"
-                clipboardCommandStatus = "status=$?;" + "\n"
-                writeStatusToFile = "echo $status > " + self.outPath + ";" + "\n"
-                command = cdCommand + clipboardCommand + clipboardCommandStatus + writeStatusToFile
+                command = cdCommand + clipboardCommand
                 print(f"Started the {actionLabel} operation.")
                 print()
-                os.system(command)
+                result = subprocess.run(command, shell=True)
+                executionStatus = result.returncode
                 status = 4 # error/exception during execution of move/copy command
-                with open(self.outPath, "r") as outputStorage:
-                    executionStatus = outputStorage.readline().strip("\n")
-                    print()
-                    if executionStatus == "0":
-                        status = 0 # success
-                        print(f"Finished the {actionLabel} operation")
-                    else:
-                        print(f"The {actionLabel} operation finished with errors.")
-                        print("Please check the source and destination directories.")
-                    if actionLabel == "move":
-                        print("For a new operation please add items to clipboard.")
-                    elif status == 0:
-                        print("The copy operation can be repeated in the same or in a different directory.")
-                        print("Clipboard NOT erased.")
+                print()
+                if executionStatus == 0:
+                    status = 0 # success
+                    print(f"Finished the {actionLabel} operation")
+                else:
+                    print(f"The {actionLabel} operation finished with errors.")
+                    print("Please check the source and destination directories.")
+                if actionLabel == "move":
+                    print("For a new operation please add items to clipboard.")
+                elif status == 0:
+                    print("The copy operation can be repeated in the same or in a different directory.")
+                    print("Clipboard NOT erased.")
         if status in [2, 4] or (status != 3 and self.action == "mv -iv"):
             self.erase(True)
         return status
