@@ -1,7 +1,20 @@
 """ Functions usable in any of the application modules """
 
-import os, readline
+import os, subprocess, readline
 from os.path import expanduser
+
+# helper method, returns absolute path (home dir path for empty argument); no changes if the argument is an absolute path; empty return value for invalid path
+def getAbsoluteDirPath(dirPath):
+    directory = expanduser("~") if len(dirPath) == 0 else dirPath
+    expandDirCommand = "echo " + directory #if wildcards are being used the full dir name should be expanded
+    result = subprocess.Popen(expandDirCommand, shell=True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    out,err = result.communicate()
+    out = out.decode("utf-8").strip('\n')
+    absoluteDirPath = ""
+    if (os.path.isdir(out)):
+        absoluteDirPath = os.path.abspath(out)
+    return absoluteDirPath
+
 
 def getNumberOfLines(filePath):
     assert len(filePath) > 0, "Empty file path argument detected"

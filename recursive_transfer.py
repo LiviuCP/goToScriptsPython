@@ -1,12 +1,7 @@
-import os, system_functionality as sysfunc, display as out
-from os.path import expanduser
-
-home_dir = expanduser("~") + "/"
+import os, common, system_functionality as sysfunc, display as out
 
 class RecursiveTransfer:
     def __init__(self):
-        self.inPath = home_dir + ".store_input"
-        self.outPath = home_dir + ".store_output"
         self.eraseTargetDir()
     def eraseTargetDir(self, displayMessage = False):
         self.targetDir = ""
@@ -32,19 +27,10 @@ class RecursiveTransfer:
             self.targetDir = syncedCurrentDir
             isValidDir = True
         else:
-            # build and execute command
-            getDir = "directory=`echo " + directory + "`;" #if wildcards are being used the full dir name should be expanded
-            cdCommand = "cd " + '\"' + "$directory" + '\"' + " 2> /dev/null;"
-            executionStatus = "echo $? > " + self.outPath + ";"
-            writeCurrentDir = "pwd > " + self.inPath + ";"
-            executeCommandWithStatus = getDir + "\n" + cdCommand + "\n" + executionStatus + "\n" + writeCurrentDir
-            os.system(executeCommandWithStatus)
-            # read command exit code and create the status message
-            with open(self.outPath, "r") as outputStorage:
-                if outputStorage.readline().strip('\n') == "0":
-                    with open(self.inPath, "r") as inputStorage:
-                        self.targetDir = inputStorage.readline().strip('\n')
-                        isValidDir = True
+            targetDir = common.getAbsoluteDirPath(directory)
+            if len(targetDir) > 0:
+                self.targetDir = targetDir
+                isValidDir = True
         if isValidDir:
             print("Set new target directory for recursive moving/copying.")
             print(f"Target path: {self.targetDir}")
