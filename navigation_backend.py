@@ -1,5 +1,5 @@
 import os
-import nav_cmd_common as nvcdcmn, navigation_settings as navset
+import nav_cmd_common as nvcdcmn, navigation_settings as navset, common
 from pathlib import Path
 
 class NavigationBackend(nvcdcmn.NavCmdCommon):
@@ -252,15 +252,15 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
     def __retrieveMenuEntry__(self, userInput, content):
         unused = "" # this variable is part of a tuple that has been kept in this form for (legacy) compatibility
         # access parent dir of menu entry
-        if len(userInput) > 1 and userInput[0] == "," and nvcdcmn.isValidMenuEntryNumber(userInput[1:], content):
+        if len(userInput) > 1 and userInput[0] == "," and common.isValidMenuEntryNr(userInput[1:], content):
             output = str(Path(content[int(userInput[1:])-1].strip("\n")).parent)
             userInput = ":parent" # used for further differentiation between entry directory and parent in case the returned path is invalid
         # retrieved path to be used for setting target dir from menu
-        elif len(userInput) > 1 and userInput[0] == "+" and nvcdcmn.isValidMenuEntryNumber(userInput[1:], content):
+        elif len(userInput) > 1 and userInput[0] == "+" and common.isValidMenuEntryNr(userInput[1:], content):
             output = str(Path(content[int(userInput[1:])-1].strip("\n")))
             userInput = ":preceding+" # used for further differentiation between entry directory and parent for setting target dir
         # retrieved parent path to be used for setting target dir from menu
-        elif len(userInput) > 1 and userInput[0] == "-" and nvcdcmn.isValidMenuEntryNumber(userInput[1:], content):
+        elif len(userInput) > 1 and userInput[0] == "-" and common.isValidMenuEntryNr(userInput[1:], content):
             output = str(Path(content[int(userInput[1:])-1].strip("\n")).parent)
             userInput = ":preceding-" # used for further differentiation between entry directory and parent for setting target dir
         else:

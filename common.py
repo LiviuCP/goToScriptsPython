@@ -33,6 +33,17 @@ def getMenuEntry(menuContent, userInput):
             result = menuContent[entryNumber-1]
     return result
 
+# same constraints
+def isValidMenuEntryNr(userInput, menuContent):
+    isValid = True
+    if userInput.isdigit():
+        intInput = int(userInput)
+        if intInput > len(menuContent) or intInput == 0:
+            isValid = False
+    else:
+        isValid = False
+    return isValid
+
 def setPathAutoComplete():
     def getDirectoryContent(dirPath):
         dirName = os.path.dirname(dirPath)

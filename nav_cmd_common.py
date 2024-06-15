@@ -1,6 +1,6 @@
 """ common code to be used by navigation_backend.py and commands_backend.py """
 
-import os, re, time
+import os, re, time, common
 
 class NavCmdCommon:
     def __init__(self, settings):
@@ -139,22 +139,12 @@ class NavCmdCommon:
     :4 - empty menu
     """
     def __retrieveMenuEntry__(self, userInput, content):
-        if isValidMenuEntryNumber(userInput, content):
+        if common.isValidMenuEntryNr(userInput, content):
             userInput = int(userInput) - 1
             output = content[userInput].strip("\n")
         else:
             output = ":4" if len(content) == 0 else ":2" if userInput == '!' else ":1"
         return (output, userInput, "")
-
-def isValidMenuEntryNumber(userInput, content):
-    isValid = True
-    if userInput.isdigit():
-        intInput = int(userInput)
-        if intInput > len(content) or intInput == 0:
-            isValid = False
-    else:
-        isValid = False
-    return isValid
 
 def readFromPermHist(strHistFile, numHistFile, histDict):
     with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:

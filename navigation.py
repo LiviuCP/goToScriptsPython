@@ -152,7 +152,7 @@ class Navigation:
 
     """ used for quick favorite directories access """
     def isValidFavoritesEntryNr(self, userInput):
-        return common.getMenuEntry(self.nav.getFavoritesInfo(), userInput) is not None
+        return common.isValidMenuEntryNr(userInput, self.nav.getFavoritesInfo())
 
     """ quick navigation history is part of recent history but can be accessed outside the regular history menus """
     def displayQuickNavigationHistory(self):
