@@ -29,19 +29,19 @@ class Application:
         print("Welcome to navigation app!")
         while userInput != "!" and not keyInterruptOccurred:
             if userInput not in {"?", "?clip", "?ren"}:
-                self.__displayGeneralOutput()
+                self.__displayGeneralOutput__()
             try:
                 userInput = input()
                 userInput = userInput.strip(' ') #there should be no trailing spaces, otherwise the entries might get duplicated in the navigation/command history or other errors might occur (depending on input use case)
-                self.__handleUserInput(userInput)
+                self.__handleUserInput__(userInput)
                 while self.appStatus == 1:
                     userInput = self.passedInput
-                    self.__handleUserInput(userInput)
+                    self.__handleUserInput__(userInput)
             except (KeyboardInterrupt, EOFError): # CTRL + C, CTRL + D (latter one causes EOFError)
                 keyInterruptOccurred = True
-                self.__handleCloseApplication(self.cmd.getPreviousCommand())
+                self.__handleCloseApplication__(self.cmd.getPreviousCommand())
 
-    def __handleUserInput(self, userInput):
+    def __handleUserInput__(self, userInput):
         #any input starting with < and continuing with a character different from < is considered a quick navigation history request (no matter if valid or not, e.g. <a is invalid)
         def isQuickNavigationRequested(userInput):
             userInput = userInput.strip(' ')
@@ -74,9 +74,9 @@ class Application:
             syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
         if fallbackPerformed:
             out.printFallbackMessage()
-            self.__handleFallbackPerformed()
+            self.__handleFallbackPerformed__()
         elif len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
-            result = self.__setContext(contexts_dict[userInput[0:2]], userInput[2:])
+            result = self.__setContext__(contexts_dict[userInput[0:2]], userInput[2:])
             #return to main context only if the user hasn't chosen to toggle or no quick navigation has been attempted (same for the below cases)
             shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif len(userInput) >= 1 and userInput[0] == ">":
@@ -87,44 +87,44 @@ class Application:
                 if not isInputOk:
                     print("Invalid favorites entry number!")
             if isInputOk:
-                result = self.__setContext(contexts_dict[userInput[0]], navHistInput)
+                result = self.__setContext__(contexts_dict[userInput[0]], navHistInput)
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif len(userInput) >= 1 and userInput[0] == "<":
             navHistInput = userInput[1:]
             isInputOk = True
             if len(navHistInput) > 0:
-                isInputOk = self.__isQuickNavigationPossible(navHistInput)
+                isInputOk = self.__isQuickNavigationPossible__(navHistInput)
             if isInputOk:
-                result = self.__setContext(contexts_dict[userInput[0]], navHistInput)
+                result = self.__setContext__(contexts_dict[userInput[0]], navHistInput)
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif userInput in [":n", ":N"]:
             prevNavigationFilter = self.nav.getPreviousNavigationFilter()
             if len(prevNavigationFilter) > 0:
                 contexts_dictKey = "<<" if userInput == ":n" else ">>"
-                result = self.__setContext(contexts_dict[contexts_dictKey], prevNavigationFilter)
+                result = self.__setContext__(contexts_dict[contexts_dictKey], prevNavigationFilter)
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
             else:
                 print("No navigation filter previously entered.")
         elif len(userInput) >= 2 and userInput[0:2] == ",,":
             navHistInput = userInput[2:]
-            if self.__isQuickNavigationPossible(navHistInput):
-                result = self.__setContext(contexts_dict["<"], "," + navHistInput)
+            if self.__isQuickNavigationPossible__(navHistInput):
+                result = self.__setContext__(contexts_dict["<"], "," + navHistInput)
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
-            result = self.__setContext(contexts_dict[userInput[0:2]], userInput[2:])
+            result = self.__setContext__(contexts_dict[userInput[0:2]], userInput[2:])
             shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif userInput in [":f", ":F"]:
             prevCommandsFilter = self.cmd.getPreviousCommandsFilter()
             if len(prevCommandsFilter) > 0:
                 contexts_dictKey = ":<" if userInput == ":f" else "::"
-                result = self.__setContext(contexts_dict[contexts_dictKey], prevCommandsFilter)
+                result = self.__setContext__(contexts_dict[contexts_dictKey], prevCommandsFilter)
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
             else:
                 print("No commands filter previously entered.")
         elif userInput == ":t":
             newContext = context_switch_dict[self.currentContext]
             if len(newContext) > 0:
-                result = self.__setContext(newContext, self.currentFilter)
+                result = self.__setContext__(newContext, self.currentFilter)
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
             else:
                 print("Unable to toggle, not in the right menu!")
@@ -158,19 +158,19 @@ class Application:
         elif userInput == ":clearcommands":
             self.cmd.clearCommandsHistory()
         elif userInput in [":c", ":m", ":y", ":ec", ":dc"]:
-            self.__handleClipboardInput(userInput)
+            self.__handleClipboardInput__(userInput)
         elif userInput in [":td", ":M", ":C", ":etd", ":dtd"]:
-            self.__handleRecursiveTransferInput(userInput)
+            self.__handleRecursiveTransferInput__(userInput)
         elif userInput.startswith(":") and userInput[1:] in renaming_commands:
             rn.rename(renaming_translations[userInput[1:]])
         elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
             print("Input cancelled, no action performed!")
         elif userInput == ":qn":
-            self.__toggleQuickNavigationHistory()
+            self.__toggleQuickNavigationHistory__()
         elif userInput in ["?", "?clip", "?ren"]:
-            self.__handleHelpRequest(userInput, out)
+            self.__handleHelpRequest__(userInput, out)
         elif userInput == "!":
-            self.__handleCloseApplication(self.cmd.getPreviousCommand())
+            self.__handleCloseApplication__(self.cmd.getPreviousCommand())
         else:
             if len(userInput) > 0 and userInput[0] == ":":
                 result = self.cmd.executeCommand(userInput[1:])
@@ -181,9 +181,9 @@ class Application:
         if result is not None:
             self.passedInput = result[1]
         if shouldSwitchToMainContext:
-            self.__setContext(contexts_dict["main"], "")
+            self.__setContext__(contexts_dict["main"], "")
 
-    def __handleClipboardInput(self, clipboardInput):
+    def __handleClipboardInput__(self, clipboardInput):
         if clipboardInput == ":c":
             self.clipboard.createAction()
         elif clipboardInput == ":m":
@@ -197,7 +197,7 @@ class Application:
         else:
             assert False, "Invalid clipboard option"
 
-    def __handleRecursiveTransferInput(self, recursiveTransferInput):
+    def __handleRecursiveTransferInput__(self, recursiveTransferInput):
         if recursiveTransferInput == ":td":
             self.recursiveTransfer.setTargetDir()
         elif recursiveTransferInput == ":M":
@@ -218,7 +218,7 @@ class Application:
         - command history in execute mode (filtered or not)
         - command history in edit mode (filtered or not)
         - main navigation mode (no main menu): includes all sub-contexts: edit an individual command, help menu, move/copy, recursive move/copy, renaming files/dirs etc '''
-    def __setContext(self, newContext, userInput):
+    def __setContext__(self, newContext, userInput):
         assert newContext in valid_contexts, "Invalid context detected"
         if len(self.currentFilter) > 0:
             assert self.currentContext in ["-fh", "-ff", "--execute", "--edit"], "Invalid filter keyword within current context"
@@ -252,15 +252,15 @@ class Application:
         result = (status, passedInput, passedOutput) if status is not None else None
         return result
 
-    def __handleFallbackPerformed(self):
+    def __handleFallbackPerformed__(self):
         self.clipboard.erase()
         self.recursiveTransfer.eraseTargetDir()
 
-    def __toggleQuickNavigationHistory(self):
+    def __toggleQuickNavigationHistory__(self):
         self.isQuickNavHistEnabled = not self.isQuickNavHistEnabled
         print("Quick navigation history enabled!") if self.isQuickNavHistEnabled else print("Quick navigation history disabled!")
 
-    def __isQuickNavigationPossible(self, navHistInput):
+    def __isQuickNavigationPossible__(self, navHistInput):
         isQuickNavPossible = False
         if len(self.currentContext) > 0: #quick history is only accessible from main navigation page (including help menus) - it should be visible when accessed!
             print("Quick navigation history not accessible from current context. Please try again!")
@@ -273,18 +273,18 @@ class Application:
             print("Quick history is disabled. Please enable it and try again!")
         return isQuickNavPossible
 
-    def __handleHelpRequest(self, helpInput, out):
+    def __handleHelpRequest__(self, helpInput, out):
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
         if helpInput == "?":
-            self.__displayGeneralHelp(syncedCurrentDir, fallbackPerformed)
+            self.__displayGeneralHelp__(syncedCurrentDir, fallbackPerformed)
         elif helpInput == "?clip":
-            self.__displayClipboardHelp(syncedCurrentDir, fallbackPerformed)
+            self.__displayClipboardHelp__(syncedCurrentDir, fallbackPerformed)
         elif helpInput == "?ren":
-            self.__displayRenamingHelp(syncedCurrentDir, fallbackPerformed)
+            self.__displayRenamingHelp__(syncedCurrentDir, fallbackPerformed)
         else:
             assert False, "Invalid help option"
 
-    def __handleCloseApplication(self, previousCommand):
+    def __handleCloseApplication__(self, previousCommand):
         navModifiedByPreviousSession = self.nav.closeNavigation()
         cmdModifiedByPreviousSession = self.cmd.closeCommands()
         os.system("clear")
@@ -300,7 +300,7 @@ class Application:
         print(previousCommand) if len(previousCommand) > 0 else print("none")
         print("")
 
-    def __displayGeneralOutput(self):
+    def __displayGeneralOutput__(self):
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
         assert not fallbackPerformed, "Current dir fallback not allowed, should have already been performed!"
         prevCommand = self.cmd.getPreviousCommand()
@@ -309,28 +309,28 @@ class Application:
             prevCommandFinishingStatus = "successfully" if self.cmd.getPreviousCommandSuccess() else "with errors"
         out.displayGeneralOutputUpperSection(syncedCurrentDir, self.nav.getPreviousDirectory(), prevCommand, prevCommandFinishingStatus)
         if self.isQuickNavHistEnabled:
-            self.__displayQuickNavigationHistory()
+            self.__displayQuickNavigationHistory__()
         out.displayGeneralOutputLowerSection(self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir())
 
-    def __displayGeneralHelp(self, currentDir, fallbackOccurred):
+    def __displayGeneralHelp__(self, currentDir, fallbackOccurred):
         out.displayGeneralHelp(currentDir, fallbackOccurred)
         if self.isQuickNavHistEnabled:
-            self.__displayQuickNavigationHistory()
+            self.__displayQuickNavigationHistory__()
         out.displayHelpMenuFooter()
 
-    def __displayClipboardHelp(self, currentDir, fallbackOccurred):
+    def __displayClipboardHelp__(self, currentDir, fallbackOccurred):
         out.displayClipboardHelp(currentDir, fallbackOccurred)
         if self.isQuickNavHistEnabled:
-            self.__displayQuickNavigationHistory()
+            self.__displayQuickNavigationHistory__()
         out.displayHelpMenuFooter()
 
-    def __displayRenamingHelp(self, currentDir, fallbackOccurred):
+    def __displayRenamingHelp__(self, currentDir, fallbackOccurred):
         out.displayRenamingHelp(currentDir, fallbackOccurred)
         if self.isQuickNavHistEnabled:
-            self.__displayQuickNavigationHistory()
+            self.__displayQuickNavigationHistory__()
         out.displayHelpMenuFooter()
 
-    def __displayQuickNavigationHistory(self):
+    def __displayQuickNavigationHistory__(self):
         print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
         print("")
         print("Last visited directories (enter < or ,, followed by entry number to re-visit the directory or its parent):")
