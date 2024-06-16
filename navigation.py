@@ -55,7 +55,7 @@ class Navigation:
     # negative statuses are special statuses and will be retrieved in conjunction with special characters preceding valid entry numbers (like + -> status -1); path is forwarded as input and used by main app
     def executeGoToFromMenu(self, menuChoice, userInput = "", previousCommand = ""):
         assert menuChoice in ["-f", "-ff", "-h", "-fh"], "Invalid menuChoice argument"
-        dirPath, menuVisitPassedInput, menuVisitPassedOutput = self.__visitNavigationMenu(menuChoice, userInput, previousCommand)
+        dirPath, menuVisitPassedInput, menuVisitPassedOutput = self.__visitNavigationMenu__(menuChoice, userInput, previousCommand)
         status = 0 # default status, normal execution or missing dir successful removal/mapping
         passedInput = ""
         menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "filtered history" if menuChoice == "-fh" else "filtered favorites"
@@ -82,7 +82,7 @@ class Navigation:
                         menuChoice = "-h"
                     elif menuChoice == "-ff": #entries from filtered favorites are actually part of favorites so they should be handled as a missing favorites entry case
                         menuChoice = "-f"
-                    handleMissingDirStatus, handleMissingDirPassedInput, handleMissingDirPassedOutput = self.__handleMissingDir(dirPath, menuChoice)
+                    handleMissingDirStatus, handleMissingDirPassedInput, handleMissingDirPassedOutput = self.__handleMissingDir__(dirPath, menuChoice)
                     if handleMissingDirStatus == 1:
                         status = 1 #forward user input
                         passedInput = handleMissingDirPassedInput
@@ -125,7 +125,7 @@ class Navigation:
         def displayFavoritesEntryRemovalDialog(currentDir):
             print("REMOVE DIRECTORY FROM FAVORITES")
             print('')
-            self.__displayFormattedNavFileContent(self.nav.getFavoritesInfo())
+            self.__displayFormattedNavFileContent__(self.nav.getFavoritesInfo())
             print('')
             print(f"Current directory: {currentDir}")
             print('')
@@ -160,13 +160,13 @@ class Navigation:
 
     """ used for quick favorite directories access """
     def isValidFavoritesEntryNr(self, userInput):
-        return common.getMenuEntry(self.nav.getFavoritesInfo(), userInput) is not None
+        return common.isValidMenuEntryNr(userInput, self.nav.getFavoritesInfo())
 
     """ quick navigation history is part of recent history but can be accessed outside the regular history menus """
     def displayQuickNavigationHistory(self):
         (consolidatedHistory, recentHistoryEntriesCount) = self.nav.getHistoryInfo()
         recentHistory = consolidatedHistory[0: recentHistoryEntriesCount]
-        self.__displayFormattedNavFileContent(recentHistory, 0, navset.q_hist_max_entries)
+        self.__displayFormattedNavFileContent__(recentHistory, 0, navset.q_hist_max_entries)
 
     """ checks the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent navigation history) """
     def isValidQuickNavHistoryEntryNr(self, userInput):
@@ -231,7 +231,7 @@ class Navigation:
     3 - invalid or missing arguments
     4 - replacing directory to which mapping is requested does not exist
     """
-    def __handleMissingDir(self, path, menu):
+    def __handleMissingDir__(self, path, menu):
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
         assert not fallbackPerformed, "Current dir fallback not allowed"
         assert len(path) > 0, "Empty 'missing path' argument detected"
@@ -274,7 +274,7 @@ class Navigation:
                 out.printFallbackMessage()
             elif replacingDir == "<" or replacingDir == ">":
                 menuName = "history" if replacingDir == "<" else "favorites"
-                dirPath, menuVisitPassedInput, menuVisitPassedOutput = self.__visitNavigationMenu("-h" if replacingDir == "<" else "-f")
+                dirPath, menuVisitPassedInput, menuVisitPassedOutput = self.__visitNavigationMenu__("-h" if replacingDir == "<" else "-f")
                 syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible during the mapping process while in history/favorites menu
                 if fallbackPerformed:
                     doMapping = False
@@ -322,27 +322,27 @@ class Navigation:
         return (status, userChoice, "")
 
     """ Displays the requested navigation menu and prompts the user to enter the required option """
-    def __visitNavigationMenu(self, menuChoice, userInput = "", previousCommand = ""):
+    def __visitNavigationMenu__(self, menuChoice, userInput = "", previousCommand = ""):
         def displayHistMenu():
             (consolidatedHistory, recentHistoryEntriesCount) = self.nav.getHistoryInfo()
             print("VISITED DIRECTORIES")
             print("")
             print("-- RECENTLY VISITED --")
             print("")
-            self.__displayFormattedNavFileContent(consolidatedHistory, 0, recentHistoryEntriesCount)
+            self.__displayFormattedNavFileContent__(consolidatedHistory, 0, recentHistoryEntriesCount)
             print("")
             print("-- MOST VISITED --")
             print("")
-            self.__displayFormattedNavFileContent(consolidatedHistory, recentHistoryEntriesCount)
+            self.__displayFormattedNavFileContent__(consolidatedHistory, recentHistoryEntriesCount)
         def displayFavoritesMenu():
             print("FAVORITE DIRECTORIES")
             print("")
-            self.__displayFormattedNavFileContent(self.nav.getFavoritesInfo())
+            self.__displayFormattedNavFileContent__(self.nav.getFavoritesInfo())
         def displayFilteredMenu(choice, filteredContent, totalNrOfMatches):
             assert choice in ["-fh", "-ff"]
             print("FILTERED VISITED DIRECTORIES") if choice == "-fh" else print("FILTERED FAVORITE DIRECTORIES")
             print("")
-            self.__displayFormattedNavFileContent(filteredContent, 0)
+            self.__displayFormattedNavFileContent__(filteredContent, 0)
             print("")
             print(f"\tThe search returned {str(totalNrOfMatches)} match(es).")
             if totalNrOfMatches > len(filteredContent):
@@ -395,7 +395,7 @@ class Navigation:
         return choiceResult
 
     """ Function used for displaying specific navigation menus """
-    def __displayFormattedNavFileContent(self, fileContent, firstRowNr = 0, limit = -1):
+    def __displayFormattedNavFileContent__(self, fileContent, firstRowNr = 0, limit = -1):
         nrOfRows = len(fileContent)
         assert nrOfRows > 0, "Attempt to display an empty navigation menu"
         limit = nrOfRows if limit < 0 or limit > nrOfRows else limit

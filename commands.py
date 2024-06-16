@@ -26,7 +26,7 @@ class Commands:
         if command is not None:
             print(f"Entered command is being executed: {command}")
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            result = self.__executeCommand(command)
+            result = self.__executeCommand__(command)
             finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
             print(f"Entered command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
@@ -42,7 +42,7 @@ class Commands:
             if command is not None:
                 print(f"Repeated command is being executed: {command}")
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                result = self.__executeCommand(command)
+                result = self.__executeCommand__(command)
                 finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
@@ -52,7 +52,7 @@ class Commands:
 
     """ edit and execute previous command """
     def editAndExecutePreviousCommand(self):
-        return self.__editAndExecuteCommand(self.previousCommand)
+        return self.__editAndExecuteCommand__(self.previousCommand)
 
     """ Displays the requested commands menu and prompts the user to enter the required option """
     def visitCommandsMenu(self, mode, filterKey = ""):
@@ -64,17 +64,17 @@ class Commands:
             print("")
             print("-- RECENTLY EXECUTED --")
             print("")
-            self.__displayFormattedCmdFileContent(consolidatedCommandsHistory, 0, recentCommandsHistoryEntriesCount)
+            self.__displayFormattedCmdFileContent__(consolidatedCommandsHistory, 0, recentCommandsHistoryEntriesCount)
             print("")
             print("-- MOST EXECUTED --")
             print("")
-            self.__displayFormattedCmdFileContent(consolidatedCommandsHistory, recentCommandsHistoryEntriesCount)
+            self.__displayFormattedCmdFileContent__(consolidatedCommandsHistory, recentCommandsHistoryEntriesCount)
         def displayFilteredCmdHistMenu(filteredContent, mode, totalNrOfMatches):
             print("FILTERED COMMANDS LIST")
             print("")
             print("**** EXECUTE MODE ****") if mode == "--execute" else print("**** EDIT MODE ****")
             print("")
-            self.__displayFormattedCmdFileContent(filteredContent, 0)
+            self.__displayFormattedCmdFileContent__(filteredContent, 0)
             print("")
             print(f"\tThe search returned {str(totalNrOfMatches)} match(es).")
             if totalNrOfMatches > len(filteredContent):
@@ -142,7 +142,7 @@ class Commands:
                 if commandToExecute is not None:
                     print(f"Repeated command is being executed: {commandToExecute}")
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                    commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand(commandToExecute)
+                    commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand__(commandToExecute)
                     finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                     print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
@@ -150,7 +150,7 @@ class Commands:
                     commandExecStatus = 2
                     status = commandExecStatus
             else:
-                commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__editAndExecuteCommand(commandsHistoryEntry)
+                commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__editAndExecuteCommand__(commandsHistoryEntry)
                 if commandExecStatus != 0:
                     status = 2 #aborted by user
             passedInput = passedCommandExecInput
@@ -166,7 +166,7 @@ class Commands:
         return self.cmd.close()
 
     """ edit an existing command (previous command or from commands history) and then execute it """
-    def __editAndExecuteCommand(self, previousCommand):
+    def __editAndExecuteCommand__(self, previousCommand):
         def hook():
             readline.insert_text(previousCommand)
             readline.redisplay()
@@ -193,7 +193,7 @@ class Commands:
                 commandType = "Edited" if previousCommand != "" else "Entered"
                 print(f"{commandType} command is being executed: {commandToExecute}")
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand(commandToExecute)
+                commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand__(commandToExecute)
                 finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 print(f"{commandType} command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
@@ -206,7 +206,7 @@ class Commands:
         return (status, passedInput, "")
 
     """ core command execution function """
-    def __executeCommand(self, command):
+    def __executeCommand__(self, command):
         assert len(command) > 0, "Empty command has been provided"
         commandExecResult = os.system(command)
         if len(command) >= cmd.getMinCommandSize():
@@ -216,7 +216,7 @@ class Commands:
         return (0, command, "")
 
     """ Function used for displaying specific commands menus """
-    def __displayFormattedCmdFileContent(self, fileContent, firstRowNr = 0, limit = -1):
+    def __displayFormattedCmdFileContent__(self, fileContent, firstRowNr = 0, limit = -1):
         nrOfRows = len(fileContent)
         assert nrOfRows > 0, "Attempt to display an empty command menu"
         limit = nrOfRows if limit < 0 or limit > nrOfRows else limit

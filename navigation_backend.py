@@ -1,5 +1,6 @@
 import os
-import nav_cmd_common as nvcdcmn, navigation_settings as navset, system_settings as sysset
+import nav_cmd_common as nvcdcmn, navigation_settings as navset, system_settings as sysset, common
+from pathlib import Path
 
 class NavigationBackend(nvcdcmn.NavCmdCommon):
     def __init__(self):
@@ -20,7 +21,7 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
             self.excludedHistory[path] = 0
 
     def chooseFavoritesMenuEntry(self, userInput):
-        return nvcdcmn.getMenuEntry(userInput, self.favorites)
+        return self.__retrieveMenuEntry__(userInput, self.favorites)
 
     def buildFilteredFavorites(self, filterKey, filteredContent):
         assert len(filterKey) > 0, "Empty filter key found"
@@ -247,6 +248,24 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         self.favorites.clear()
         for path, dirName in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
             self.favorites.append(path)
+
+    def __retrieveMenuEntry__(self, userInput, content):
+        unused = "" # this variable is part of a tuple that has been kept in this form for (legacy) compatibility
+        # access parent dir of menu entry
+        if len(userInput) > 1 and userInput[0] == "," and common.isValidMenuEntryNr(userInput[1:], content):
+            output = str(Path(content[int(userInput[1:])-1].strip("\n")).parent)
+            userInput = ":parent" # used for further differentiation between entry directory and parent in case the returned path is invalid
+        # retrieved path to be used for setting target dir from menu
+        elif len(userInput) > 1 and userInput[0] == "+" and common.isValidMenuEntryNr(userInput[1:], content):
+            output = str(Path(content[int(userInput[1:])-1].strip("\n")))
+            userInput = ":preceding+" # used for further differentiation between entry directory and parent for setting target dir
+        # retrieved parent path to be used for setting target dir from menu
+        elif len(userInput) > 1 and userInput[0] == "-" and common.isValidMenuEntryNr(userInput[1:], content):
+            output = str(Path(content[int(userInput[1:])-1].strip("\n")).parent)
+            userInput = ":preceding-" # used for further differentiation between entry directory and parent for setting target dir
+        else:
+            output, userInput, unused = super().__retrieveMenuEntry__(userInput, content)
+        return (output, userInput, unused)
 
 """ Functions related to Finder synchronization """
 
