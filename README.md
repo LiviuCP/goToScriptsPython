@@ -349,15 +349,13 @@ I strongly recommend using this functionality by extending the list of sensitive
 
 The quick history is a subset of the recent history. Currently this is only available for navigation, but it might get implemented for commands as well (in a future changeset).
 
-The quick navigation history is displayed within main navigation and help menus. It contains the last visited directories. The number of displayed entries cannot exceed the size of the recent history (instead it can be smaller resulting in a subset). It is recommended to keep the count as small as possible in order to be able to identify the required entry rapidly (hence quick history) and then navigate to the directory.
+The quick navigation history is displayed within main navigation context. It contains the last visited directories. The number of displayed entries cannot exceed the size of the recent history (instead it can be smaller resulting in a subset). It is recommended to keep the count as small as possible in order to be able to identify the required entry rapidly (hence quick history) and then navigate to the directory.
 
 The navigation to the chosen entry is performed by entering < followed by entry number. Please note that the number should be valid, i.e. it needs to be a valid integer pointing to one of the listed entries. If the entry number is out-of-range or contains invalid (non-numeric) characters, then an error will be triggered. The user should correct the input and retry.
 
-By default the quick navigation history is disabled, so it doesn't clutter the main menu/help menus unnecessarily. To enable it, enter option :qn from main navigation page or another menu. To disable it, enter the same option again. Please note that the quick history is persistent during the entire session unless disabled. It goes off when exiting the script.
+By default the quick navigation history is disabled, so it doesn't clutter the main menu unnecessarily. To enable it, enter option :qn from main navigation page or another menu. To disable it, enter the same option again. Please note that the quick history is persistent during the entire session unless disabled. It goes off when exiting the script.
 
-Another caveat is that the quick navigation history can only be used from the places where it is displayed. These are:
-- the main navigation page
-- the help sub-menus (which are also considered part of the main navigation context)
+Another caveat is that the quick navigation history can only be used from the places where it is displayed, namely the main navigation page. Although the help sub-menus are also part of the main context, they are excluded from using this feature. When accessing either of the help options, the quick navigation history is automatically disabled.
 
 If the user attempts to access a quick entry from another context (e.g. enters <2 while in the filtered navigation history menu), then an error is triggered mentioning that the context is not appropriate. The context is automatically switched to main navigation page, and the user can re-enter the quick navigation choice. This time the navigation should be successful unless the quick history is disabled or the entry is invalid. The reason for implementing this menu(context)-based restriction is that it needs to be ensured the user is fully aware of the chosen entry before executing it. This would be of utmost importance if a similar quick menu is implemented for commands.
 

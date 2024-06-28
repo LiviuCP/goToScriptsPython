@@ -94,7 +94,6 @@ def printDirContentToColumns(content):
     print("")
 
 def displayGeneralHelp(currentDir, fallbackOccurred):
-    os.system("clear")
     print("Navigation functions")
     print("")
     print("For executing any shell command please enter : followed by the command string.")
@@ -137,7 +136,6 @@ def displayGeneralHelp(currentDir, fallbackOccurred):
     print("")
 
 def displayClipboardHelp(currentDir, fallbackOccurred):
-    os.system("clear")
     print("Clipboard functions")
     print("")
     print("To add items to clipboard for moving or copying to another directory entering a keyword is required.")
@@ -166,7 +164,6 @@ def displayClipboardHelp(currentDir, fallbackOccurred):
     print("")
 
 def displayRenamingHelp(currentDir, fallbackOccurred):
-    os.system("clear")
     print("Renaming functions")
     print("")
     print("You have the option to rename all items from current directory in a consistent manner.")

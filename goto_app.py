@@ -275,14 +275,20 @@ class Application:
 
     def __handleHelpRequest__(self, helpInput, out):
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
-        if helpInput == "?":
-            self.__displayGeneralHelp__(syncedCurrentDir, fallbackPerformed)
-        elif helpInput == "?clip":
-            self.__displayClipboardHelp__(syncedCurrentDir, fallbackPerformed)
-        elif helpInput == "?ren":
-            self.__displayRenamingHelp__(syncedCurrentDir, fallbackPerformed)
+        if helpInput in ["?", "?clip", "?ren"]:
+            os.system("clear")
+            if self.isQuickNavHistEnabled:
+                self.__toggleQuickNavigationHistory__()
+                print("----------------------------------")
         else:
             assert False, "Invalid help option"
+        if helpInput == "?":
+            out.displayGeneralHelp(syncedCurrentDir, fallbackPerformed)
+        elif helpInput == "?clip":
+            out.displayClipboardHelp(syncedCurrentDir, fallbackPerformed)
+        else:
+            out.displayRenamingHelp(syncedCurrentDir, fallbackPerformed)
+        out.displayHelpMenuFooter()
 
     def __handleCloseApplication__(self, previousCommand):
         navModifiedByPreviousSession = self.nav.closeNavigation()
@@ -311,24 +317,6 @@ class Application:
         if self.isQuickNavHistEnabled:
             self.__displayQuickNavigationHistory__()
         out.displayGeneralOutputLowerSection(self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir())
-
-    def __displayGeneralHelp__(self, currentDir, fallbackOccurred):
-        out.displayGeneralHelp(currentDir, fallbackOccurred)
-        if self.isQuickNavHistEnabled:
-            self.__displayQuickNavigationHistory__()
-        out.displayHelpMenuFooter()
-
-    def __displayClipboardHelp__(self, currentDir, fallbackOccurred):
-        out.displayClipboardHelp(currentDir, fallbackOccurred)
-        if self.isQuickNavHistEnabled:
-            self.__displayQuickNavigationHistory__()
-        out.displayHelpMenuFooter()
-
-    def __displayRenamingHelp__(self, currentDir, fallbackOccurred):
-        out.displayRenamingHelp(currentDir, fallbackOccurred)
-        if self.isQuickNavHistEnabled:
-            self.__displayQuickNavigationHistory__()
-        out.displayHelpMenuFooter()
 
     def __displayQuickNavigationHistory__(self):
         print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
