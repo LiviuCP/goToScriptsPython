@@ -145,6 +145,8 @@ Same as for navigation history, the commands history has two sections: recently 
 
 The command history can also be accessed in edit mode by entering :: and pressing ENTER. In edit mode when the number of a command is entered the string of the command is displayed for editing. After editing and pressing ENTER the new command will be executed. The command execution can be aborted by entering : at the end of the string and pressing ENTER.
 
+Last but not least, commands can also be accessed by entering a quick history entry number when on main navigation page. More details in section 6.8.
+
 Important note: in navigation mode make sure you launch time consuming commands in the background by using the ampersand (&) unless you need to visualize the output of the executed command on the screen.
 
 5.7. The clipboard functionality
@@ -347,23 +349,26 @@ I strongly recommend using this functionality by extending the list of sensitive
 
 6.8. Quick history
 
-The quick history is a subset of the recent history. Currently this is only available for navigation, but it might get implemented for commands as well (in a future changeset).
+The quick history is a subset of the recent history. It is available both for navigation and commands.
 
 The quick navigation history is displayed within main navigation context. It contains the last visited directories. The number of displayed entries cannot exceed the size of the recent history (instead it can be smaller resulting in a subset). It is recommended to keep the count as small as possible in order to be able to identify the required entry rapidly (hence quick history) and then navigate to the directory.
 
 The navigation to the chosen entry is performed by entering < followed by entry number. Please note that the number should be valid, i.e. it needs to be a valid integer pointing to one of the listed entries. If the entry number is out-of-range or contains invalid (non-numeric) characters, then an error will be triggered. The user should correct the input and retry.
 
-By default the quick navigation history is disabled, so it doesn't clutter the main menu unnecessarily. To enable it, enter option :qn from main navigation page or another menu. To disable it, enter the same option again. Please note that the quick history is persistent during the entire session unless disabled. It goes off when exiting the script.
+The quick history might also contain commands if a recent commands history is available. To access a command enter character - followed by the entry number. This will trigger the execution of the chosen command. Same rules apply regarding entry number validity and quick history enablement as for navigation.
 
-Another caveat is that the quick navigation history can only be used from the places where it is displayed, namely the main navigation page. Although the help sub-menus are also part of the main context, they are excluded from using this feature. When accessing either of the help options, the quick navigation history is automatically disabled.
+By default the quick history is disabled, so it doesn't clutter the main menu unnecessarily. To enable it, enter option :q from main navigation page or another menu. To disable it, enter the same option again. Please note that the quick history is persistent during the entire session unless disabled. It goes off when exiting the script.
 
-If the user attempts to access a quick entry from another context (e.g. enters <2 while in the filtered navigation history menu), then an error is triggered mentioning that the context is not appropriate. The context is automatically switched to main navigation page, and the user can re-enter the quick navigation choice. This time the navigation should be successful unless the quick history is disabled or the entry is invalid. The reason for implementing this menu(context)-based restriction is that it needs to be ensured the user is fully aware of the chosen entry before executing it. This would be of utmost importance if a similar quick menu is implemented for commands.
+Another caveat is that the quick navigation history can only be used from the places where it is displayed, namely the main navigation page. Although the help sub-menus are also part of the main context, they are excluded from using this feature. When accessing either of the help options, the quick history is automatically disabled.
 
-Last but not least, it is also possible to visit the parent directory from the chosen entry. To do this instead of < enter ,, followed by entry number. For example if directory /home/myUserName/Documents is displayed at position 2 in quick history, then simply enter ,,2 in order to visit its parent /home/myUserName. All above mentioned quick history rules apply here.
+If the user attempts to access a quick entry from another context (e.g. enters <2 while in the filtered navigation history menu), then an error is triggered mentioning that the context is not appropriate. The context is automatically switched to main navigation page, and the user can re-enter the quick navigation choice. This time the navigation/command should be successful unless the quick history is disabled or the entry is invalid. The reason for implementing this menu(context)-based restriction is that it needs to be ensured the user is fully aware of the chosen entry before executing it. This is of utmost importance especially when executing commands.
+
+Last but not least, when using the navigation section of the quick menu, it is also possible to visit the parent directory from the chosen entry. To do this instead of < enter ,, followed by entry number. For example if directory /home/myUserName/Documents is displayed at position 2 in quick history, then simply enter ,,2 in order to visit its parent /home/myUserName. All above mentioned quick history rules apply here.
 
 Notes:
 - to modify the number of displayed entries, please change the variable q_hist_max_entries from navigation_settings.py to the desired value (default is 5 and it is recommended to keep it small).
 - when accessing the parent directory, an empty entry number (namely entering only ,,) is considered invalid and the same error is triggered as when the other validity criteria (mentioned above) are not fulfilled. The user should retry by entering a valid entry number.
+- for commands currently only the execution mode is available. An edit mode might also be implemented in the future.
 
 7. HANDLING MISSING DIRECTORIES
 

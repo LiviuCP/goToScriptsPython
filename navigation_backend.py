@@ -71,6 +71,7 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
             pathRemoved = True
         return pathRemoved
 
+    # TODO: move to nav_cmd_backend.py
     def isValidQuickNavHistoryEntryNr(self, userInput):
         isValid = False
         if len(userInput) > 0 and userInput.isdigit():
