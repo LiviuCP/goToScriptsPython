@@ -1,5 +1,5 @@
 import os, readline
-import commands_backend as cmd, system_functionality as sysfunc, common, display as out
+import commands_backend as cmd, commands_settings as cmdset, system_functionality as sysfunc, common, display as out
 
 class Commands:
     def __init__(self):
@@ -101,6 +101,7 @@ class Commands:
         assert mode in ["--edit", "--execute"], "Invalid mode argument provided"
         os.system("clear")
         filteredEntries = []
+        isValidQuickHistEntryNr = self.cmd.isValidQuickHistoryEntryNr(filterKey);
         if self.cmd.isHistoryMenuEmpty():
             print("There are no entries in the command history menu.")
             userInput = ""
@@ -109,6 +110,8 @@ class Commands:
             displayPageFooter(syncedCurrentDir)
             userInput = input()
             os.system("clear")
+        elif isValidQuickHistEntryNr:
+            userInput = filterKey;
         else:
             self.previousCommandsFilter = filterKey
             totalNrOfMatches, appliedFilterKey = self.cmd.buildFilteredHistory(filterKey, filteredEntries)
@@ -122,7 +125,7 @@ class Commands:
                 os.system("clear")
         # process user choice
         userInput = userInput.strip()
-        commandsHistoryEntry, chooseCommandPassedInput, chooseCommandPassedOutput = self.cmd.chooseHistoryMenuEntry(userInput) if len(filterKey) == 0 else self.cmd.chooseFilteredMenuEntry(userInput, filteredEntries)
+        commandsHistoryEntry, chooseCommandPassedInput, chooseCommandPassedOutput = self.cmd.chooseHistoryMenuEntry(userInput) if (len(filterKey) == 0 or isValidQuickHistEntryNr) else self.cmd.chooseFilteredMenuEntry(userInput, filteredEntries)
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice
         if fallbackPerformed:
             out.displayFallbackMessage()
@@ -160,6 +163,16 @@ class Commands:
     def clearCommandsHistory(self):
         self.cmd.clearHistory()
         print("Content of commands history menu has been erased.")
+
+    """ quick commands history is part of recent history but can be accessed outside the regular history menus """
+    def displayQuickCommandsHistory(self):
+        (consolidatedHistory, recentHistoryEntriesCount) = self.cmd.getHistoryInfo()
+        recentHistory = consolidatedHistory[0: recentHistoryEntriesCount]
+        self.__displayFormattedCmdFileContent__(recentHistory, 0, cmdset.q_hist_max_entries)
+
+    """ checks the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent commands history) """
+    def isValidQuickCmdHistoryEntryNr(self, userInput):
+        return self.cmd.isValidQuickHistoryEntryNr(userInput)
 
     """ requests closing the commands functionality in an orderly manner when application gets closed """
     def closeCommands(self):

@@ -11,31 +11,31 @@ def displayGeneralOutputUpperSection(currentDir, prevDir, prevCommand, prevComma
         lastCommand = prevCommand
         lastCommandFinishingStatus = prevCommandFinishingStatus
     print("")
-    print("*********************************************************************************************************************************************************")
+    print("***************************************************************************************************************************************************************************************")
     print("")
     print(f"Current directory: {currentDir}")
     print(f"Previous directory: {previousDirectory}")
     print("")
-    print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+    print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Directory content (hidden items are excluded):")
     print("")
     displayDirContent(currentDir)
     print("")
-    print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+    print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Last executed shell command", end='')
-    print(f" (finished {lastCommandFinishingStatus}):") if lastCommandFinishingStatus != "" else print(":")
+    print(f" (finished {lastCommandFinishingStatus}): ", end='') if lastCommandFinishingStatus != "" else print(": ", end='')
     print(lastCommand)
     print("")
 
 def displayGeneralOutputLowerSection(navigationFilter, commandsFilter, clipboardAction, clipboardKeyword, clipboardSourceDir, recursiveTargetDir, syncWithFinder):
-    print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+    print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
-    print("Last used navigation filter: ", end='')
-    print(navigationFilter) if len(navigationFilter) > 0 else print("none")
-    print("Last used commands filter: ", end='')
-    print(commandsFilter) if len(commandsFilter) > 0 else print("none")
+    print("Last used filters: (navigation: ", end='')
+    print(navigationFilter, end='') if len(navigationFilter) > 0 else print("none", end='')
+    print(" / commands: ", end='')
+    print(f"{commandsFilter})") if len(commandsFilter) > 0 else print("none)")
     print("Clipboard action: ", end='')
     if len(clipboardAction) > 0:
         assert len(clipboardKeyword) > 0, "Invalid clipboard keyword"
@@ -48,15 +48,14 @@ def displayGeneralOutputLowerSection(navigationFilter, commandsFilter, clipboard
     print("Recursive transfer target directory: ", end='')
     print(recursiveTargetDir) if len(recursiveTargetDir) > 0 else print("none")
     print("")
-    print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+    print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Sync with Finder enabled: ", end='')
     print("yes") if syncWithFinder == True else print("no")
     print("")
-    print("*********************************************************************************************************************************************************")
+    print("***************************************************************************************************************************************************************************************")
     print("")
-    print("Enter the path of the directory you want to visit (press ENTER to return to the home dir).")
-    print("Enter ? for the list of of available commands or ! to quit navigation mode.")
+    print("Enter the path of the directory you want to visit (press ENTER to return to the home dir, enter ? for help or ! to quit).")
     print("")
 
 def displayDirContent(dirPath):
@@ -86,7 +85,7 @@ def displayDirContent(dirPath):
 
 # to be updated: number of columns should be dynamically determined depending on screen size and number of files/dirs contained in current dir
 def printDirContentToColumns(content):
-    nrColumns = 4
+    nrColumns = 5
     # add padding items so elements are equally distributed among rows
     extraItems = len(content) % nrColumns
     if extraItems != 0:
@@ -95,11 +94,10 @@ def printDirContentToColumns(content):
     # print to colums, Z-sorted, ascending
     for rowNr in range(len(content) // nrColumns):
         baseIndex = rowNr * nrColumns
-        print('{0:<40s} {1:<40s} {2:<40s} {3:<40s}'.format(content[baseIndex], content[baseIndex + 1], content[baseIndex + 2], content[baseIndex + 3]))
+        print('{0:<40s} {1:<40s} {2:<40s} {3:<40s} {4:<40s}'.format(content[baseIndex], content[baseIndex + 1], content[baseIndex + 2], content[baseIndex + 3], content[baseIndex + 4]))
     print("")
 
 def displayGeneralHelp(currentDir, fallbackOccurred):
-    os.system("clear")
     print("Navigation functions")
     print("")
     print("For executing any shell command please enter : followed by the command string.")
@@ -116,7 +114,7 @@ def displayGeneralHelp(currentDir, fallbackOccurred):
     print("::    -  enter command history menu to edit a previous command (add keyword to get filtered entries)")
     print("<     -  enter history menu")
     print(">     -  enter favorites menu")
-    print(":qn   -  enable/disable quick navigation history")
+    print(":q    -  enable/disable quick navigation/commands history")
     print(":n/:N -  apply previous navigation filter (if any) to navigation history/favorites")
     print(":f/:F -  apply previous command filter (if any) to command history in execute/edit mode")
     print(",     -  go to the previously visited directory")
@@ -133,7 +131,9 @@ def displayGeneralHelp(currentDir, fallbackOccurred):
     print("?clip -  display help for clipboard and recursive operations")
     print("?ren  -  display help for renaming all items from current directory that are not hidden")
     print("")
-    print("For direct navigation to a quick history (after enabling it, see above) or favorites menu entry please enter < or > followed by a number.")
+    print("For direct navigation to a quick history (after enabling it, see above) or favorites menu entry please enter < or > followed by the entry number.")
+    print("For executing a command from quick history (after enabling it, see above) please enter - followed by the entry number.")
+    print("For editing a command from quick history (after enabling it, see above) please enter + followed by the entry number.")
     print("For filtering navigation history (excluding favorites) please enter << followed by a search keyword.")
     print("For filtering favorites please enter >> followed by a search keyword.")
     print("Multiple search filters are allowed for navigation history, favorites and command history filtering (only results matching all filters are being displayed).")
@@ -143,7 +143,6 @@ def displayGeneralHelp(currentDir, fallbackOccurred):
     print("")
 
 def displayClipboardHelp(currentDir, fallbackOccurred):
-    os.system("clear")
     print("Clipboard functions")
     print("")
     print("To add items to clipboard for moving or copying to another directory entering a keyword is required.")
@@ -172,7 +171,6 @@ def displayClipboardHelp(currentDir, fallbackOccurred):
     print("")
 
 def displayRenamingHelp(currentDir, fallbackOccurred):
-    os.system("clear")
     print("Renaming functions")
     print("")
     print("You have the option to rename all items from current directory in a consistent manner.")

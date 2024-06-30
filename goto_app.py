@@ -19,7 +19,7 @@ class Application:
         self.recursiveTransfer = rt.RecursiveTransfer()
         self.appStatus = 0
         self.passedInput = ""
-        self.isQuickNavHistEnabled = False
+        self.isQuickHistEnabled = False
         common.setPathAutoComplete()
 
     def execute(self):
@@ -49,11 +49,16 @@ class Application:
             userInput = userInput.strip(' ')
             isQuickNavHistInput = len(userInput) > 1 and ((userInput[0] == "<" and userInput[1] != "<") or userInput[0:2] == ",,")
             return isQuickNavHistInput
+        #any input starting with "-" and not starting with "->" is considered a quick commands history request (no matter if valid or not, e.g. -a is invalid)
+        def isQuickCommandRequested(userInput):
+            userInput = userInput.strip(' ')
+            isQuickCmdHistInput = len(userInput) > 1 and userInput[0] == "-" and userInput[1] != ">"
+            return isQuickCmdHistInput
         def isSwitchToMainContextRequired(appExecInfo):
             isSwitchRequired = True
             if appExecInfo is not None:
                 appExecStatus, appExecPassedInput, appExecPassedOutput = appExecInfo
-                isSwitchRequired = appExecStatus != 1 or (appExecPassedInput != ":t" and not isQuickNavigationRequested(appExecPassedInput))
+                isSwitchRequired = appExecStatus != 1 or (appExecPassedInput != ":t" and not (isQuickNavigationRequested(appExecPassedInput) or isQuickCommandRequested(appExecPassedInput)))
             return isSwitchRequired
         def computeNewAppStatus(appExecInfo, currentStatus, requiredNewStatus = -1, checkInputForwarding = False):
             resultingStatus = currentStatus
@@ -79,7 +84,7 @@ class Application:
             self.__handleFallbackPerformed__()
         elif len(userInput) >= 2 and userInput[0:2] in ["<<", ">>"]:
             result = self.__setContext__(contexts_dict[userInput[0:2]], userInput[2:])
-            #return to main context only if the user hasn't chosen to toggle or no quick navigation has been attempted (same for the below cases)
+            #return to main context only if the user hasn't chosen to toggle or no quick navigation/command has been attempted (same for the below cases)
             shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif len(userInput) >= 1 and userInput[0] == ">":
             navHistInput = userInput[1:].lstrip(' ')
@@ -155,6 +160,12 @@ class Application:
         elif userInput == "->":
             result = self.nav.removeDirFromFavorites()
             self.appStatus = computeNewAppStatus(result, self.appStatus, checkInputForwarding = True)
+        elif len(userInput) > 1 and userInput[0] in ['-', '+'] and userInput[1] != '>':
+            cmdHistInput = userInput[1:]
+            if self.__isQuickCommandPossible__(cmdHistInput):
+                contextsDictKey = ":<" if userInput[0] == '-' else "::"
+                result = self.__setContext__(contexts_dict[contextsDictKey],  cmdHistInput)
+                shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif userInput == ":clearnavigation":
             self.nav.clearVisitedDirsMenu()
         elif userInput == ":clearcommands":
@@ -167,8 +178,8 @@ class Application:
             rn.rename(renaming_translations[userInput[1:]])
         elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
             print("Input cancelled, no action performed!")
-        elif userInput == ":qn":
-            self.__toggleQuickNavigationHistory__()
+        elif userInput == ":q":
+            self.__toggleQuickHistory__()
         elif userInput in ["?", "?clip", "?ren"]:
             self.__handleHelpRequest__(userInput, out)
         elif userInput == ":s":
@@ -232,7 +243,8 @@ class Application:
         passedInput = ""
         passedOutput = ""
         if self.currentContext in ["--execute", "--edit"]:
-            self.currentFilter = userInput
+            if not self.__isQuickCommandPossible__(userInput):
+                self.currentFilter = userInput
             status, passedInput, passedOutput = self.cmd.visitCommandsMenu(self.currentContext, userInput)
             self.appStatus = 2 if status == 0 else 1 if status == 1 else self.appStatus
         elif self.currentContext in ["-f", "-h"]:
@@ -260,33 +272,52 @@ class Application:
         self.clipboard.erase()
         self.recursiveTransfer.eraseTargetDir()
 
-    def __toggleQuickNavigationHistory__(self):
-        self.isQuickNavHistEnabled = not self.isQuickNavHistEnabled
-        print("Quick navigation history enabled!") if self.isQuickNavHistEnabled else print("Quick navigation history disabled!")
+    def __toggleQuickHistory__(self):
+        self.isQuickHistEnabled = not self.isQuickHistEnabled
+        print("Quick history enabled!") if self.isQuickHistEnabled else print("Quick history disabled!")
 
     def __isQuickNavigationPossible__(self, navHistInput):
         isQuickNavPossible = False
-        if len(self.currentContext) > 0: #quick history is only accessible from main navigation page (including help menus) - it should be visible when accessed!
-            print("Quick navigation history not accessible from current context. Please try again!")
-        elif self.isQuickNavHistEnabled:
+        if len(self.currentContext) > 0: #quick history is only accessible from main navigation page (excluding help menus) - it should be visible when accessed!
+            print("Quick history not accessible from current context. Please try again!")
+        elif self.isQuickHistEnabled:
             if self.nav.isValidQuickNavHistoryEntryNr(navHistInput):
                 isQuickNavPossible = True
             else:
-                print("Invalid quick history entry number! Please try again.")
+                print("Invalid quick navigation history entry number! Please try again.")
         else:
             print("Quick history is disabled. Please enable it and try again!")
         return isQuickNavPossible
 
+    def __isQuickCommandPossible__(self, cmdHistInput):
+        isQuickCmdPossible = False
+        if len(self.currentContext) > 0: #quick history is only accessible from main navigation page (excluding help menus) - it should be visible when accessed!
+            print("Quick history not accessible from current context. Please try again!")
+        elif self.isQuickHistEnabled:
+            if self.cmd.isValidQuickCmdHistoryEntryNr(cmdHistInput):
+                isQuickCmdPossible = True
+            else:
+                print("Invalid quick commands history entry number! Please try again.")
+        else:
+            print("Quick history is disabled. Please enable it and try again!")
+        return isQuickCmdPossible
+
     def __handleHelpRequest__(self, helpInput, out):
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
-        if helpInput == "?":
-            self.__displayGeneralHelp__(syncedCurrentDir, fallbackPerformed)
-        elif helpInput == "?clip":
-            self.__displayClipboardHelp__(syncedCurrentDir, fallbackPerformed)
-        elif helpInput == "?ren":
-            self.__displayRenamingHelp__(syncedCurrentDir, fallbackPerformed)
+        if helpInput in ["?", "?clip", "?ren"]:
+            os.system("clear")
+            if self.isQuickHistEnabled:
+                self.__toggleQuickHistory__()
+                print("----------------------------------")
         else:
             assert False, "Invalid help option"
+        if helpInput == "?":
+            out.displayGeneralHelp(syncedCurrentDir, fallbackPerformed)
+        elif helpInput == "?clip":
+            out.displayClipboardHelp(syncedCurrentDir, fallbackPerformed)
+        else:
+            out.displayRenamingHelp(syncedCurrentDir, fallbackPerformed)
+        out.displayHelpMenuFooter()
 
     def __handleCloseApplication__(self, previousCommand):
         navModifiedByPreviousSession = self.nav.closeNavigation()
@@ -312,35 +343,22 @@ class Application:
         if len(prevCommand) > 0:
             prevCommandFinishingStatus = "successfully" if self.cmd.getPreviousCommandSuccess() else "with errors"
         out.displayGeneralOutputUpperSection(syncedCurrentDir, self.nav.getPreviousDirectory(), prevCommand, prevCommandFinishingStatus)
-        if self.isQuickNavHistEnabled:
-            self.__displayQuickNavigationHistory__()
+        if self.isQuickHistEnabled:
+            self.__displayQuickHistory__()
         out.displayGeneralOutputLowerSection(self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.nav.isSyncWithFinderEnabled())
 
-    def __displayGeneralHelp__(self, currentDir, fallbackOccurred):
-        out.displayGeneralHelp(currentDir, fallbackOccurred)
-        if self.isQuickNavHistEnabled:
-            self.__displayQuickNavigationHistory__()
-        out.displayHelpMenuFooter()
-
-    def __displayClipboardHelp__(self, currentDir, fallbackOccurred):
-        out.displayClipboardHelp(currentDir, fallbackOccurred)
-        if self.isQuickNavHistEnabled:
-            self.__displayQuickNavigationHistory__()
-        out.displayHelpMenuFooter()
-
-    def __displayRenamingHelp__(self, currentDir, fallbackOccurred):
-        out.displayRenamingHelp(currentDir, fallbackOccurred)
-        if self.isQuickNavHistEnabled:
-            self.__displayQuickNavigationHistory__()
-        out.displayHelpMenuFooter()
-
-    def __displayQuickNavigationHistory__(self):
-        print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+    def __displayQuickHistory__(self):
+        print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
         print("")
         print("Last visited directories (enter < or ,, followed by entry number to re-visit the directory or its parent):")
         print("")
         self.nav.displayQuickNavigationHistory()
         print("")
-
+        print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+        print("")
+        print("Last executed commands (short commands excluded; enter - or + followed by entry number to execute/edit the command)")
+        print("")
+        self.cmd.displayQuickCommandsHistory()
+        print("")
 application = Application()
 application.execute()

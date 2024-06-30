@@ -44,6 +44,13 @@ class NavCmdCommon:
     def isHistoryMenuEmpty(self):
         return len(self.consolidatedHistory) == 0
 
+    def isValidQuickHistoryEntryNr(self, userInput):
+        isValid = False
+        if len(userInput) > 0 and userInput.isdigit():
+            quickNavEntryNr = int(userInput)
+            isValid = quickNavEntryNr > 0 and quickNavEntryNr <= len(self.recentHistory) and quickNavEntryNr <= self.settings.q_hist_max_entries
+        return isValid
+
     def close(self):
         filesReconciled = False
         if self.__relevantFilesModifiedAfterStartup__():

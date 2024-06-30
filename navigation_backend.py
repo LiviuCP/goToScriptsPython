@@ -71,13 +71,6 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
             pathRemoved = True
         return pathRemoved
 
-    def isValidQuickNavHistoryEntryNr(self, userInput):
-        isValid = False
-        if len(userInput) > 0 and userInput.isdigit():
-            quickNavEntryNr = int(userInput)
-            isValid = quickNavEntryNr > 0 and quickNavEntryNr <= len(self.recentHistory) and quickNavEntryNr <= navset.q_hist_max_entries
-        return isValid
-
     def removeMissingDir(self, pathToRemove):
         assert len(pathToRemove) > 0, "Empty path argument detected"
         self.__removeFromDailyLog__(pathToRemove)

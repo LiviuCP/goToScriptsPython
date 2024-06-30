@@ -12,6 +12,7 @@ p_num_hist_file = home_dir + ".persistent_command_history_numbers" # file contai
 
 r_hist_max_entries = 10 # maximum number of commands to be stored in recent commands history (and displayed in consolidated commands history)
 p_hist_max_entries = 15 # maximum number of entries (commands + visits) to be displayed in consolidated commands history
+q_hist_max_entries = 5 # maximum number of entries to be displayed in the quick commands history
 max_filtered_hist_entries = 5 # maximum number of commands to be displayed when filtering persistent commands history
 min_command_size = 10 # minimum number of characters an executed shell command should have to be stored in recent and persistent commands history
 
