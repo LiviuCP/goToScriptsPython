@@ -11,31 +11,31 @@ def displayGeneralOutputUpperSection(currentDir, prevDir, prevCommand, prevComma
         lastCommand = prevCommand
         lastCommandFinishingStatus = prevCommandFinishingStatus
     print("")
-    print("*********************************************************************************************************************************************************")
+    print("***************************************************************************************************************************************************************************************")
     print("")
     print(f"Current directory: {currentDir}")
     print(f"Previous directory: {previousDirectory}")
     print("")
-    print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+    print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Directory content (hidden items are excluded):")
     print("")
     displayDirContent(currentDir)
     print("")
-    print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+    print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
     print("Last executed shell command", end='')
-    print(f" (finished {lastCommandFinishingStatus}):") if lastCommandFinishingStatus != "" else print(":")
+    print(f" (finished {lastCommandFinishingStatus}): ", end='') if lastCommandFinishingStatus != "" else print(": ", end='')
     print(lastCommand)
     print("")
 
 def displayGeneralOutputLowerSection(navigationFilter, commandsFilter, clipboardAction, clipboardKeyword, clipboardSourceDir, recursiveTargetDir):
-    print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+    print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
-    print("Last used navigation filter: ", end='')
-    print(navigationFilter) if len(navigationFilter) > 0 else print("none")
-    print("Last used commands filter: ", end='')
-    print(commandsFilter) if len(commandsFilter) > 0 else print("none")
+    print("Last used filters: (navigation: ", end='')
+    print(navigationFilter, end='') if len(navigationFilter) > 0 else print("none", end='')
+    print(" / commands: ", end='')
+    print(f"{commandsFilter})") if len(commandsFilter) > 0 else print("none)")
     print("Clipboard action: ", end='')
     if len(clipboardAction) > 0:
         assert len(clipboardKeyword) > 0, "Invalid clipboard keyword"
@@ -48,10 +48,9 @@ def displayGeneralOutputLowerSection(navigationFilter, commandsFilter, clipboard
     print("Recursive transfer target directory: ", end='')
     print(recursiveTargetDir) if len(recursiveTargetDir) > 0 else print("none")
     print("")
-    print("*********************************************************************************************************************************************************")
+    print("***************************************************************************************************************************************************************************************")
     print("")
-    print("Enter the path of the directory you want to visit (press ENTER to return to the home dir).")
-    print("Enter ? for the list of of available commands or ! to quit navigation mode.")
+    print("Enter the path of the directory you want to visit (press ENTER to return to the home dir, enter ? for help or ! to quit).")
     print("")
 
 def displayDirContent(dirPath):
@@ -81,7 +80,7 @@ def displayDirContent(dirPath):
 
 # to be updated: number of columns should be dynamically determined depending on screen size and number of files/dirs contained in current dir
 def printDirContentToColumns(content):
-    nrColumns = 4
+    nrColumns = 5
     # add padding items so elements are equally distributed among rows
     extraItems = len(content) % nrColumns
     if extraItems != 0:
@@ -90,7 +89,7 @@ def printDirContentToColumns(content):
     # print to colums, Z-sorted, ascending
     for rowNr in range(len(content) // nrColumns):
         baseIndex = rowNr * nrColumns
-        print('{0:<40s} {1:<40s} {2:<40s} {3:<40s}'.format(content[baseIndex], content[baseIndex + 1], content[baseIndex + 2], content[baseIndex + 3]))
+        print('{0:<40s} {1:<40s} {2:<40s} {3:<40s} {4:<40s}'.format(content[baseIndex], content[baseIndex + 1], content[baseIndex + 2], content[baseIndex + 3], content[baseIndex + 4]))
     print("")
 
 def displayGeneralHelp(currentDir, fallbackOccurred):

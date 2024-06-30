@@ -344,13 +344,13 @@ class Application:
         out.displayGeneralOutputLowerSection(self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir())
 
     def __displayQuickHistory__(self):
-        print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+        print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
         print("")
         print("Last visited directories (enter < or ,, followed by entry number to re-visit the directory or its parent):")
         print("")
         self.nav.displayQuickNavigationHistory()
         print("")
-        print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
+        print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
         print("")
         print("Last executed commands (short commands excluded; enter - or + followed by entry number to execute/edit the command)")
         print("")
