@@ -128,6 +128,7 @@ def displayGeneralHelp(currentDir, fallbackOccurred):
     print("")
     print("For direct navigation to a quick history (after enabling it, see above) or favorites menu entry please enter < or > followed by the entry number.")
     print("For executing a command from quick history (after enabling it, see above) please enter - followed by the entry number.")
+    print("For editing a command from quick history (after enabling it, see above) please enter + followed by the entry number.")
     print("For filtering navigation history (excluding favorites) please enter << followed by a search keyword.")
     print("For filtering favorites please enter >> followed by a search keyword.")
     print("Multiple search filters are allowed for navigation history, favorites and command history filtering (only results matching all filters are being displayed).")

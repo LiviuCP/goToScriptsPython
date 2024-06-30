@@ -355,7 +355,7 @@ The quick navigation history is displayed within main navigation context. It con
 
 The navigation to the chosen entry is performed by entering < followed by entry number. Please note that the number should be valid, i.e. it needs to be a valid integer pointing to one of the listed entries. If the entry number is out-of-range or contains invalid (non-numeric) characters, then an error will be triggered. The user should correct the input and retry.
 
-The quick history might also contain commands if a recent commands history is available. To access a command enter character - followed by the entry number. This will trigger the execution of the chosen command. Same rules apply regarding entry number validity and quick history enablement as for navigation.
+The quick history might also contain commands if a recent commands history is available. To access a command enter character '-' followed by the entry number. This will trigger the execution of the chosen command. In order to edit it prior to executing, enter character '+' followed by entry number. Same rules apply regarding entry number validity and quick history enablement as for navigation.
 
 By default the quick history is disabled, so it doesn't clutter the main menu unnecessarily. To enable it, enter option :q from main navigation page or another menu. To disable it, enter the same option again. Please note that the quick history is persistent during the entire session unless disabled. It goes off when exiting the script.
 
@@ -368,7 +368,6 @@ Last but not least, when using the navigation section of the quick menu, it is a
 Notes:
 - to modify the number of displayed entries, please change the variable q_hist_max_entries from navigation_settings.py to the desired value (default is 5 and it is recommended to keep it small).
 - when accessing the parent directory, an empty entry number (namely entering only ,,) is considered invalid and the same error is triggered as when the other validity criteria (mentioned above) are not fulfilled. The user should retry by entering a valid entry number.
-- for commands currently only the execution mode is available. An edit mode might also be implemented in the future.
 
 7. HANDLING MISSING DIRECTORIES
 

@@ -158,10 +158,11 @@ class Application:
         elif userInput == "->":
             result = self.nav.removeDirFromFavorites()
             self.appStatus = computeNewAppStatus(result, self.appStatus, checkInputForwarding = True)
-        elif len(userInput) > 1 and userInput[0] == '-' and userInput[1] != '>':
+        elif len(userInput) > 1 and userInput[0] in ['-', '+'] and userInput[1] != '>':
             cmdHistInput = userInput[1:]
             if self.__isQuickCommandPossible__(cmdHistInput):
-                result = self.__setContext__(contexts_dict[":<"],  cmdHistInput)
+                contextsDictKey = ":<" if userInput[0] == '-' else "::"
+                result = self.__setContext__(contexts_dict[contextsDictKey],  cmdHistInput)
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif userInput == ":clearnavigation":
             self.nav.clearVisitedDirsMenu()
@@ -351,7 +352,7 @@ class Application:
         print("")
         print("---------------------------------------------------------------------------------------------------------------------------------------------------------")
         print("")
-        print("Last executed commands (short commands excluded) - under construction")
+        print("Last executed commands (short commands excluded; enter - or + followed by entry number to execute/edit the command)")
         print("")
         self.cmd.displayQuickCommandsHistory()
         print("")
