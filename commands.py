@@ -101,7 +101,7 @@ class Commands:
         assert mode in ["--edit", "--execute"], "Invalid mode argument provided"
         os.system("clear")
         filteredEntries = []
-        isValidQuickHistEntryNr = self.isValidQuickCmdHistoryEntryNr(filterKey);
+        isValidQuickHistEntryNr = self.cmd.isValidQuickHistoryEntryNr(filterKey);
         if self.cmd.isHistoryMenuEmpty():
             print("There are no entries in the command history menu.")
             userInput = ""
@@ -172,7 +172,7 @@ class Commands:
 
     """ checks the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent commands history) """
     def isValidQuickCmdHistoryEntryNr(self, userInput):
-        return self.cmd.isValidQuickCmdHistoryEntryNr(userInput)
+        return self.cmd.isValidQuickHistoryEntryNr(userInput)
 
     """ requests closing the commands functionality in an orderly manner when application gets closed """
     def closeCommands(self):

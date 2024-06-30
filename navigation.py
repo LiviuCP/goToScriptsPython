@@ -162,7 +162,7 @@ class Navigation:
 
     """ checks the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent navigation history) """
     def isValidQuickNavHistoryEntryNr(self, userInput):
-        return self.nav.isValidQuickNavHistoryEntryNr(userInput)
+        return self.nav.isValidQuickHistoryEntryNr(userInput)
 
     """ requests closing the navigation functionality in an orderly manner when application gets closed """
     def closeNavigation(self):

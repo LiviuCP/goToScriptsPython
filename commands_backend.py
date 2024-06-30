@@ -32,14 +32,6 @@ class CommandsBackend(nvcdcmn.NavCmdCommon):
         cpHistEntries.sort(key = lambda k: k.lower())
         self.__doConsolidateHistory__(cpHistEntries)
 
-    # TODO: move to nav_cmd_common.py
-    def isValidQuickCmdHistoryEntryNr(self, userInput):
-        isValid = False
-        if len(userInput) > 0 and userInput.isdigit():
-            quickCmdEntryNr = int(userInput)
-            isValid = quickCmdEntryNr > 0 and quickCmdEntryNr <= len(self.recentHistory) and quickCmdEntryNr <= cmdset.q_hist_max_entries
-        return isValid
-
 """ command execution helper functions """
 def isSensitiveCommand(command):
     assert len(command) > 0, "Empty command argument detected"
