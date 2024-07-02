@@ -335,24 +335,21 @@ class Application:
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
         assert not fallbackPerformed, "Current dir fallback not allowed, should have already been performed!"
         prevCommand = self.cmd.getPreviousCommand()
-        prevCommandFinishingStatus = ""
-        if len(prevCommand) > 0:
-            prevCommandFinishingStatus = "successfully" if self.cmd.getPreviousCommandSuccess() else "with errors"
-        out.displayGeneralOutputUpperSection(syncedCurrentDir, self.nav.getPreviousDirectory(), prevCommand, prevCommandFinishingStatus)
+        out.displayGeneralOutputUpperSection(syncedCurrentDir, self.nav.getPreviousDirectory())
         if self.isQuickHistEnabled:
             self.__displayQuickHistory__()
-        out.displayGeneralOutputLowerSection(self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir())
+        out.displayGeneralOutputLowerSection(prevCommand, self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir())
 
     def __displayQuickHistory__(self):
         print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
         print("")
-        print("Last visited directories (enter < or ,, followed by entry number to re-visit the directory or its parent):")
+        print("Recently visited directories:")
         print("")
         self.nav.displayQuickNavigationHistory()
         print("")
         print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
         print("")
-        print("Last executed commands (short commands excluded; enter - or + followed by entry number to execute/edit the command)")
+        print("Recently executed commands:")
         print("")
         self.cmd.displayQuickCommandsHistory()
         print("")

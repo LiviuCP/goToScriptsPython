@@ -4,15 +4,11 @@ import commands_backend as cmd, commands_settings as cmdset, system_functionalit
 class Commands:
     def __init__(self):
         self.previousCommand = ""
-        self.previousCommandSuccess = False
         self.previousCommandsFilter = ""
         self.cmd = cmd.CommandsBackend()
 
     def getPreviousCommand(self):
         return self.previousCommand
-
-    def getPreviousCommandSuccess(self):
-        return self.previousCommandSuccess
 
     def getPreviousCommandsFilter(self):
         return self.previousCommandsFilter
@@ -24,12 +20,11 @@ class Commands:
         if (cmd.isSensitiveCommand(command)):
             command = handleSensitiveCommand(command)
         if command is not None:
-            print(f"Entered command is being executed: {command}")
+            print(f"Entered command launched: {command}")
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
             result = self.__executeCommand__(command)
-            finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-            print(f"Entered command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
+            print("Entered command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
         return result
 
     """ execute (repeat) previous command """
@@ -40,12 +35,11 @@ class Commands:
             if (cmd.isSensitiveCommand(command)):
                 command = handleSensitiveCommand(command)
             if command is not None:
-                print(f"Repeated command is being executed: {command}")
+                print(f"Repeated command launched: {command}")
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 result = self.__executeCommand__(command)
-                finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
+                print("Repeated command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
         else:
             print("No shell command previously executed")
         return result
@@ -143,12 +137,11 @@ class Commands:
                 if cmd.isSensitiveCommand(commandToExecute):
                     commandToExecute = handleSensitiveCommand(commandToExecute)
                 if commandToExecute is not None:
-                    print(f"Repeated command is being executed: {commandToExecute}")
+                    print(f"Repeated command launched: {commandToExecute}")
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                     commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand__(commandToExecute)
-                    finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                    print(f"Repeated command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
+                    print("Repeated command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
                 else:
                     commandExecStatus = 2
                     status = commandExecStatus
@@ -204,12 +197,11 @@ class Commands:
                 commandToExecute = handleSensitiveCommand(commandToExecute)
             if commandToExecute is not None:
                 commandType = "Edited" if previousCommand != "" else "Entered"
-                print(f"{commandType} command is being executed: {commandToExecute}")
+                print(f"{commandType} command launched: {commandToExecute}")
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand__(commandToExecute)
-                finishingStatus = "successfully" if self.previousCommandSuccess else "with errors"
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
-                print(f"{commandType} command finished {finishingStatus}! Scroll up to check output (if any) if it exceeds the screen.")
+                print(f"{commandType} command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
                 passedInput = passedCommandExecInput
             else:
                 status = 2 # sensitive command aborted by user
@@ -221,11 +213,10 @@ class Commands:
     """ core command execution function """
     def __executeCommand__(self, command):
         assert len(command) > 0, "Empty command has been provided"
-        commandExecResult = os.system(command)
+        os.system(command)
         if len(command) >= cmd.getMinCommandSize():
             self.cmd.updateHistory(command)
         self.previousCommand = command
-        self.previousCommandSuccess = (commandExecResult == 0)
         return (0, command, "")
 
     """ Function used for displaying specific commands menus """
