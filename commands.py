@@ -21,9 +21,9 @@ class Commands:
             command = handleSensitiveCommand(command)
         if command is not None:
             print(f"Entered command launched: {command}")
-            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
             result = self.__executeCommand__(command)
-            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
             print("Entered command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
         return result
 
@@ -36,9 +36,9 @@ class Commands:
                 command = handleSensitiveCommand(command)
             if command is not None:
                 print(f"Repeated command launched: {command}")
-                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 result = self.__executeCommand__(command)
-                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 print("Repeated command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
         else:
             print("No shell command previously executed")
@@ -138,9 +138,9 @@ class Commands:
                     commandToExecute = handleSensitiveCommand(commandToExecute)
                 if commandToExecute is not None:
                     print(f"Repeated command launched: {commandToExecute}")
-                    print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                    print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                     commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand__(commandToExecute)
-                    print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                    print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                     print("Repeated command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
                 else:
                     commandExecStatus = 2
@@ -160,12 +160,20 @@ class Commands:
     """ quick commands history is part of recent history but can be accessed outside the regular history menus """
     def displayQuickCommandsHistory(self):
         (consolidatedHistory, recentHistoryEntriesCount) = self.cmd.getHistoryInfo()
-        recentHistory = consolidatedHistory[0: recentHistoryEntriesCount]
-        self.__displayFormattedCmdFileContent__(recentHistory, 0, cmdset.q_hist_max_entries)
+        if recentHistoryEntriesCount > 0:
+            assert cmdset.q_hist_max_entries > 0, "Invalid quick navigation history maximum entries count"
+            recentHistory = consolidatedHistory[0: recentHistoryEntriesCount]
+            self.__displayFormattedCmdFileContent__(recentHistory, 0, cmdset.q_hist_max_entries)
+        else:
+            print("No commands recently executed!")
 
     """ checks the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent commands history) """
     def isValidQuickCmdHistoryEntryNr(self, userInput):
         return self.cmd.isValidQuickHistoryEntryNr(userInput)
+
+    """ checks if the consolidated commands history is empty """
+    def isCommandsHistoryEmpty(self):
+        return self.cmd.isHistoryMenuEmpty()
 
     """ requests closing the commands functionality in an orderly manner when application gets closed """
     def closeCommands(self):
@@ -198,9 +206,9 @@ class Commands:
             if commandToExecute is not None:
                 commandType = "Edited" if previousCommand != "" else "Entered"
                 print(f"{commandType} command launched: {commandToExecute}")
-                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand__(commandToExecute)
-                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+                print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 print(f"{commandType} command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
                 passedInput = passedCommandExecInput
             else:

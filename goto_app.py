@@ -166,10 +166,8 @@ class Application:
                 contextsDictKey = ":<" if userInput[0] == '-' else "::"
                 result = self.__setContext__(contexts_dict[contextsDictKey],  cmdHistInput)
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
-        elif userInput == ":clearnavigation":
-            self.nav.clearVisitedDirsMenu()
-        elif userInput == ":clearcommands":
-            self.cmd.clearCommandsHistory()
+        elif userInput in [":clearnavigation", ":clearcommands"]:
+            self.__handleClearHistory__(userInput)
         elif userInput in [":c", ":m", ":y", ":ec", ":dc"]:
             self.__handleClipboardInput__(userInput)
         elif userInput in [":td", ":M", ":C", ":etd", ":dtd"]:
@@ -179,7 +177,10 @@ class Application:
         elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":
             print("Input cancelled, no action performed!")
         elif userInput == ":q":
-            self.__toggleQuickHistory__()
+            if self.__isHistoryEmpty__():
+                print("Cannot open quick history! There are no navigation or commands history entries.")
+            else:
+                self.__toggleQuickHistory__()
         elif userInput in ["?", "?clip", "?ren"]:
             self.__handleHelpRequest__(userInput, out)
         elif userInput == ":s":
@@ -225,6 +226,19 @@ class Application:
             self.recursiveTransfer.displayTargetDir()
         else:
             assert False, "Invalid recursive transfer option"
+
+    def __handleClearHistory__(self, keyword):
+        assert keyword in [":clearnavigation", ":clearcommands"]
+        print(f"Are you sure you want to clear the {keyword[6:]} history?")
+        choice = common.getInputWithTextCondition("Enter your choice (y/n): ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
+                                              "Invalid choice selected. Please try again")
+        os.system("clear")
+        if choice.lower() == "n":
+            print("Aborted")
+        else:
+            self.nav.clearVisitedDirsMenu() if keyword == ":clearnavigation" else self.cmd.clearCommandsHistory()
+            if self.isQuickHistEnabled and self.__isHistoryEmpty__():
+                self.__toggleQuickHistory__()
 
     ''' Contexts are related to main menus:
         - navigation history
@@ -353,9 +367,13 @@ class Application:
         print("")
         print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
         print("")
-        print("Recently executed commands:")
+        print("Recently executed commands (short commands excluded):")
         print("")
         self.cmd.displayQuickCommandsHistory()
         print("")
+
+    def __isHistoryEmpty__(self):
+        return self.nav.isNavigationHistoryEmpty() and self.cmd.isCommandsHistoryEmpty()
+
 application = Application()
 application.execute()

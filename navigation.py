@@ -165,12 +165,20 @@ class Navigation:
     """ quick navigation history is part of recent history but can be accessed outside the regular history menus """
     def displayQuickNavigationHistory(self):
         (consolidatedHistory, recentHistoryEntriesCount) = self.nav.getHistoryInfo()
-        recentHistory = consolidatedHistory[0: recentHistoryEntriesCount]
-        self.__displayFormattedNavFileContent__(recentHistory, 0, navset.q_hist_max_entries)
+        if recentHistoryEntriesCount > 0:
+            assert navset.q_hist_max_entries > 0, "Invalid quick navigation history maximum entries count"
+            recentHistory = consolidatedHistory[0: recentHistoryEntriesCount]
+            self.__displayFormattedNavFileContent__(recentHistory, 0, navset.q_hist_max_entries)
+        else:
+            print("No directories recently visited!")
 
     """ checks the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent navigation history) """
     def isValidQuickNavHistoryEntryNr(self, userInput):
         return self.nav.isValidQuickHistoryEntryNr(userInput)
+
+    """ checks if the consolidated navigation history is empty """
+    def isNavigationHistoryEmpty(self):
+        return self.nav.isHistoryMenuEmpty()
 
     """ requests closing the navigation functionality in an orderly manner when application gets closed """
     def closeNavigation(self):
