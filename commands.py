@@ -160,12 +160,20 @@ class Commands:
     """ quick commands history is part of recent history but can be accessed outside the regular history menus """
     def displayQuickCommandsHistory(self):
         (consolidatedHistory, recentHistoryEntriesCount) = self.cmd.getHistoryInfo()
-        recentHistory = consolidatedHistory[0: recentHistoryEntriesCount]
-        self.__displayFormattedCmdFileContent__(recentHistory, 0, cmdset.q_hist_max_entries)
+        if recentHistoryEntriesCount > 0:
+            assert cmdset.q_hist_max_entries > 0, "Invalid quick navigation history maximum entries count"
+            recentHistory = consolidatedHistory[0: recentHistoryEntriesCount]
+            self.__displayFormattedCmdFileContent__(recentHistory, 0, cmdset.q_hist_max_entries)
+        else:
+            print("No commands recently executed!")
 
     """ checks the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent commands history) """
     def isValidQuickCmdHistoryEntryNr(self, userInput):
         return self.cmd.isValidQuickHistoryEntryNr(userInput)
+
+    """ checks if the consolidated commands history is empty """
+    def isCommandsHistoryEmpty(self):
+        return self.cmd.isHistoryMenuEmpty()
 
     """ requests closing the commands functionality in an orderly manner when application gets closed """
     def closeCommands(self):

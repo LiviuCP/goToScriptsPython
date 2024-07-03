@@ -368,6 +368,7 @@ Last but not least, when using the navigation section of the quick menu, it is a
 Notes:
 - to modify the number of displayed entries, please change the variable q_hist_max_entries from navigation_settings.py to the desired value (default is 5 and it is recommended to keep it small).
 - when accessing the parent directory, an empty entry number (namely entering only ,,) is considered invalid and the same error is triggered as when the other validity criteria (mentioned above) are not fulfilled. The user should retry by entering a valid entry number.
+- the quick history cannot be accessed when both the navigation and commands history are empty. Also if both consolidated history menus are emptied while quick history is enabled, then it gets automatically disabled. It can be re-enabled as soon as at least one directory is visited and/or at least one command that has more characters than the setup threshold (see section 6.6 for more details) is executed.
 
 7. HANDLING MISSING DIRECTORIES
 
@@ -477,7 +478,7 @@ To conclude, the goal of reconciling data of multiple sessions is to obtain a cl
 
 11. MISCELLANEOUS
 
-1) It is possible to erase all entries from history, which means all history data is erased. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the navigation favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :clearnavigation and hit ENTER in order to clear the navigation history. For command history type :clearcommands and hit ENTER.
+1) It is possible to erase all entries from history, which means all history data is erased. When this happens there are no more entries in the consolidated history menu and viewing that menu is disabled (a warning will be issued by script). However the navigation favorites menu retains its entries, yet the number of visits mentioned in excluded history is 0. Type :clearnavigation and hit ENTER in order to clear the navigation history. For command history type :clearcommands and hit ENTER. In each case the user will be prompted to confirm the clear operation. Type y + ENTER to confirm or n + ENTER to abort.
 
 2) Unlike the equivalent BASH-only scripts (that can be downloaded from the goToScripts repo: https://github.com/LiviuCP/gotoScripts.git), when exiting the Python script (either by entering ! or CTRL+C / CTRL+D) the current directory is not retained but the terminal will revert to the original directory that was current when launching goto_app.py.
 
