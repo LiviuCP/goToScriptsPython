@@ -1,5 +1,5 @@
 import os
-import navigation_settings as navset
+import navigation_settings as navset, commands_settings as cmdset
 
 def displayGeneralOutputUpperSection(currentDir, prevDir):
     assert os.path.exists(currentDir), "Invalid current directory path!"
@@ -23,7 +23,10 @@ def displayGeneralOutputLowerSection(prevCommand, navigationFilter, commandsFilt
         lastCommand = prevCommand
     print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("")
-    print(f"Last executed command: [ {lastCommand} ]")
+    print("Last executed command", end='')
+    if lastCommand != "none" and len(lastCommand) < cmdset.min_command_size:
+        print(" (short)", end='')
+    print(f": [ {lastCommand} ]")
     print("Last used filters: (navigation: ", end='')
     print(f"{navigationFilter}", end='') if len(navigationFilter) > 0 else print("[ none ]", end='')
     print(" / commands: ", end='')

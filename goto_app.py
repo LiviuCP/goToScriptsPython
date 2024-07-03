@@ -349,7 +349,7 @@ class Application:
         print("")
         print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
         print("")
-        print("Recently executed commands:")
+        print("Recently executed commands (short commands excluded):")
         print("")
         self.cmd.displayQuickCommandsHistory()
         print("")
