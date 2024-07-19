@@ -9,6 +9,7 @@ l_hist_file = log_dir + datetime.datetime.now().strftime("%Y%m%d") # daily log f
 r_hist_file = home_dir + ".recent_command_history" # file containing the most recently executed commands
 p_str_hist_file = home_dir + ".persistent_command_history_strings" # file containing the persistent history commands
 p_num_hist_file = home_dir + ".persistent_command_history_numbers" # file containing the number of times each shell command was executed
+aliases_file = home_dir + ".aliases.json" # file containing user-defined aliases for shell commands
 
 r_hist_max_entries = 10 # maximum number of commands to be stored in recent commands history (and displayed in consolidated commands history)
 p_hist_max_entries = 15 # maximum number of entries (commands + visits) to be displayed in consolidated commands history

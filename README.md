@@ -143,7 +143,7 @@ From navigation mode enter -> and press RETURN. A menu will be opened. Choose th
 
 It is possible to execute regular shell commands (like cd, ls, etc.) or other scripts from the application.
 
-In order to do this you just need to enter the : character followed by the actual command and press ENTER. For example in order to execute 'ls -l' enter ':ls -l'.
+In order to do this you just need to enter the : character followed by the actual command and press ENTER. For example in order to execute 'ls -l' enter ':ls -l'. It is possible to use an alias as well (for more details please check section 5.17).
 
 To repeat the last executed command just enter the :- characters and press ENTER.
 
@@ -360,6 +360,57 @@ Note: the functionality is active whenever a command is being launched to execut
 - repeating the previous command without modifying it (option :-)
 
 I strongly recommend using this functionality by extending and refining the list of sensitive keywords and carefully checking the command and current directory prior to choosing the 'y' option. The principle "better safe than sorry" has a good application in this situation.
+
+5.17. Command aliases
+
+Even if this script has a command history functionality, in some situations it might be more efficient to use an alias as a shorthand for a specific command. For this purpose, the alias functionality has been created as a built-in feature of this application. It resembles the aliases supported by the UNIX shell, however compared to them it has some limitations. For example the alias keyword can only be used at the beginning of a command.
+
+The aliases implemented in this app work as follows:
+- the application reads the command string
+- the substring until the first encountered space is checked against the keys from an aliases dictionary
+- if a match is found, then it is substituted with the corresponding value (alias content) from the dictionary
+- the resulting expanded command is launched into execution
+
+A simple example would be a shell command that counts the number of files/subdirs from the current directory. The command is: ls -l | wc -l. For the first part, an alias ll=ls -l might be used, which means the user would enter: ll | wc -l. When entering the "aliased" command (ll | wc -l), the application searches the dictionary, expands the command by replacing ll with ls -l and subsequently executes the resulting string. The only requirement is that the user previously "registered" this alias, otherwise no expansion can be performed. The command would be executed exactly as entered resulting in a shell error (there is no ll command in the UNIX shell). For more details regarding alias registration see next subsection.
+
+Notes:
+- regarding above example, it is currently not possible to use an alias for wc -l in the same time, i.e. ll | wl, where wl is an alias for wc -l. This might get supported in future app update. Instead an alias could be employed for the whole expression, for example alias ic ("items count"): ic=ls -l | wc -l.
+- it is not supported to use an alias which expands to a string containing other aliases. The reason is that the expansion of the command is not performed recursively but only for the first keyword. An example of recursive aliasing would be having an alias ll for 'ls -l' and an alias ic with content 'll | wc -l'.
+
+5.17.1. Registering an alias
+
+In order to use an alias within a command, it is required to have it first registered, i.e. stored in the aliases dictionary. Actually this map is loaded from/saved to a JSON file which resides in the user home directory (more details below). The application provides support for entering, modifying or removing one or more aliases in a single interactive session.
+
+Enter :a and press ENTER in order to access the aliases maintenance menu. An interactive "loop" is opened, where the user is first asked to enter the alias and then the content (expansion). For example, the 'll' can be entered as alias followed by content 'ls -l'. Then another alias and corresponding content is being asked for and so on.
+
+The menu enables three operations:
+- entering a new alias that is not contained within dictionary/JSON: the alias and content should be entered as already mentioned above
+- modifying the content of an existing alias: the alias should be entered followed by the new content which subsequently overrides the old one
+- deleting an alias: the alias should be entered and when entering the content the user should just press ENTER
+
+After finishing the data entry process, the user should directly press ENTER when asked to enter a new alias. A prompt with the performed changes asking the user to acknowledge them is being displayed. The user should enter 'y' (yes) to save the changes or 'n' to cancel them. If the changes are cancelled, they are lost and the user should resume the process in case adding/modifying/deleting aliases is required.
+
+To be noted:
+- a JSON file (.aliases.json) located within user home directory is being employed for storing all aliases and for loading them when the script is launched. When entering the interactive menu, the aliases JSON file would be automatically reloaded if it was previously modified by another script session. The JSON file is named as a hidden item in order to prevent manual changes. It is recommended to update it exclusively via app by using the already mentioned maintenance menu.
+- while in maintenance menu, each change performed on an alias overrides the previous one. For example if the user entered alias rmd=rm -r and then alias rmd=rmdir, then the last change is the one to be applied. This includes cancelling entering a new alias by entering it again and hitting ENTER for its content. On the reverse side the user can also cancel a removal by re-entering the alias with the same previous content or a modified one. To be on the safe side, the user should carefully check the list of changes before acknowledging them with the 'y' option.
+- the alias string should be valid, meaning it should only contain alphanumeric characters. Any other characters are considered illegal and the application will trigger a warning. Also, please note that any alias string is automatically converted into lower case.
+- the saved changes are available to other script sessions that are opened AFTER performing the aliases save operation. Unlike history files, it is not necessary to close the current session in order to trigger saving to the aliases file (instead this is done by closing the maintenance menu and acknowledging the changes). If other sessions are already open when the changes take place, the aliases list will be refreshed when entering the interactive menu (:a) or the read-only menu (see next section). The entered/modified aliases would then be usable for entering commands.
+- it is advisable not to use aliases that are identical to shell command keywords (e.g. rm, rmdir etc)
+- the user should also avoid using aliases that are identical to special options used in the application. An example would be using "ra" as alias, which is identical to the rename-append option belonging to the items batch renaming functionality (see section 5.13 for more details). These aliases might not be usable as they might get "shadowed" by the special options.
+- it is not possible to remove all aliases. They can only be deleted one by one in the maintenance session.
+
+5.17.2. Checking existing aliases
+
+Enter option :A followed by the ENTER key. A list of existing aliases and corresponding expansions is being displayed. Either of these aliases can be used as a shorthand for entering a preferred command. The list is information-only, meaning there are no shortcuts for accessing a specific alias or for modifying it. Any modification should be performed via interactive (maintenance) menu (enter :a + ENTER - see previous section).
+
+Note: if the JSON file was modified by another script session, it would automatically be reloaded before displaying the list of available aliases.
+
+5.17.3. Entering a command with an alias
+
+The command can be entered as any other command with the caveat that the alias should be the starting keyword. The entered string should therefore have following format:
+:[alias] [remaing command options/arguments]
+
+An example would be entering :emacs myFile.txt on MacOS. In this case "emacs" would be used as an alias for 'open -a emacs'. Using this alias also ensures "compatibility" with Linux systems, where the open command with option -a is not being required for opening an application. The user can then have a seamless back-and-forth transition between these OS-es.
 
 6. THE HISTORY FUNCTIONALITY
 
