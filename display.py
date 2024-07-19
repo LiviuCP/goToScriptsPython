@@ -113,6 +113,8 @@ def displayGeneralHelp(currentDir, fallbackOccurred):
     print(";[d]  -  go to ancestor directory located at depth d (e.g. ;3 is equivalent to entering relative path ../../..)")
     print("+>    -  add current directory to favorites")
     print("->    -  remove a directory from favorites")
+    print(":a    -  enter command aliases maintenance menu")
+    print(":A    -  display available command aliases")
     print("")
     print("Quick history should be enabled (see above) in order to access its entries. Access is allowed only from main navigation page:")
     print("- for direct navigation to a quick history navigation entry please enter < followed by the entry number")

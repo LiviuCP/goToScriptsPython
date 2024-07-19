@@ -170,6 +170,10 @@ class Application:
             self.__handleClipboardInput__(userInput)
         elif userInput in [":td", ":M", ":C", ":etd", ":dtd"]:
             self.__handleRecursiveTransferInput__(userInput)
+        elif userInput == ":a":
+            self.cmd.visitAliasesMaintenanceMenu()
+        elif userInput == ":A":
+            self.cmd.displayAliases()
         elif userInput.startswith(":") and userInput[1:] in renaming_commands:
             rn.rename(renaming_translations[userInput[1:]])
         elif len(userInput) > 1 and userInput[len(userInput)-1] == ":":

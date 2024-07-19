@@ -3,6 +3,7 @@ import commands_backend as cmd, commands_settings as cmdset, system_functionalit
 
 class Commands:
     def __init__(self):
+        self.rawCommand = "" # command as entered by user (might contain unexpanded aliases)
         self.previousCommand = ""
         self.previousCommandsFilter = ""
         self.cmd = cmd.CommandsBackend()
@@ -16,30 +17,35 @@ class Commands:
     """ execute new command """
     def executeCommand(self, command):
         assert len(command) > 0, "Empty argument detected for 'command'"
+        command = self.__expandCommand__(command)
         result = (0, "", "")
         if (cmd.isSensitiveCommand(command)):
-            command = handleSensitiveCommand(command)
+            command = handleSensitiveCommand(self.rawCommand)
         if command is not None:
-            print(f"Entered command launched: {command}")
+            print(f"Entered command launched: {self.rawCommand}")
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
             result = self.__executeCommand__(command)
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
             print("Entered command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
+        else:
+            self.rawCommand = ""
         return result
 
     """ execute (repeat) previous command """
     def executePreviousCommand(self):
         result = None
         if len(self.previousCommand) > 0:
-            command = self.previousCommand
+            command = self.__expandCommand__(self.previousCommand)
             if (cmd.isSensitiveCommand(command)):
-                command = handleSensitiveCommand(command)
+                command = handleSensitiveCommand(self.rawCommand)
             if command is not None:
-                print(f"Repeated command launched: {command}")
+                print(f"Repeated command launched: {self.rawCommand}")
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 result = self.__executeCommand__(command)
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 print("Repeated command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
+            else:
+                self.rawCommand = ""
         else:
             print("No shell command previously executed")
         return result
@@ -133,16 +139,17 @@ class Commands:
             passedCommandExecInput = ""
             passedCommandExecOutput = ""
             if mode == "--execute":
-                commandToExecute = commandsHistoryEntry
+                commandToExecute = self.__expandCommand__(commandsHistoryEntry)
                 if cmd.isSensitiveCommand(commandToExecute):
-                    commandToExecute = handleSensitiveCommand(commandToExecute)
+                    commandToExecute = handleSensitiveCommand(self.rawCommand)
                 if commandToExecute is not None:
-                    print(f"Repeated command launched: {commandToExecute}")
+                    print(f"Repeated command launched: {self.rawCommand}")
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                     commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand__(commandToExecute)
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                     print("Repeated command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
                 else:
+                    self.rawCommand = ""
                     commandExecStatus = 2
                     status = commandExecStatus
             else:
@@ -151,6 +158,86 @@ class Commands:
                     status = 2 #aborted by user
             passedInput = passedCommandExecInput
         return (status, passedInput, "")
+
+    """ interactive menu for entering aliases """
+    def visitAliasesMaintenanceMenu(self):
+        def promptUserToSaveAliasUpdates():
+            os.system("clear")
+            addedAliases, modifiedAliases, removedAliases = self.cmd.getPendingAliasesUpdates()
+            if len(addedAliases) > 0:
+                print("Added aliases: ")
+                for alias, aliasContent in addedAliases.items():
+                    print(f"{alias}=\'{aliasContent}\'")
+                print("")
+            if len(modifiedAliases) > 0:
+                print("Modified aliases: ")
+                for alias, aliasContent in modifiedAliases.items():
+                    print(f"{alias}=\'{aliasContent}\'")
+                print("")
+            if len(removedAliases) > 0:
+                print("Removed aliases: ")
+                for alias in removedAliases:
+                    print(f"\'{alias}\'")
+                print("")
+            print("Do you want to save the changes?")
+            print("")
+            choice = common.getInputWithTextCondition("Enter your choice (y/n): ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
+                                                  "Invalid choice selected. Please try again")
+            return choice.lower() == "y"
+        self.cmd.refreshAliases()
+        print("Welcome to interactive menu for entering aliases!")
+        print("")
+        userFinishedEnteringAliases = False
+        while not userFinishedEnteringAliases:
+            print("Enter alias (press ENTER to abort): ")
+            alias = input()
+            alias = alias.strip().lower()
+            if len(alias) > 0:
+                if not cmd.isValidAlias(alias):
+                    os.system("clear")
+                    print("Invalid alias! It should only contain alphanumeric characters! Please try again")
+                    print("")
+                    continue
+                print("Enter alias content (press ENTER to remove an existing alias): ")
+                aliasContent = input()
+                aliasContent = aliasContent.strip()
+                os.system("clear")
+                if len(aliasContent) > 0:
+                    addedOrModified = self.cmd.addOrModifyAlias(alias, aliasContent)
+                    if addedOrModified:
+                        print(f"Alias \'{alias}\' marked for adding/modifying, content is: \'{aliasContent}\'!")
+                    else:
+                        print(f"Alias \'{alias}\' already exists with content \'{aliasContent}\', any previous modification request cancelled!")
+                else:
+                    removed = self.cmd.removeAlias(alias)
+                    if removed:
+                        print(f"Alias \'{alias}\' marked for removal!")
+                    else:
+                        print(f"Alias \'{alias}\' doesn't exist, nothing to remove (any previous adding request cancelled)!")
+                print("")
+            else:
+                userFinishedEnteringAliases = True
+        if self.cmd.areAliasesUpdatesPending():
+            shouldChangesBeSaved = promptUserToSaveAliasUpdates()
+            self.cmd.handleUpdatingAliasesFinished(shouldChangesBeSaved)
+            os.system("clear")
+            print("Alias changes saved!") if shouldChangesBeSaved else print("Alias changes aborted!")
+        else:
+            os.system("clear")
+            print("You exited aliases menu!")
+
+    def displayAliases(self):
+        self.cmd.refreshAliases()
+        aliases = self.cmd.getAliases()
+        if len(aliases) > 0:
+            print("Available aliases: ")
+            print("")
+            for alias, aliasContent in aliases:
+                print(f"alias {alias}=\'{aliasContent}\'")
+            print("")
+            print("Scroll up (if needed) to check all aliases.")
+        else:
+            print("There are no aliases!")
 
     """ resets the commands history """
     def clearCommandsHistory(self):
@@ -201,31 +288,40 @@ class Commands:
         if fallbackPerformed:
             out.displayFallbackMessage()
         elif commandLength > 0 and commandToExecute[commandLength-1] != ':':
+            commandToExecute = self.__expandCommand__(commandToExecute)
             if (cmd.isSensitiveCommand(commandToExecute)):
-                commandToExecute = handleSensitiveCommand(commandToExecute)
+                commandToExecute = handleSensitiveCommand(self.rawCommand)
             if commandToExecute is not None:
                 commandType = "Edited" if previousCommand != "" else "Entered"
-                print(f"{commandType} command launched: {commandToExecute}")
+                print(f"{commandType} command launched: {self.rawCommand}")
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 commandExecStatus, passedCommandExecInput, passedCommandExecOutput = self.__executeCommand__(commandToExecute)
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
                 print(f"{commandType} command finished! (or is running in the background) Scroll up to check output (if any) if it exceeds the screen.")
                 passedInput = passedCommandExecInput
             else:
+                self.rawCommand = ""
                 status = 2 # sensitive command aborted by user
         else:
             print("Command aborted. You returned to navigation menu.")
             status = 2 #aborted by user
         return (status, passedInput, "")
 
+    """ function that expands the command before executing (in case it has aliases) """
+    def __expandCommand__(self, command):
+        self.rawCommand = command # keep original command for storing in history
+        expandedCommand = self.cmd.expandCommand(self.rawCommand) # check for aliases and expand the command if required
+        return expandedCommand
+
     """ core command execution function """
     def __executeCommand__(self, command):
         assert len(command) > 0, "Empty command has been provided"
         os.system(command)
-        if len(command) >= cmd.getMinCommandSize():
-            self.cmd.updateHistory(command)
-        self.previousCommand = command
-        return (0, command, "")
+        if len(self.rawCommand) >= cmd.getMinCommandSize():
+            self.cmd.updateHistory(self.rawCommand)
+        self.previousCommand = self.rawCommand
+        self.rawCommand = ""
+        return (0, self.previousCommand, "")
 
     """ Function used for displaying specific commands menus """
     def __displayFormattedCmdFileContent__(self, fileContent, firstRowNr = 0, limit = -1):
