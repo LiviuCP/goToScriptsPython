@@ -82,8 +82,8 @@ class CommandsBackend(nvcdcmn.NavCmdCommon):
     def getAliases(self):
         return self.aliases.items()
 
-    def __loadFiles__(self, shouldOverrideRecentHistory = True):
-         super().__loadFiles__(shouldOverrideRecentHistory)
+    def __loadFiles__(self):
+         super().__loadFiles__()
          self.__loadAliasesFile__()
 
     def __loadAliasesFile__(self):
@@ -115,9 +115,11 @@ class CommandsBackend(nvcdcmn.NavCmdCommon):
         self.aliasesToRemove.clear()
 
     def __reconcileFiles__(self):
+        currentRecentHistory = self.recentHistory.copy()
         currentPersistentHistory = self.persistentHistory.copy()
         currentDailyCommandsLog = self.dailyLog.copy()
-        self.__loadFiles__(shouldOverrideRecentHistory = False) # member variables will contain the persistent history and the daily log of previous session
+        self.__loadFiles__() # reload history files of previous session
+        self.recentHistory = currentRecentHistory # restore current recent history
         # consolidate current and saved persistent history, reconcile number of times a command was executed
         for command, executionsCount in currentPersistentHistory.items():
             if command in self.persistentHistory.keys():

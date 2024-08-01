@@ -1,14 +1,8 @@
-import datetime
 from os.path import expanduser
 
 home_dir = expanduser("~") + "/" # user home directory
-log_dir = home_dir + ".goToCmdLogs/" # contains daily log commands files
 
-hist_file = home_dir + ".command_history" # consolidated commands history file
-l_hist_file = log_dir + datetime.datetime.now().strftime("%Y%m%d") # daily log file, contains all shell commands executed that day
-r_hist_file = home_dir + ".recent_command_history" # file containing the most recently executed commands
-p_str_hist_file = home_dir + ".persistent_command_history_strings" # file containing the persistent history commands
-p_num_hist_file = home_dir + ".persistent_command_history_numbers" # file containing the number of times each shell command was executed
+hist_file = home_dir + ".commands_history.json" # unified commands history file
 aliases_file = home_dir + ".aliases.json" # file containing user-defined aliases for shell commands
 
 r_hist_max_entries = 10 # maximum number of commands to be stored in recent commands history (and displayed in consolidated commands history)
