@@ -1,4 +1,4 @@
-import os
+import os, json
 import nav_cmd_common as nvcdcmn, navigation_settings as navset, system_settings as sysset, common
 from pathlib import Path
 
@@ -73,6 +73,7 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
 
     def removeMissingDir(self, pathToRemove):
         assert len(pathToRemove) > 0, "Empty path argument detected"
+        self.__checkAndHandleOutdatedDailyLog__()
         self.__removeFromDailyLog__(pathToRemove)
         removedFromRecentHistory = False
         if pathToRemove in self.recentHistory:
@@ -97,6 +98,7 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         assert len(replacingPath) > 0, "Empty replacing path argument detected!"
         replacedPathInRHist = (replacedPath in self.recentHistory)
         # handle path to replace: remove it from all required files
+        self.__checkAndHandleOutdatedDailyLog__()
         self.__removeFromDailyLog__(replacedPath)
         if replacedPathInRHist:
             self.recentHistory.remove(replacedPath)
@@ -125,20 +127,30 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
             self.__computeFavorites__()
         return (replacedPath, replacingPath)
 
-    def __loadFiles__(self, shouldOverrideRecentHistory = True):
-        super().__loadFiles__(shouldOverrideRecentHistory)
-        if os.path.isfile(navset.e_str_hist_file) and os.path.isfile(navset.e_num_hist_file):
-            nvcdcmn.readFromPermHist(navset.e_str_hist_file, navset.e_num_hist_file, self.excludedHistory)
+    def __loadFiles__(self):
+        super().__loadFiles__()
+        self.excludedHistory.clear()
+        if os.path.isfile(self.settings.e_hist_file):
+            with open(self.settings.e_hist_file, "r") as e_hist:
+                excludedHistoryAsJSON = e_hist.readline()
+                try:
+                    self.excludedHistory = json.loads(excludedHistoryAsJSON)
+                except json.JSONDecodeError:
+                    print(f"Invalid JSON file format in file: {self.settings.e_hist_file}")
 
     def __saveFiles__(self):
         super().__saveFiles__()
-        nvcdcmn.writeBackToPermHist(self.excludedHistory, navset.e_str_hist_file, navset.e_num_hist_file)
+        with open(self.settings.e_hist_file, "w") as e_hist:
+            excludedHistoryAsJSON = json.dumps(self.excludedHistory)
+            e_hist.write(excludedHistoryAsJSON)
 
     def __reconcileFiles__(self):
+        currentRecentHistory = self.recentHistory.copy()
         currentPersistentHistory = self.persistentHistory.copy()
         currentExcludedHistory = self.excludedHistory.copy()
         currentDailyLog = self.dailyLog.copy()
-        self.__loadFiles__(shouldOverrideRecentHistory = False) # member variables will contain the persistent/excluded history and the daily log of previous session
+        self.__loadFiles__() # reload history files of previous session
+        self.recentHistory = currentRecentHistory # restore current recent history
         # current recent history overrides the recent history of previous session, however the no longer existing paths should be removed
         for path in self.recentHistory[:]:
             if not os.path.exists(path):
@@ -190,15 +202,15 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         for path in excludedHistoryPathsToDelete:
             del self.excludedHistory[path]
         # daily logs of current and previous session to be consolidated; any entry that is not contained within reconciled persistent/excluded history should be removed
-        for path in self.dailyLog[:]:
+        for path in self.dailyLog:
             if not (path in self.persistentHistory or path in self.excludedHistory):
                 self.dailyLog.remove(path)
         for path in currentDailyLog:
             if not path in self.dailyLog and (path in self.persistentHistory or path in self.excludedHistory):
-                self.dailyLog.append(path)
+                self.dailyLog.add(path)
 
     def __relevantFilesModifiedAfterStartup__(self):
-        return super().__relevantFilesModifiedAfterStartup__() or (os.path.isfile(navset.e_str_hist_file) and os.path.getmtime(navset.e_str_hist_file) > self.openingTime)
+        return super().__relevantFilesModifiedAfterStartup__() or (os.path.isfile(navset.e_hist_file) and os.path.getmtime(navset.e_hist_file) > self.openingTime)
 
     def __doHistoryCleanup__(self):
         # clean up persistent history (except the most visited paths)

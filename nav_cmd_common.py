@@ -1,15 +1,19 @@
 """ common code to be used by navigation_backend.py and commands_backend.py """
 
-import os, re, time, common
+import os, re, datetime, time, json, common
 
 class NavCmdCommon:
     def __init__(self, settings):
         self.recentHistory = []
         self.persistentHistory = {}
-        self.dailyLog = []
+        self.dailyLog = set({})
         self.consolidatedHistory = []
         self.openingTime = time.time()
         self.settings = settings
+        self.persistentHistoryJSONKey = "persistent_history"
+        self.recentHistoryJSONKey = "recent_history"
+        self.dailyLogJSONKeyPrefix = "daily_log_"
+        self.dailyLogJSONKey = self.__computeDailyLogJSONKey__()
 
     def chooseHistoryMenuEntry(self, userInput):
         return self.__retrieveMenuEntry__(userInput, self.consolidatedHistory)
@@ -22,6 +26,7 @@ class NavCmdCommon:
         # handle recent history
         self.__updateRecentHistory__(entry)
         # handle permanent history
+        self.__checkAndHandleOutdatedDailyLog__()
         addedToDailyLog = self.__addToDailyLog__(entry)
         if addedToDailyLog:
             self.__updatePermanentHistory__(entry)
@@ -52,6 +57,7 @@ class NavCmdCommon:
         return isValid
 
     def close(self):
+        self.__checkAndHandleOutdatedDailyLog__()
         filesReconciled = False
         if self.__relevantFilesModifiedAfterStartup__():
             self.__reconcileFiles__()
@@ -59,49 +65,51 @@ class NavCmdCommon:
         self.__saveFiles__()
         return filesReconciled
 
-    def __loadFiles__(self, shouldOverrideRecentHistory = True):
+    def __loadFiles__(self):
+        self.recentHistory.clear()
+        self.persistentHistory.clear()
+        self.dailyLog.clear()
         recentHistory = []
         persistentHistory = {}
-        if os.path.isfile(self.settings.r_hist_file):
-            with open(self.settings.r_hist_file, "r") as rHist:
-                entriesCount = 0
-                for entry in rHist.readlines():
-                    if entriesCount == self.settings.r_hist_max_entries:
-                        break
-                    recentHistory.append(entry.strip('\n'))
-                    ++entriesCount
-        if len(recentHistory) > 0 and os.path.isfile(self.settings.p_str_hist_file) and os.path.isfile(self.settings.p_num_hist_file):
-            readFromPermHist(self.settings.p_str_hist_file, self.settings.p_num_hist_file, persistentHistory)
+        unifiedHistory = {}
+        if os.path.isfile(self.settings.hist_file):
+            with open(self.settings.hist_file, "r") as hist:
+                unifiedHistoryAsJSON = hist.readline()
+                try:
+                    unifiedHistory = json.loads(unifiedHistoryAsJSON)
+                except json.JSONDecodeError:
+                    print(f"Invalid JSON file format in file: {self.settings.hist_file}")
+        if self.recentHistoryJSONKey in unifiedHistory.keys():
+            entriesCount = 0
+            for entry in unifiedHistory[self.recentHistoryJSONKey]:
+                if entriesCount == self.settings.r_hist_max_entries:
+                    break
+                recentHistory.append(entry.strip('\n'))
+                ++entriesCount
+        if len(recentHistory) > 0 and self.persistentHistoryJSONKey in unifiedHistory.keys():
+            persistentHistory = unifiedHistory[self.persistentHistoryJSONKey]
         if len(persistentHistory) > 0:
-            if shouldOverrideRecentHistory:
-                self.recentHistory.clear()
-                for entry in recentHistory:
-                    self.recentHistory.append(entry)
-            self.persistentHistory.clear()
-            for strEntry, numEntry in persistentHistory.items():
-                self.persistentHistory[strEntry] = numEntry
-            if os.path.isfile(self.settings.l_hist_file):
-                self.dailyLog.clear()
-                with open(self.settings.l_hist_file, "r") as lHist:
-                    for entry in lHist.readlines():
-                        self.dailyLog.append(entry.strip('\n'))
+            self.recentHistory = recentHistory
+            self.persistentHistory = persistentHistory
+            if self.dailyLogJSONKey in unifiedHistory.keys():
+                for entry in unifiedHistory[self.dailyLogJSONKey]:
+                    self.dailyLog.add(entry)
 
     def __saveFiles__(self):
-        with open(self.settings.r_hist_file, "w") as rHist:
-            for entry in self.recentHistory:
-                rHist.write(entry + '\n')
-        if not os.path.exists(self.settings.log_dir):
-            os.makedirs(self.settings.log_dir)
-        with open(self.settings.l_hist_file, "w") as lHist:
+        with open(self.settings.hist_file, "w") as hist:
+            dailyLogKey = self.__computeDailyLogJSONKey__()
+            dailyLogList = []
             for entry in self.dailyLog:
-                lHist.write(entry + '\n')
-        writeBackToPermHist(self.persistentHistory, self.settings.p_str_hist_file, self.settings.p_num_hist_file)
+                dailyLogList.append(entry)
+            unifiedHistory = {self.recentHistoryJSONKey:self.recentHistory, self.persistentHistoryJSONKey:self.persistentHistory, dailyLogKey:dailyLogList}
+            unifiedHistoryAsJSON = json.dumps(unifiedHistory)
+            hist.write(unifiedHistoryAsJSON)
 
     def __reconcileFiles__(self):
         raise NotImplementedError()
 
     def __relevantFilesModifiedAfterStartup__(self):
-        return os.path.isfile(self.settings.p_str_hist_file) and os.path.getmtime(self.settings.p_str_hist_file) > self.openingTime
+        return os.path.isfile(self.settings.hist_file) and os.path.getmtime(self.settings.hist_file) > self.openingTime
 
     def __updateRecentHistory__(self, entry):
         if entry in self.recentHistory:
@@ -130,7 +138,7 @@ class NavCmdCommon:
     def __addToDailyLog__(self, entry):
         entryNotInDailyLog = entry not in self.dailyLog
         if entryNotInDailyLog:
-            self.dailyLog.append(entry)
+            self.dailyLog.add(entry)
         return entryNotInDailyLog
 
     def __removeFromDailyLog__(self, entry):
@@ -138,6 +146,16 @@ class NavCmdCommon:
         if entryInDailyLog:
             self.dailyLog.remove(entry)
         return entryInDailyLog
+
+    def __checkAndHandleOutdatedDailyLog__(self):
+        dailyLogJSONKey = self.__computeDailyLogJSONKey__()
+        if dailyLogJSONKey != self.dailyLogJSONKey:
+            self.dailyLogJSONKey = dailyLogJSONKey
+            self.dailyLog.clear()
+
+    def __computeDailyLogJSONKey__(self):
+        return self.dailyLogJSONKeyPrefix + datetime.datetime.now().strftime("%Y%m%d")
+
     """
     The returned outcome could have following special values in the first field:
     :1 - user input to be forwarded as regular input (path name/command)
@@ -152,26 +170,6 @@ class NavCmdCommon:
         else:
             output = ":4" if len(content) == 0 else ":2" if userInput == '!' else ":1"
         return (output, userInput, "")
-
-def readFromPermHist(strHistFile, numHistFile, histDict):
-    with open(strHistFile, "r") as strHist, open(numHistFile, "r") as numHist:
-        strHistList = strHist.readlines()
-        numHistList = numHist.readlines()
-        assert len(strHistList) == len(numHistList), "The number of entries contained in file " + strHistFile + " is different from the number contained in file" + numHistFile
-        histDict.clear()
-        for strEntry, numEntry in zip(strHistList, numHistList):
-            histDict[strEntry.strip('\n')] = int(numEntry.strip('\n'))
-
-def writeBackToPermHist(histDict, strHistFile, numHistFile, shouldSort = False):
-    with open(strHistFile, "w") as strHist, open(numHistFile, "w") as numHist:
-        if shouldSort:
-            for path, count in sorted(histDict.items(), key = lambda k:(k[1], k[0].lower()), reverse = True):
-                strHist.write(path + '\n')
-                numHist.write(str(count) + '\n')
-        else:
-            for path, count in histDict.items():
-                strHist.write(path + '\n')
-                numHist.write(str(count) + '\n')
 
 def buildFilteredHistory(rawContent, filterKeyword, maxFilteredHistEntries, filteredContent):
     assert len(filterKeyword) > 0, "Empty filter keyword found"

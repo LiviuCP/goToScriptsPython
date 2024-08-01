@@ -526,7 +526,12 @@ The fallback mechanism has been designed for increasing the resiliency of the ap
 
 8. DATA RECONCILING
 
-The application does not modify its files at runtime, meaning all operations occur in-memory. This was implemented in order to fully support running multiple sessions in the same time. When the script gets launched, it starts by loading all relevant content from the application files into the required data structures. These structures are then updated during runtime as the user navigates through directories and executes shell commands. Finally, when the user decides to exit the application, the content of these data structures is written back to the files, which fully overrides them. These files include but are not limited to: persistent navigation/commands history, recent navigation/commands history, excluded navigation history.
+The application does not modify its history files at runtime, meaning all operations occur in-memory. This was implemented in order to fully support running multiple sessions in the same time. When the script gets launched, it starts by loading all relevant content from the application files into the required data structures. These structures are then updated during runtime as the user navigates through directories and/or executes shell commands. Finally, when the user decides to exit the application, the content of these data structures is written back to the history files, which fully overrides them.
+
+Three JSON files are currently used for history tracking:
+- .navigation_history.json (recent history / persistent history / daily log for visited directories)
+- .commands_history.json (recent history / persistent history / daily log for executed commands)
+- .excluded_navigation_history.json (history tracking for favorite directories)
 
 An issue might arise when at least two script sessions are active. Each session performs its own operations without being aware of the other process. At some moment in time the user might decide to close one of the sessions, which triggers saving the data to the application files. These files are obviously shared by all script sessions. Later when the other session gets closed, it will override the files again. As the sessions are unaware of each other, this would pose the risk that the changes performed by the previously closed process are lost.
 
@@ -539,9 +544,11 @@ The reconciliation process ensures that:
 - newly visited paths/executed commands are contained within history
 - newly visited paths are visible in favorites if added here by one of the sessions
 
-Note: the recent navigation/commands history is always the one from the last closed session, it overrides the ones from previous sessions.
+Notes:
+- the recent navigation/commands history is always the one from the last closed session, it overrides the ones from previous sessions.
+- the aliases JSON file is not subject to data reconciliation. The changes are being saved as per user request during the session in which they have been performed. More details in section 5.17.
 
-To conclude, the goal of reconciling data of multiple sessions is to obtain a clean persistent/excluded history by ensuring the right entries with the right number of visits/executions are present within these files after closing all sessions.
+To conclude, the goal of reconciling data from multiple sessions is to obtain a clean persistent/excluded history by ensuring the right entries with the right number of visits/executions are present within these files after closing all sessions.
 
 9. MISCELLANEOUS
 
