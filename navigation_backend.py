@@ -271,3 +271,7 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         else:
             output, userInput, unused = super().__retrieveMenuEntry__(userInput, content)
         return (output, userInput, unused)
+
+def isHomeDirectoryPath(dirPath):
+    assert len(dirPath) > 0, "Empty directory path!"
+    return os.path.normpath(dirPath) == os.path.normpath(navset.home_dir)

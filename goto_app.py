@@ -361,7 +361,7 @@ class Application:
     def __displayQuickHistory__(self):
         print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
         print("")
-        print("Recently visited directories:")
+        print("Recently visited directories (home directory excluded):")
         print("")
         self.nav.displayQuickNavigationHistory()
         print("")

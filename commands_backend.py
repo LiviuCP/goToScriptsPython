@@ -16,7 +16,7 @@ class CommandsBackend(nvcdcmn.NavCmdCommon):
         commandParts = command.split()
         aliasCandidate = commandParts[0]
         for alias, aliasReplacement in self.aliases.items():
-            if aliasCandidate == alias: #TODO: implement case sensitivity
+            if aliasCandidate == alias:
                 resultingCommand = aliasReplacement
                 break
         if len(resultingCommand) > 0:
