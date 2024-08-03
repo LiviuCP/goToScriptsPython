@@ -110,6 +110,8 @@ It is possible to navigate to a specific favorites entry without displaying the 
 
 The same rapid access mode can also be obtained with navigation history (by entering < followed by entry number), yet in this case the quick history needs to be enabled beforehand. Same as for favorite directories, if the entry number is invalid (either not in range or containing invalid characters) an error will be triggered. For more details, please check the quick history section (6.6).
 
+Note: due to its easy reachability, the user home directory is excluded from any history tracking (adding to favorites is also not allowed - an error is triggered when attempting this). This is in order to make most effective use of history entries, especially in quick history (see section 6.6 for more details).
+
 5.3. Special options for visiting directories
 
 5.3.1. Visiting the previous directory
@@ -336,6 +338,8 @@ It is possible to easily choose the replacing path from history/favorites by ent
 It is not possible to switch between history and favorites menus when choosing the replacing path. The user must first quit the re-mapping process by hitting '!' + ENTER and then restart re-mapping by choosing the invalid path from menus again.
 
 Also when choosing a valid replacing path the current directory will be switched to this path after remapping.
+
+Note: the home directory cannot be used as a replacing path in the remapping process. This is because it is excluded from any history tracking (see note from section 5.2).
 
 5.15. Adding commands to history based on command string size
 

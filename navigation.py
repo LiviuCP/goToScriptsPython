@@ -31,7 +31,9 @@ class Navigation:
             os.chdir(currentDir)
             if (prevDir != currentDir):
                 print(f"Switched to new directory: {currentDir}")
-                self.nav.updateHistory(currentDir)
+                # home dir to be excluded from any history update (is very easy to reach, no need to include it in history)
+                if not nav.isHomeDirectoryPath(currentDir):
+                    self.nav.updateHistory(currentDir)
                 self.previousDirectory = prevDir
             else:
                 print(f"Current directory remains unchanged: {currentDir}")
@@ -110,11 +112,14 @@ class Navigation:
         else:
             pathToAdd = common.getAbsoluteDirPath(dirPath)
         if len(pathToAdd) > 0:
-            pathAdded = self.nav.addPathToFavorites(pathToAdd)
-            if pathAdded:
-                print(f"Directory {pathToAdd} added to favorites.")
+            if not nav.isHomeDirectoryPath(pathToAdd):
+                pathAdded = self.nav.addPathToFavorites(pathToAdd)
+                if pathAdded:
+                    print(f"Directory {pathToAdd} added to favorites.")
+                else:
+                    print(f"Directory {pathToAdd} already added to favorites.")
             else:
-                print(f"Directory {pathToAdd} already added to favorites.")
+                print(f"Cannot add home directory {pathToAdd} to favorites!")
         else:
             os.system("clear")
             print(f"Directory {dirPath} does not exist, has been deleted or you might not have the required access level.")
@@ -307,15 +312,20 @@ class Navigation:
             if doMapping == True:
                 replacingDirPath = common.getAbsoluteDirPath(replacingDir)
                 if len(replacingDirPath) > 0:
-                    self.previousDirectory = syncedCurrentDir # prev dir to be updated to current dir in case of successful mapping
-                    replacedPath, replacingPath = self.nav.mapMissingDir(missingDirPath, replacingDirPath)
-                    os.system("clear")
-                    print(f"Missing directory: {replacedPath}")
-                    print(f"Replacing directory: {replacingPath}")
-                    print("")
-                    print("Mapping performed successfully, navigating to replacing directory ...")
-                    print("")
-                    self.goTo(replacingPath)
+                    if not nav.isHomeDirectoryPath(replacingDirPath):
+                        self.previousDirectory = syncedCurrentDir # prev dir to be updated to current dir in case of successful mapping
+                        replacedPath, replacingPath = self.nav.mapMissingDir(missingDirPath, replacingDirPath)
+                        os.system("clear")
+                        print(f"Missing directory: {replacedPath}")
+                        print(f"Replacing directory: {replacingPath}")
+                        print("")
+                        print("Mapping performed successfully, navigating to replacing directory ...")
+                        print("")
+                        self.goTo(replacingPath)
+                    else:
+                        status = 4
+                        print(f"Home directory {replacingDirPath} cannot be used as replacing directory!")
+                        print("Cannot perform mapping.")
                 else:
                     status = 4 # replacingDirPath == ":4"
                     os.system("clear")
