@@ -202,9 +202,12 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         for path in excludedHistoryPathsToDelete:
             del self.excludedHistory[path]
         # daily logs of current and previous session to be consolidated; any entry that is not contained within reconciled persistent/excluded history should be removed
+        dailyLogPathsToDelete = []
         for path in self.dailyLog:
             if not (path in self.persistentHistory or path in self.excludedHistory):
-                self.dailyLog.remove(path)
+                dailyLogPathsToDelete.append(path)
+        for path in dailyLogPathsToDelete:
+            self.dailyLog.remove(path)
         for path in currentDailyLog:
             if not path in self.dailyLog and (path in self.persistentHistory or path in self.excludedHistory):
                 self.dailyLog.add(path)
