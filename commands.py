@@ -225,6 +225,11 @@ class Commands:
         else:
             os.system("clear")
             print("You exited aliases menu!")
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the case when current dir became unavailable while in aliases menu
+        if fallbackPerformed:
+            print("")
+            print("Current directory no longer reachable (probably deleted). It has been replaced by fallback directory.")
+            print("Please resume operations by considering the new current directory.")
 
     def displayAliases(self):
         self.cmd.refreshAliases()
