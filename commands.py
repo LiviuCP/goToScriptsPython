@@ -128,7 +128,7 @@ class Commands:
         commandsHistoryEntry, chooseCommandPassedInput, chooseCommandPassedOutput = self.cmd.chooseHistoryMenuEntry(userInput) if (len(filterKey) == 0 or isValidQuickHistEntryNr) else self.cmd.chooseFilteredMenuEntry(userInput, filteredEntries)
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice
         if fallbackPerformed:
-            out.displayFallbackMessage()
+            out.printFallbackMessage()
         elif commandsHistoryEntry in [":1", ":2"]:
             status = int(commandsHistoryEntry[1])
             passedInput = chooseCommandPassedInput
@@ -225,6 +225,11 @@ class Commands:
         else:
             os.system("clear")
             print("You exited aliases menu!")
+        syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the case when current dir became unavailable while in aliases menu
+        if fallbackPerformed:
+            print("")
+            print("Current directory no longer reachable (probably deleted). It has been replaced by fallback directory.")
+            print("Please resume operations by considering the new current directory.")
 
     def displayAliases(self):
         self.cmd.refreshAliases()
@@ -286,7 +291,7 @@ class Commands:
         commandLength = len(commandToExecute)
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() #in case current dir gets unreachable before user enters input ...
         if fallbackPerformed:
-            out.displayFallbackMessage()
+            out.printFallbackMessage()
         elif commandLength > 0 and commandToExecute[commandLength-1] != ':':
             commandToExecute = self.__expandCommand__(commandToExecute)
             if (cmd.isSensitiveCommand(commandToExecute)):
