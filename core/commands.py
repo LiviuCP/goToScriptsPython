@@ -1,5 +1,8 @@
 import os, readline
-import commands_backend as cmd, commands_settings as cmdset, system_functionality as sysfunc, common, display as out
+from system import system_functionality as sysfunc
+from settings import commands_settings as cmdset
+from utilities import common, display as out
+from .private import commands_backend as cmd
 
 class Commands:
     def __init__(self):

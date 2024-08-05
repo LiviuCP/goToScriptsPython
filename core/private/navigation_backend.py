@@ -1,6 +1,8 @@
 import os, json
-import nav_cmd_common as nvcdcmn, navigation_settings as navset, common
 from pathlib import Path
+from settings import navigation_settings as navset
+from utilities import common
+from .private import nav_cmd_common as nvcdcmn
 
 class NavigationBackend(nvcdcmn.NavCmdCommon):
     def __init__(self):

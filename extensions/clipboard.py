@@ -1,4 +1,6 @@
-import os, subprocess, system_functionality as sysfunc, display as out
+import os, subprocess
+from system import system_functionality as sysfunc
+from utilities import display as out
 
 class Clipboard:
     def __init__(self):

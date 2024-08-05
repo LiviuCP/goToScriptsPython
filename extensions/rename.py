@@ -1,4 +1,7 @@
-import os, datetime, common, system_functionality as sysfunc, rename_backend as rn, display as out
+import os, datetime
+from system import system_functionality as sysfunc
+from utilities import common, display as out
+from .private import rename_backend as rn
 
 def rename(chosenOption):
     def displayRenameInfo(currentDir, chosenOption, valueToAdd = "", position = -1, nrOfRemovedCharacters = 0):

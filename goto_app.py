@@ -1,5 +1,8 @@
 import os
-import navigation as nav, commands as cmd, common, clipboard as clip, recursive_transfer as rt, rename as rn, system_functionality as sysfunc, display as out
+from core import navigation as nav, commands as cmd
+from extensions import clipboard as clip, recursive_transfer as rt, rename as rn
+from system import system_functionality as sysfunc
+from utilities import common, display as out
 
 renaming_commands = {"ra", "ran", "rp", "rpn", "ri", "rin", "rd", "rr", "rrn"}
 renaming_translations = {"ra" : "a", "ran" : "A", "rp" : "p", "rpn" : "P", "ri" : "i", "rin" : "I", "rd" : "d", "rr" : "r", "rrn" : "R"}

@@ -1,4 +1,6 @@
-import os, common, rename_settings as renset
+import os
+from settings import rename_settings as renset
+from utilities import common
 
 available_options = {'a', 'A', 'p', 'P', 'i', 'I', 'd', 'r', 'R'}
 number_adding_options = {'A', 'P', 'I', 'R'}

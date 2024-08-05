@@ -1,4 +1,6 @@
-import os, time, json, nav_cmd_common as nvcdcmn, commands_settings as cmdset
+import os, time, json
+from settings import commands_settings as cmdset
+from .private import nav_cmd_common as nvcdcmn
 
 class CommandsBackend(nvcdcmn.NavCmdCommon):
     def __init__(self):

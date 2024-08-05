@@ -1,5 +1,5 @@
 import os
-import navigation_settings as navset, commands_settings as cmdset
+from settings import navigation_settings as navset, commands_settings as cmdset
 
 def displayGeneralOutputUpperSection(currentDir, prevDir):
     assert os.path.exists(currentDir), "Invalid current directory path!"

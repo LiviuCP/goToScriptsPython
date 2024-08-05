@@ -211,7 +211,7 @@ This main help menu is complemented by two specialized ones, namely the clipboar
 
 5.10. Settings
 
-For specific functionality domains settings files have been created. These have names ending with _settings.py. The settings files contain specific variables that can be modified by user for doing adjustments in the behavior of the application. Examples of possible changes are:
+For specific functionality domains settings files have been created. They are part of the settings package and have names ending with _settings.py. The settings files contain specific variables that can be modified by user for doing adjustments in the behavior of the application. Examples of possible changes are:
 - changing the minimum number of characters a command should have so it gets stored within commands history
 - changing the names and location of the history files (they are all located in the user home directory as per default settings)
 
