@@ -1,6 +1,7 @@
 """ common code to be used by navigation_backend.py and commands_backend.py """
 
-import os, re, datetime, time, json, common
+import os, re, datetime, time, json
+from utilities import common
 
 class NavCmdCommon:
     def __init__(self, settings):

@@ -1,4 +1,6 @@
-import os, common, system_functionality as sysfunc, display as out
+import os
+from system import system_functionality as sysfunc
+from utilities import common, display as out
 
 class RecursiveTransfer:
     def __init__(self):

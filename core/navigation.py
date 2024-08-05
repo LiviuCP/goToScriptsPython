@@ -1,6 +1,9 @@
 import os
-import common, navigation_backend as nav, navigation_settings as navset, system_functionality as sysfunc, display as out
 from pathlib import Path
+from system import system_functionality as sysfunc
+from settings import navigation_settings as navset
+from utilities import common, display as out
+from .private import navigation_backend as nav
 
 class Navigation:
     def __init__(self, startingDirectory):
