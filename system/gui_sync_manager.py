@@ -2,7 +2,7 @@ import os
 from system import system_functionality as sysfunc
 from settings import system_settings as sysset
 
-class UiSyncManager:
+class GuiSyncManager:
     def __init__(self):
         self.syncWithFinderEnabled = False
         self.syncWithFinderInitialized = False

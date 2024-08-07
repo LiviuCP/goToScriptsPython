@@ -6,10 +6,10 @@ from utilities import common, display as out
 from .private import navigation_backend as nav
 
 class Navigation:
-    def __init__(self, startingDirectory, uiSyncObserver = None):
+    def __init__(self, startingDirectory, guiSyncObserver = None):
         self.previousDirectory = startingDirectory
         self.previousNavigationFilter = ""
-        self.uiSyncObserver = uiSyncObserver
+        self.guiSyncObserver = guiSyncObserver
         self.nav = nav.NavigationBackend()
 
     def getPreviousDirectory(self):
@@ -37,8 +37,8 @@ class Navigation:
             else:
                 print(f"Current directory remains unchanged: {currentDir}")
             # update current directory in Finder if sync enabled
-            if self.uiSyncObserver is not None:
-                self.uiSyncObserver.finderSyncRequested()
+            if self.guiSyncObserver is not None:
+                self.guiSyncObserver.finderSyncRequested()
         if status != 0:
             print("Error when attempting to change directory! Possible causes: ")
             print(" - chosen directory path does not exist or has been deleted")
@@ -186,8 +186,8 @@ class Navigation:
 
     """ requests closing the navigation functionality in an orderly manner when application gets closed """
     def closeNavigation(self):
-        if self.uiSyncObserver is not None:
-            self.uiSyncObserver.finderCloseRequested()
+        if self.guiSyncObserver is not None:
+            self.guiSyncObserver.finderCloseRequested()
         return self.nav.close()
 
     """
