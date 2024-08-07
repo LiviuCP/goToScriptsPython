@@ -6,11 +6,10 @@ from utilities import common, display as out
 from .private import navigation_backend as nav
 
 class Navigation:
-    def __init__(self, startingDirectory):
+    def __init__(self, startingDirectory, uiSyncObserver = None):
         self.previousDirectory = startingDirectory
         self.previousNavigationFilter = ""
-        self.syncWithFinderEnabled = False
-        self.syncWithFinderInitialized = False
+        self.uiSyncObserver = uiSyncObserver
         self.nav = nav.NavigationBackend()
 
     def getPreviousDirectory(self):
@@ -18,9 +17,6 @@ class Navigation:
 
     def getPreviousNavigationFilter(self):
         return self.previousNavigationFilter
-
-    def isSyncWithFinderEnabled(self):
-        return self.syncWithFinderEnabled
 
     """ core function for visiting directories """
     def goTo(self, gtDirectory):
@@ -41,8 +37,8 @@ class Navigation:
             else:
                 print(f"Current directory remains unchanged: {currentDir}")
             # update current directory in Finder if sync enabled
-            if self.syncWithFinderEnabled:
-                os.system(nav.buildFinderSyncCommand())
+            if self.uiSyncObserver is not None:
+                self.uiSyncObserver.finderSyncRequested()
         if status != 0:
             print("Error when attempting to change directory! Possible causes: ")
             print(" - chosen directory path does not exist or has been deleted")
@@ -190,54 +186,9 @@ class Navigation:
 
     """ requests closing the navigation functionality in an orderly manner when application gets closed """
     def closeNavigation(self):
-        if self.syncWithFinderEnabled:
-            self.syncWithFinderEnabled = False
-            os.system(nav.buildCloseFinderCommand())
+        if self.uiSyncObserver is not None:
+            self.uiSyncObserver.finderCloseRequested()
         return self.nav.close()
-
-    """ performs first Finder sync (when application gets launched) """
-    def initSyncWithFinder(self):
-        if not self.syncWithFinderInitialized:
-            self.syncWithFinderInitialized = True
-            self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
-            if self.syncWithFinderEnabled:
-                os.system(nav.buildFinderSyncCommand())
-
-    """ toggles the synchronization of the terminal with Finder on/off """
-    def toggleSyncWithFinder(self):
-        assert self.syncWithFinderInitialized, "No initialization performed for Finder synchronization"
-        sysfunc.setFinderSyncEnabled(not self.syncWithFinderEnabled)
-        self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
-        if self.syncWithFinderEnabled:
-            print("Enabling Finder synchronisation...")
-            os.system(nav.buildFinderSyncCommand())
-        else:
-            print("Disabling Finder synchronisation...")
-            os.system(nav.buildCloseFinderCommand())
-        print("Done!")
-
-    """ checks if synchronisation with Finder is valid and in-line with system settings; in case a fallback occurred restores the Finder sync to the fallback directory """
-    def checkSyncWithFinder(self):
-        if sysfunc.isFinderSyncEnabled():
-            assert self.syncWithFinderEnabled, "Invalid Finder sync setting" # sync enabled through another channel, not by request issued to Navigation
-        elif self.syncWithFinderEnabled: #fallback occurred, sync with Finder needs to be restored to fallback dir
-            isRestoreSuccessful = self.__restoreFinderToFallbackDir()
-            if not isRestoreSuccessful:
-                print("")
-                print("Warning! Unable to restore Finder to fallback directory. Sync with Finder is disabled.")
-
-    """ restores the Finder sync after fallback, fallback dir becomes current Finder dir """
-    def __restoreFinderToFallbackDir(self):
-        assert self.syncWithFinderEnabled and not sysfunc.isFinderSyncEnabled(), "Invalid scenario, no fallback occured"
-        success = False
-        os.system(nav.buildCloseFinderCommand())
-        sysfunc.setFinderSyncEnabled(self.syncWithFinderEnabled)
-        #ensure sync with Finder was re-enabled in system functionality (only then re-open Finder)
-        self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
-        if self.syncWithFinderEnabled:
-            success = True
-            os.system(nav.buildFinderSyncCommand())
-        return success
 
     """
     The status returned by this method can have following values:

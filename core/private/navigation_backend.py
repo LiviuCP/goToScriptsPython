@@ -1,6 +1,6 @@
 import os, json
 from pathlib import Path
-from settings import navigation_settings as navset, system_settings as sysset
+from settings import navigation_settings as navset
 from utilities import common
 from .private import nav_cmd_common as nvcdcmn
 
@@ -280,27 +280,3 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
 def isHomeDirectoryPath(dirPath):
     assert len(dirPath) > 0, "Empty directory path!"
     return os.path.normpath(dirPath) == os.path.normpath(navset.home_dir)
-
-""" Functions related to Finder synchronization """
-
-def buildFinderSyncCommand():
-    setDelays = "delayBeforeClose=" + str(sysset.delay_before_finder_close) + ";" + "\n" + \
-        "delayBeforeReopen=" + str(sysset.delay_before_finder_reopen) + ";" + "\n" + \
-        "delayAfterReopen=" + str(sysset.delay_after_finder_reopen) + ";" + "\n" + \
-        "delayErrorReopen=" + str(sysset.delay_error_finder_reopen) + ";" + "\n"
-    closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
-    handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n"
-    reopenFinder = "else sleep $delayBeforeReopen; open . 2> /dev/null;" + "\n"
-    handleReopeningError = "if [[ $? != 0 ]]; then sleep $delayErrorReopen; echo \'An error occured when opening the new directory in Finder\'; " + "\n"
-    addDelayAfterSuccessfulReopen = "else sleep $delayAfterReopen;" + "\n" + "fi" + "\n" + "fi" + "\n"
-    openTerminal = "open -a terminal;"
-    finderSyncCommand = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
-    return finderSyncCommand
-
-def buildCloseFinderCommand():
-    if sysset.close_finder_when_sync_off:
-        setDelays = "delayBeforeClose=0.1;" + "\n"
-        closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
-        handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n" + "fi"
-        closeFinderCommand = setDelays + closeFinder + handleClosingError
-        return closeFinderCommand
