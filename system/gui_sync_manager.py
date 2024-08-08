@@ -4,28 +4,28 @@ from settings import system_settings as sysset
 
 class GuiSyncManager:
     def __init__(self):
-        self.syncWithFinderEnabled = False
-        self.syncWithFinderInitialized = False
+        self.syncWithGuiEnabled = False
+        self.syncWithGuiInitialized = False
         self.finderSyncCommand = self.__buildFinderSyncCommand__()
         self.closeFinderCommand = self.__buildCloseFinderCommand__()
 
     def isSyncWithFinderEnabled(self):
-        return self.syncWithFinderEnabled
+        return self.syncWithGuiEnabled
 
     """ performs first Finder sync (when application gets launched) """
     def initSyncWithFinder(self):
-        if not self.syncWithFinderInitialized:
-            self.syncWithFinderInitialized = True
-            self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
-            if self.syncWithFinderEnabled:
+        if not self.syncWithGuiInitialized:
+            self.syncWithGuiInitialized = True
+            self.syncWithGuiEnabled = sysfunc.isFinderSyncEnabled()
+            if self.syncWithGuiEnabled:
                 os.system(self.finderSyncCommand)
 
     """ toggles the synchronization of the terminal with Finder on/off """
     def toggleSyncWithFinder(self):
-        assert self.syncWithFinderInitialized, "No initialization performed for Finder synchronization"
-        sysfunc.setFinderSyncEnabled(not self.syncWithFinderEnabled)
-        self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
-        if self.syncWithFinderEnabled:
+        assert self.syncWithGuiInitialized, "No initialization performed for Finder synchronization"
+        sysfunc.setFinderSyncEnabled(not self.syncWithGuiEnabled)
+        self.syncWithGuiEnabled = sysfunc.isFinderSyncEnabled()
+        if self.syncWithGuiEnabled:
             print("Enabling Finder synchronisation...")
             os.system(self.finderSyncCommand)
         else:
@@ -37,8 +37,8 @@ class GuiSyncManager:
     """ checks if synchronisation with Finder is valid and in-line with system settings; in case a fallback occurred restores the Finder sync to the fallback directory """
     def checkSyncWithFinder(self):
         if sysfunc.isFinderSyncEnabled():
-            assert self.syncWithFinderEnabled, "Invalid Finder sync setting" # sync enabled through another channel, not by request issued to Navigation
-        elif self.syncWithFinderEnabled: #fallback occurred, sync with Finder needs to be restored to fallback dir
+            assert self.syncWithGuiEnabled, "Invalid Finder sync setting" # sync enabled through another channel, not by request issued to Navigation
+        elif self.syncWithGuiEnabled: #fallback occurred, sync with Finder needs to be restored to fallback dir
             isRestoreSuccessful = self.__restoreFinderToFallbackDir__()
             if not isRestoreSuccessful:
                 print("")
@@ -46,25 +46,25 @@ class GuiSyncManager:
 
     """ reopens Finder in current directory either when this gets changed or when refreshed """
     def reopenFinder(self):
-        if self.syncWithFinderEnabled:
+        if self.syncWithGuiEnabled:
             os.system(self.finderSyncCommand)
 
     """ closes Finder and disables sync (e.g. when application gets closed) """
     def closeFinder(self):
-        if self.syncWithFinderEnabled:
-            self.syncWithFinderEnabled = False
+        if self.syncWithGuiEnabled:
+            self.syncWithGuiEnabled = False
             if sysset.close_finder_when_sync_off:
                 os.system(self.closeFinderCommand)
 
     """ restores the Finder sync after fallback, fallback dir becomes current Finder dir """
     def __restoreFinderToFallbackDir__(self):
-        assert self.syncWithFinderEnabled and not sysfunc.isFinderSyncEnabled(), "Invalid scenario, no fallback occured"
+        assert self.syncWithGuiEnabled and not sysfunc.isFinderSyncEnabled(), "Invalid scenario, no fallback occured"
         success = False
         os.system(self.closeFinderCommand)
-        sysfunc.setFinderSyncEnabled(self.syncWithFinderEnabled)
+        sysfunc.setFinderSyncEnabled(self.syncWithGuiEnabled)
         #ensure sync with Finder was re-enabled in system functionality (only then re-open Finder)
-        self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
-        if self.syncWithFinderEnabled:
+        self.syncWithGuiEnabled = sysfunc.isFinderSyncEnabled()
+        if self.syncWithGuiEnabled:
             success = True
             os.system(self.finderSyncCommand)
         return success
