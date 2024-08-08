@@ -2,6 +2,7 @@ import os
 from core import navigation as nav, commands as cmd
 from extensions import clipboard as clip, recursive_transfer as rt, rename as rn
 from system import system_functionality as sysfunc, gui_sync_manager as guisync
+from settings import system_settings as sysset
 from utilities import common, display as out
 
 renaming_commands = {"ra", "ran", "rp", "rpn", "ri", "rin", "rd", "rr", "rrn"}
@@ -12,12 +13,11 @@ context_switch_dict = {"--execute" : "--edit", "--edit" : "--execute", "-f" : "-
 
 class GuiSyncObserver:
     def __init__(self, guiSyncManager):
+        assert guiSyncManager is not None, "A UI sync manager is required!"
         self.guiSyncManager = guiSyncManager
     def guiSyncRequested(self):
-        assert self.guiSyncManager is not None, "A UI sync manager is required!"
         self.guiSyncManager.reopenGui()
     def guiCloseRequested(self):
-        assert self.guiSyncManager is not None, "A UI sync manager is required!"
         self.guiSyncManager.closeGui()
 
 ''' status/action codes: -1 - goTo not successfully executed, 0 - no action performed (default), 1 - input to be forwarded to BASH, 2 - previous command and command result to be updated, 3 - no arguments, 4 - update previous directory and cd '''
@@ -26,8 +26,9 @@ class Application:
         self.currentContext = "" # main context
         self.currentFilter = "" # should change to a non-empty value each time the user filters the navigation/command history (otherwise it should be reset to an empty value)
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # TODO: at next refactoring phase check if status code should remain 0 for fallback or a dedicated status code should be chosen (maybe 5?)
-        self.guiSyncManager = guisync.GuiSyncManager()
-        self.guiSyncObserver = GuiSyncObserver(self.guiSyncManager)
+        self.guiSyncManager = None
+        self.guiSyncObserver = None
+        self.__setGuiSync__()
         self.nav = nav.Navigation(syncedCurrentDir, self.guiSyncObserver)
         self.cmd = cmd.Commands()
         self.clipboard = clip.Clipboard()
@@ -42,9 +43,11 @@ class Application:
         keyInterruptOccurred = False
         os.system("clear")
         print("Welcome to navigation app!")
-        self.guiSyncManager.initSyncWithGui()
+        if self.guiSyncManager is not None:
+            self.guiSyncManager.initSyncWithGui()
         while userInput != "!" and not keyInterruptOccurred:
-            self.guiSyncManager.checkSyncWithGui()
+            if self.guiSyncManager is not None:
+                self.guiSyncManager.checkSyncWithGui()
             if userInput not in {"?", "?clip", "?ren"}:
                 self.__displayGeneralOutput__()
             try:
@@ -203,7 +206,10 @@ class Application:
         elif userInput in ["?", "?clip", "?ren"]:
             self.__handleHelpRequest__(userInput, out)
         elif userInput == ":s":
-            self.guiSyncManager.toggleSyncWithGui()
+            if self.guiSyncManager is not None:
+                self.guiSyncManager.toggleSyncWithGui()
+            else:
+                print("This option is not supported on the current operating system!")
         elif userInput == "!":
             self.__handleCloseApplication__(self.cmd.getPreviousCommand())
         else:
@@ -301,6 +307,12 @@ class Application:
         result = (status, passedInput, passedOutput) if status is not None else None
         return result
 
+    def __setGuiSync__(self):
+        assert self.guiSyncManager is None and self.guiSyncObserver is None
+        if sysset.gui_sync_allowed:
+            self.guiSyncManager = guisync.GuiSyncManager()
+            self.guiSyncObserver = GuiSyncObserver(self.guiSyncManager)
+
     def __handleFallbackPerformed__(self):
         self.clipboard.erase()
         self.recursiveTransfer.eraseTargetDir()
@@ -375,7 +387,8 @@ class Application:
         out.displayGeneralOutputUpperSection(syncedCurrentDir, self.nav.getPreviousDirectory())
         if self.isQuickHistEnabled:
             self.__displayQuickHistory__()
-        out.displayGeneralOutputLowerSection(prevCommand, self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.guiSyncManager.isSyncWithGuiEnabled())
+        isSyncWithGuiEnabled = self.guiSyncManager.isSyncWithGuiEnabled() if self.guiSyncManager is not None else False
+        out.displayGeneralOutputLowerSection(prevCommand, self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), isSyncWithGuiEnabled)
 
     def __displayQuickHistory__(self):
         print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")

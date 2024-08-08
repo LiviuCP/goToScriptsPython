@@ -8,6 +8,7 @@ class GuiSyncManager:
         self.syncWithGuiInitialized = False
         self.guiSyncCommand = self.__buildGuiSyncCommand__()
         self.closeGuiCommand = self.__buildCloseGuiCommand__()
+        assert sysset.gui_sync_allowed
 
     def isSyncWithGuiEnabled(self):
         return self.syncWithGuiEnabled
