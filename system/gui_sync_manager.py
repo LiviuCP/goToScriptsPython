@@ -60,7 +60,7 @@ class GuiSyncManager:
     def __restoreFinderToFallbackDir__(self):
         assert self.syncWithFinderEnabled and not sysfunc.isFinderSyncEnabled(), "Invalid scenario, no fallback occured"
         success = False
-        #os.system(nav.buildCloseFinderCommand())
+        os.system(self.closeFinderCommand)
         sysfunc.setFinderSyncEnabled(self.syncWithFinderEnabled)
         #ensure sync with Finder was re-enabled in system functionality (only then re-open Finder)
         self.syncWithFinderEnabled = sysfunc.isFinderSyncEnabled()
