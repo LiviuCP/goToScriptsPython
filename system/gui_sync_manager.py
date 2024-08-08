@@ -1,14 +1,17 @@
 import os
 from system import system_functionality as sysfunc
 from settings import system_settings as sysset
+from .private import platform_specific as pls
 
 class GuiSyncManager:
     def __init__(self):
+        assert sysset.gui_sync_allowed, "GUI sync not supported with current OS!"
         self.syncWithGuiEnabled = False
         self.syncWithGuiInitialized = False
-        self.guiSyncCommand = self.__buildGuiSyncCommand__()
-        self.closeGuiCommand = self.__buildCloseGuiCommand__()
-        assert sysset.gui_sync_allowed
+        self.guiSyncCommand = pls.buildGuiSyncCommand()
+        assert self.guiSyncCommand is not None, "Invalid GUI sync command!"
+        self.closeGuiCommand = pls.buildCloseGuiCommand()
+        assert self.closeGuiCommand is not None, "Invalid close GUI command!"
 
     def isSyncWithGuiEnabled(self):
         return self.syncWithGuiEnabled
@@ -69,24 +72,3 @@ class GuiSyncManager:
             success = True
             os.system(self.guiSyncCommand)
         return success
-
-    def __buildGuiSyncCommand__(self):
-        setDelays = "delayBeforeClose=" + str(sysset.delay_before_finder_close) + ";" + "\n" + \
-            "delayBeforeReopen=" + str(sysset.delay_before_finder_reopen) + ";" + "\n" + \
-            "delayAfterReopen=" + str(sysset.delay_after_finder_reopen) + ";" + "\n" + \
-            "delayErrorReopen=" + str(sysset.delay_error_finder_reopen) + ";" + "\n"
-        closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
-        handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n"
-        reopenFinder = "else sleep $delayBeforeReopen; open . 2> /dev/null;" + "\n"
-        handleReopeningError = "if [[ $? != 0 ]]; then sleep $delayErrorReopen; echo \'An error occured when opening the new directory in Finder\'; " + "\n"
-        addDelayAfterSuccessfulReopen = "else sleep $delayAfterReopen;" + "\n" + "fi" + "\n" + "fi" + "\n"
-        openTerminal = "open -a terminal;"
-        finderSyncCommand = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
-        return finderSyncCommand
-
-    def __buildCloseGuiCommand__(self):
-        setDelays = "delayBeforeClose=0.1;" + "\n"
-        closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
-        handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n" + "fi"
-        closeFinderCommand = setDelays + closeFinder + handleClosingError
-        return closeFinderCommand
