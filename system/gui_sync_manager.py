@@ -23,14 +23,14 @@ class GuiSyncManager:
 
     """ toggles the synchronization of the terminal with GUI on/off """
     def toggleSyncWithGui(self):
-        assert self.syncWithGuiInitialized, "No initialization performed for Finder synchronization"
+        assert self.syncWithGuiInitialized, "No initialization performed for GUI synchronization"
         sysfunc.setGuiSyncEnabled(not self.syncWithGuiEnabled)
         self.syncWithGuiEnabled = sysfunc.isGuiSyncEnabled()
         if self.syncWithGuiEnabled:
-            print("Enabling Finder synchronisation...")
+            print("Enabling GUI synchronisation...")
             os.system(self.guiSyncCommand)
         else:
-            print("Disabling Finder synchronisation...")
+            print("Disabling GUI synchronisation...")
             if sysset.close_gui_when_sync_off:
                 os.system(self.closeGuiCommand)
         print("Done!")
@@ -38,12 +38,12 @@ class GuiSyncManager:
     """ checks if synchronisation with GUI is valid and in-line with system settings; in case a fallback occurred restores the GUI sync to the fallback directory """
     def checkSyncWithGui(self):
         if sysfunc.isGuiSyncEnabled():
-            assert self.syncWithGuiEnabled, "Invalid Finder sync setting" # sync enabled through another channel, not by request issued to Navigation
-        elif self.syncWithGuiEnabled: #fallback occurred, sync with Finder needs to be restored to fallback dir
+            assert self.syncWithGuiEnabled, "Invalid GUI sync setting" # sync enabled through another channel, not by request issued to Navigation
+        elif self.syncWithGuiEnabled: #fallback occurred, sync with GUI needs to be restored to fallback dir
             isRestoreSuccessful = self.__restoreGuiToFallbackDir__()
             if not isRestoreSuccessful:
                 print("")
-                print("Warning! Unable to restore Finder to fallback directory. Sync with Finder is disabled.")
+                print("Warning! Unable to restore GUI to fallback directory. Sync with GUI is disabled.")
 
     """ reopens GUI in current directory either when this gets changed or when refreshed """
     def reopenGui(self):
