@@ -36,7 +36,7 @@ class Navigation:
                 self.previousDirectory = prevDir
             else:
                 print(f"Current directory remains unchanged: {currentDir}")
-            # update current directory in Finder if sync enabled
+            # update current directory in GUI (explorer) if sync enabled
             if self.guiSyncObserver is not None:
                 self.guiSyncObserver.guiSyncRequested()
         if status != 0:

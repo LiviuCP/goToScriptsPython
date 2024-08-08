@@ -12,31 +12,31 @@ class GuiSyncManager:
     def isSyncWithGuiEnabled(self):
         return self.syncWithGuiEnabled
 
-    """ performs first Finder sync (when application gets launched) """
+    """ performs first GUI (explorer) sync (when application gets launched) """
     def initSyncWithGui(self):
         if not self.syncWithGuiInitialized:
             self.syncWithGuiInitialized = True
-            self.syncWithGuiEnabled = sysfunc.isFinderSyncEnabled()
+            self.syncWithGuiEnabled = sysfunc.isGuiSyncEnabled()
             if self.syncWithGuiEnabled:
                 os.system(self.guiSyncCommand)
 
-    """ toggles the synchronization of the terminal with Finder on/off """
+    """ toggles the synchronization of the terminal with GUI on/off """
     def toggleSyncWithGui(self):
         assert self.syncWithGuiInitialized, "No initialization performed for Finder synchronization"
-        sysfunc.setFinderSyncEnabled(not self.syncWithGuiEnabled)
-        self.syncWithGuiEnabled = sysfunc.isFinderSyncEnabled()
+        sysfunc.setGuiSyncEnabled(not self.syncWithGuiEnabled)
+        self.syncWithGuiEnabled = sysfunc.isGuiSyncEnabled()
         if self.syncWithGuiEnabled:
             print("Enabling Finder synchronisation...")
             os.system(self.guiSyncCommand)
         else:
             print("Disabling Finder synchronisation...")
-            if sysset.close_finder_when_sync_off:
+            if sysset.close_gui_when_sync_off:
                 os.system(self.closeGuiCommand)
         print("Done!")
 
-    """ checks if synchronisation with Finder is valid and in-line with system settings; in case a fallback occurred restores the Finder sync to the fallback directory """
+    """ checks if synchronisation with GUI is valid and in-line with system settings; in case a fallback occurred restores the GUI sync to the fallback directory """
     def checkSyncWithGui(self):
-        if sysfunc.isFinderSyncEnabled():
+        if sysfunc.isGuiSyncEnabled():
             assert self.syncWithGuiEnabled, "Invalid Finder sync setting" # sync enabled through another channel, not by request issued to Navigation
         elif self.syncWithGuiEnabled: #fallback occurred, sync with Finder needs to be restored to fallback dir
             isRestoreSuccessful = self.__restoreGuiToFallbackDir__()
@@ -44,26 +44,26 @@ class GuiSyncManager:
                 print("")
                 print("Warning! Unable to restore Finder to fallback directory. Sync with Finder is disabled.")
 
-    """ reopens Finder in current directory either when this gets changed or when refreshed """
+    """ reopens GUI in current directory either when this gets changed or when refreshed """
     def reopenGui(self):
         if self.syncWithGuiEnabled:
             os.system(self.guiSyncCommand)
 
-    """ closes Finder and disables sync (e.g. when application gets closed) """
+    """ closes GUI and disables sync (e.g. when application gets closed) """
     def closeGui(self):
         if self.syncWithGuiEnabled:
             self.syncWithGuiEnabled = False
-            if sysset.close_finder_when_sync_off:
+            if sysset.close_gui_when_sync_off:
                 os.system(self.closeGuiCommand)
 
-    """ restores the Finder sync after fallback, fallback dir becomes current Finder dir """
+    """ restores the GUI sync after fallback, fallback dir becomes current GUI dir """
     def __restoreGuiToFallbackDir__(self):
-        assert self.syncWithGuiEnabled and not sysfunc.isFinderSyncEnabled(), "Invalid scenario, no fallback occured"
+        assert self.syncWithGuiEnabled and not sysfunc.isGuiSyncEnabled(), "Invalid scenario, no fallback occured"
         success = False
         os.system(self.closeGuiCommand)
-        sysfunc.setFinderSyncEnabled(self.syncWithGuiEnabled)
-        #ensure sync with Finder was re-enabled in system functionality (only then re-open Finder)
-        self.syncWithGuiEnabled = sysfunc.isFinderSyncEnabled()
+        sysfunc.setGuiSyncEnabled(self.syncWithGuiEnabled)
+        #ensure sync with GUI was re-enabled in system functionality (only then re-open GUI)
+        self.syncWithGuiEnabled = sysfunc.isGuiSyncEnabled()
         if self.syncWithGuiEnabled:
             success = True
             os.system(self.guiSyncCommand)

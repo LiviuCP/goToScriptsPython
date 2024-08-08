@@ -10,12 +10,12 @@ def syncCurrentDir():
     except BaseException:
         currentDir = sysset.fallback_dir.rstrip('/')
         os.chdir(currentDir)
-        sysset.finder_sync_enabled = False
+        sysset.gui_sync_enabled = False
         fallbackPerformed = True
     return (currentDir, fallbackPerformed)
 
-def setFinderSyncEnabled(enabled):
-    sysset.finder_sync_enabled = enabled
+def setGuiSyncEnabled(enabled):
+    sysset.gui_sync_enabled = enabled
 
-def isFinderSyncEnabled():
-    return sysset.finder_sync_enabled
+def isGuiSyncEnabled():
+    return sysset.gui_sync_enabled
