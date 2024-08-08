@@ -15,10 +15,10 @@ class GuiSyncObserver:
         self.guiSyncManager = guiSyncManager
     def finderSyncRequested(self):
         assert self.guiSyncManager is not None, "A UI sync manager is required!"
-        self.guiSyncManager.reopenFinder()
+        self.guiSyncManager.reopenGui()
     def finderCloseRequested(self):
         assert self.guiSyncManager is not None, "A UI sync manager is required!"
-        self.guiSyncManager.closeFinder()
+        self.guiSyncManager.closeGui()
 
 ''' status/action codes: -1 - goTo not successfully executed, 0 - no action performed (default), 1 - input to be forwarded to BASH, 2 - previous command and command result to be updated, 3 - no arguments, 4 - update previous directory and cd '''
 class Application:
@@ -42,9 +42,9 @@ class Application:
         keyInterruptOccurred = False
         os.system("clear")
         print("Welcome to navigation app!")
-        self.guiSyncManager.initSyncWithFinder()
+        self.guiSyncManager.initSyncWithGui()
         while userInput != "!" and not keyInterruptOccurred:
-            self.guiSyncManager.checkSyncWithFinder()
+            self.guiSyncManager.checkSyncWithGui()
             if userInput not in {"?", "?clip", "?ren"}:
                 self.__displayGeneralOutput__()
             try:
@@ -203,7 +203,7 @@ class Application:
         elif userInput in ["?", "?clip", "?ren"]:
             self.__handleHelpRequest__(userInput, out)
         elif userInput == ":s":
-            self.guiSyncManager.toggleSyncWithFinder()
+            self.guiSyncManager.toggleSyncWithGui()
         elif userInput == "!":
             self.__handleCloseApplication__(self.cmd.getPreviousCommand())
         else:
@@ -375,7 +375,7 @@ class Application:
         out.displayGeneralOutputUpperSection(syncedCurrentDir, self.nav.getPreviousDirectory())
         if self.isQuickHistEnabled:
             self.__displayQuickHistory__()
-        out.displayGeneralOutputLowerSection(prevCommand, self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.guiSyncManager.isSyncWithFinderEnabled())
+        out.displayGeneralOutputLowerSection(prevCommand, self.nav.getPreviousNavigationFilter(), self.cmd.getPreviousCommandsFilter(), self.clipboard.getActionLabel(), self.clipboard.getKeyword(), self.clipboard.getSourceDir(), self.recursiveTransfer.getTargetDir(), self.guiSyncManager.isSyncWithGuiEnabled())
 
     def __displayQuickHistory__(self):
         print("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
