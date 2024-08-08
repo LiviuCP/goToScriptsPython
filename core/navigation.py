@@ -38,7 +38,7 @@ class Navigation:
                 print(f"Current directory remains unchanged: {currentDir}")
             # update current directory in Finder if sync enabled
             if self.guiSyncObserver is not None:
-                self.guiSyncObserver.finderSyncRequested()
+                self.guiSyncObserver.guiSyncRequested()
         if status != 0:
             print("Error when attempting to change directory! Possible causes: ")
             print(" - chosen directory path does not exist or has been deleted")
@@ -187,7 +187,7 @@ class Navigation:
     """ requests closing the navigation functionality in an orderly manner when application gets closed """
     def closeNavigation(self):
         if self.guiSyncObserver is not None:
-            self.guiSyncObserver.finderCloseRequested()
+            self.guiSyncObserver.guiCloseRequested()
         return self.nav.close()
 
     """

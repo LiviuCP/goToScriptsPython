@@ -13,10 +13,10 @@ context_switch_dict = {"--execute" : "--edit", "--edit" : "--execute", "-f" : "-
 class GuiSyncObserver:
     def __init__(self, guiSyncManager):
         self.guiSyncManager = guiSyncManager
-    def finderSyncRequested(self):
+    def guiSyncRequested(self):
         assert self.guiSyncManager is not None, "A UI sync manager is required!"
         self.guiSyncManager.reopenGui()
-    def finderCloseRequested(self):
+    def guiCloseRequested(self):
         assert self.guiSyncManager is not None, "A UI sync manager is required!"
         self.guiSyncManager.closeGui()
 
