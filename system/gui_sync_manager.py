@@ -6,8 +6,8 @@ class GuiSyncManager:
     def __init__(self):
         self.syncWithGuiEnabled = False
         self.syncWithGuiInitialized = False
-        self.finderSyncCommand = self.__buildFinderSyncCommand__()
-        self.closeFinderCommand = self.__buildCloseFinderCommand__()
+        self.guiSyncCommand = self.__buildGuiSyncCommand__()
+        self.closeGuiCommand = self.__buildCloseGuiCommand__()
 
     def isSyncWithFinderEnabled(self):
         return self.syncWithGuiEnabled
@@ -18,7 +18,7 @@ class GuiSyncManager:
             self.syncWithGuiInitialized = True
             self.syncWithGuiEnabled = sysfunc.isFinderSyncEnabled()
             if self.syncWithGuiEnabled:
-                os.system(self.finderSyncCommand)
+                os.system(self.guiSyncCommand)
 
     """ toggles the synchronization of the terminal with Finder on/off """
     def toggleSyncWithFinder(self):
@@ -27,11 +27,11 @@ class GuiSyncManager:
         self.syncWithGuiEnabled = sysfunc.isFinderSyncEnabled()
         if self.syncWithGuiEnabled:
             print("Enabling Finder synchronisation...")
-            os.system(self.finderSyncCommand)
+            os.system(self.guiSyncCommand)
         else:
             print("Disabling Finder synchronisation...")
             if sysset.close_finder_when_sync_off:
-                os.system(self.closeFinderCommand)
+                os.system(self.closeGuiCommand)
         print("Done!")
 
     """ checks if synchronisation with Finder is valid and in-line with system settings; in case a fallback occurred restores the Finder sync to the fallback directory """
@@ -47,29 +47,29 @@ class GuiSyncManager:
     """ reopens Finder in current directory either when this gets changed or when refreshed """
     def reopenFinder(self):
         if self.syncWithGuiEnabled:
-            os.system(self.finderSyncCommand)
+            os.system(self.guiSyncCommand)
 
     """ closes Finder and disables sync (e.g. when application gets closed) """
     def closeFinder(self):
         if self.syncWithGuiEnabled:
             self.syncWithGuiEnabled = False
             if sysset.close_finder_when_sync_off:
-                os.system(self.closeFinderCommand)
+                os.system(self.closeGuiCommand)
 
     """ restores the Finder sync after fallback, fallback dir becomes current Finder dir """
     def __restoreFinderToFallbackDir__(self):
         assert self.syncWithGuiEnabled and not sysfunc.isFinderSyncEnabled(), "Invalid scenario, no fallback occured"
         success = False
-        os.system(self.closeFinderCommand)
+        os.system(self.closeGuiCommand)
         sysfunc.setFinderSyncEnabled(self.syncWithGuiEnabled)
         #ensure sync with Finder was re-enabled in system functionality (only then re-open Finder)
         self.syncWithGuiEnabled = sysfunc.isFinderSyncEnabled()
         if self.syncWithGuiEnabled:
             success = True
-            os.system(self.finderSyncCommand)
+            os.system(self.guiSyncCommand)
         return success
 
-    def __buildFinderSyncCommand__(self):
+    def __buildGuiSyncCommand__(self):
         setDelays = "delayBeforeClose=" + str(sysset.delay_before_finder_close) + ";" + "\n" + \
             "delayBeforeReopen=" + str(sysset.delay_before_finder_reopen) + ";" + "\n" + \
             "delayAfterReopen=" + str(sysset.delay_after_finder_reopen) + ";" + "\n" + \
@@ -83,7 +83,7 @@ class GuiSyncManager:
         finderSyncCommand = setDelays + closeFinder + handleClosingError + reopenFinder + handleReopeningError + addDelayAfterSuccessfulReopen + openTerminal
         return finderSyncCommand
 
-    def __buildCloseFinderCommand__(self):
+    def __buildCloseGuiCommand__(self):
         setDelays = "delayBeforeClose=0.1;" + "\n"
         closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
         handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n" + "fi"
