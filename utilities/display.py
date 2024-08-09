@@ -17,7 +17,7 @@ def displayGeneralOutputUpperSection(currentDir, prevDir):
     displayDirContent(currentDir)
     print("")
 
-def displayGeneralOutputLowerSection(prevCommand, navigationFilter, commandsFilter, clipboardAction, clipboardKeyword, clipboardSourceDir, recursiveTargetDir):
+def displayGeneralOutputLowerSection(prevCommand, navigationFilter, commandsFilter, clipboardAction, clipboardKeyword, clipboardSourceDir, recursiveTargetDir, syncWithGuiEnabled):
     lastCommand = "none"
     if len(prevCommand) > 0:
         lastCommand = prevCommand
@@ -42,6 +42,8 @@ def displayGeneralOutputLowerSection(prevCommand, navigationFilter, commandsFilt
     print(f"[ {clipboardSourceDir} ]") if len(clipboardSourceDir) > 0 else print("[ none ]")
     print("Recursive transfer target directory: ", end='')
     print(f"[ {recursiveTargetDir} ]") if len(recursiveTargetDir) > 0 else print("[ none ]")
+    print("Sync with GUI enabled: ", end='')
+    print("[ yes ]") if syncWithGuiEnabled == True else print("[ no ]")
     print("")
     print("***************************************************************************************************************************************************************************************")
     print("")
@@ -115,6 +117,7 @@ def displayGeneralHelp(currentDir, fallbackOccurred):
     print("->    -  remove a directory from favorites")
     print(":a    -  enter command aliases maintenance menu")
     print(":A    -  display available command aliases")
+    print(":s    -  toggle GUI sync on/off (for Mac OS only)")
     print("")
     print("Quick history should be enabled (see above) in order to access its entries. Access is allowed only from main navigation page:")
     print("- for direct navigation to a quick history navigation entry please enter < followed by the entry number")

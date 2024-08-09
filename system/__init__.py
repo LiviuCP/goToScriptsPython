@@ -1,1 +1,1 @@
-__all__ = ["system_functionality"]
+__all__ = ["system_functionality", "gui_sync_manager"]

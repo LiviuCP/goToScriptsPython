@@ -10,5 +10,14 @@ def syncCurrentDir():
     except BaseException:
         currentDir = sysset.fallback_dir.rstrip('/')
         os.chdir(currentDir)
+        sysset.gui_sync_enabled = False
         fallbackPerformed = True
     return (currentDir, fallbackPerformed)
+
+# These methods should only be used by GuiSyncManager
+
+def setGuiSyncEnabled(enabled):
+    sysset.gui_sync_enabled = enabled
+
+def isGuiSyncEnabled():
+    return sysset.gui_sync_enabled
