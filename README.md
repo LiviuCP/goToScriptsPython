@@ -110,7 +110,9 @@ It is possible to navigate to a specific favorites entry without displaying the 
 
 The same rapid access mode can also be obtained with navigation history (by entering < followed by entry number), yet in this case the quick history needs to be enabled beforehand. Same as for favorite directories, if the entry number is invalid (either not in range or containing invalid characters) an error will be triggered. For more details, please check the quick history section (6.6).
 
-Note: due to its easy reachability, the user home directory is excluded from any history tracking (adding to favorites is also not allowed - an error is triggered when attempting this). This is in order to make most effective use of history entries, especially in quick history (see section 6.6 for more details).
+Notes:
+- due to its easy reachability, the user home directory is excluded from any history tracking (adding to favorites is also not allowed - an error is triggered when attempting this). This is in order to make most effective use of history entries, especially in quick history (see section 6.6 for more details).
+- if a newly visited path is a sub-path of the last visited directory (or vice-versa), then the first entry of the recent history (last visited path) is removed. This is in order to prevent the pollution of recent history with paths and their sub-paths, which might render it relatively unuseful. For example if the last visited directory is /home/User1/Documents and the user navigates to /home/User1/Documents/MyFavoriteDocs, then the newly visited subdir (MyFavoriteDocs) becomes the first recent history entry while the other one (Documents) gets removed from the sub-menu. On the other hand, if no sub-path relationship exists (e.g. last visited path is instead /home/User1/Downloads), then the last visited path (MyFavoriteDocs) becomes the first recent history entry and the other one (Downloads) becomes entry number 2.
 
 5.3. Special options for visiting directories
 
