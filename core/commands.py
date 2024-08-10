@@ -23,7 +23,7 @@ class Commands:
         command = self.__expandCommand__(command)
         result = (0, "", "")
         if (cmd.isSensitiveCommand(command)):
-            command = handleSensitiveCommand(self.rawCommand)
+            command = command if userConfirmsCommandExecution(self.rawCommand) else None
         if command is not None:
             print(f"Entered command launched: {self.rawCommand}")
             print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
@@ -40,7 +40,7 @@ class Commands:
         if len(self.previousCommand) > 0:
             command = self.__expandCommand__(self.previousCommand)
             if (cmd.isSensitiveCommand(command)):
-                command = handleSensitiveCommand(self.rawCommand)
+                command = command if userConfirmsCommandExecution(self.rawCommand) else None
             if command is not None:
                 print(f"Repeated command launched: {self.rawCommand}")
                 print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
@@ -144,7 +144,7 @@ class Commands:
             if mode == "--execute":
                 commandToExecute = self.__expandCommand__(commandsHistoryEntry)
                 if cmd.isSensitiveCommand(commandToExecute):
-                    commandToExecute = handleSensitiveCommand(self.rawCommand)
+                    commandToExecute = commandToExecute if userConfirmsCommandExecution(self.rawCommand) else None
                 if commandToExecute is not None:
                     print(f"Repeated command launched: {self.rawCommand}")
                     print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
@@ -298,7 +298,7 @@ class Commands:
         elif commandLength > 0 and commandToExecute[commandLength-1] != ':':
             commandToExecute = self.__expandCommand__(commandToExecute)
             if (cmd.isSensitiveCommand(commandToExecute)):
-                commandToExecute = handleSensitiveCommand(self.rawCommand)
+                commandToExecute = commandToExecute if userConfirmsCommandExecution(self.rawCommand) else None
             if commandToExecute is not None:
                 commandType = "Edited" if previousCommand != "" else "Entered"
                 print(f"{commandType} command launched: {self.rawCommand}")
@@ -342,7 +342,7 @@ class Commands:
                 command = fileContent[rowNr].strip('\n')
                 print('{0:<10s} {1:<140s}'.format(str(rowNr+1), command))
 
-def handleSensitiveCommand(command):
+def userConfirmsCommandExecution(command):
     syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
     assert not fallbackPerformed, "Current dir fallback not allowed"
     print("The following command might cause ireversible changes:")
@@ -356,7 +356,7 @@ def handleSensitiveCommand(command):
     choice = common.getInputWithTextCondition("Enter your choice (y/n): ", lambda userInput: userInput.lower() not in {'y', 'n'}, \
                                           "Invalid choice selected. Please try again")
     os.system("clear")
-    if choice.lower() == "n":
-        command = None
+    shouldCommandBeExecuted = choice.lower() == "y"
+    if not shouldCommandBeExecuted:
         print("Command aborted. You returned to navigation menu.")
-    return command
+    return shouldCommandBeExecuted
