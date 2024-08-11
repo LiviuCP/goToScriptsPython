@@ -240,7 +240,7 @@ class Commands:
         if len(aliases) > 0:
             print("Available aliases: ")
             print("")
-            for alias, aliasContent in aliases:
+            for alias, aliasContent in sorted(aliases, key = lambda k:(k[1], k[0].lower())):
                 print(f"alias {alias}=\'{aliasContent}\'")
             print("")
             print("Scroll up (if needed) to check all aliases.")
