@@ -130,7 +130,7 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         return (replacedPath, replacingPath)
 
     def __loadFiles__(self):
-        super().__loadFiles__()
+        # excluded history to be loaded first so __isEmptyPersistentHistoryAllowed__() can yield a correct result (it's being called from nav_cmd_common.py)
         self.excludedHistory.clear()
         if os.path.isfile(self.settings.e_hist_file):
             with open(self.settings.e_hist_file, "r") as e_hist:
@@ -139,12 +139,23 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
                     self.excludedHistory = json.loads(excludedHistoryAsJSON)
                 except json.JSONDecodeError:
                     print(f"Invalid JSON file format in file: {self.settings.e_hist_file}")
+        # load the remaining files
+        super().__loadFiles__()
 
     def __saveFiles__(self):
         super().__saveFiles__()
         with open(self.settings.e_hist_file, "w") as e_hist:
             excludedHistoryAsJSON = json.dumps(self.excludedHistory)
             e_hist.write(excludedHistoryAsJSON)
+
+    # empty persistent history is allowed only when all recent history entries belong to favorites (excluded history)
+    def __isEmptyPersistentHistoryAllowed__(self):
+        isAllowed = True
+        for entry in self.recentHistory:
+            if entry not in self.excludedHistory:
+                isAllowed = False
+                break
+        return isAllowed
 
     def __reconcileFiles__(self):
         currentRecentHistory = self.recentHistory.copy()

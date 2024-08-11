@@ -308,7 +308,7 @@ class Navigation:
             if len(consolidatedHistory) > recentHistoryEntriesCount:
                 self.__displayFormattedNavFileContent__(consolidatedHistory, recentHistoryEntriesCount)
             else:
-                print("\tNo visited directories (only favorite paths have been visited)!")
+                print("\tNo visited directories (only favorite paths have been visited so far)!")
         def displayFavoritesMenu():
             print("FAVORITE DIRECTORIES")
             print("")

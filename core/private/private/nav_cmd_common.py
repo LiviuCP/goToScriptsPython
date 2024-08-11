@@ -89,7 +89,7 @@ class NavCmdCommon:
                 ++entriesCount
         if len(recentHistory) > 0 and self.persistentHistoryJSONKey in unifiedHistory.keys():
             persistentHistory = unifiedHistory[self.persistentHistoryJSONKey]
-        if len(persistentHistory) > 0:
+        if len(persistentHistory) > 0 or self.__isEmptyPersistentHistoryAllowed__():
             self.recentHistory = recentHistory
             self.persistentHistory = persistentHistory
             if self.dailyLogJSONKey in unifiedHistory.keys():
@@ -105,6 +105,10 @@ class NavCmdCommon:
             unifiedHistory = {self.recentHistoryJSONKey:self.recentHistory, self.persistentHistoryJSONKey:self.persistentHistory, dailyLogKey:dailyLogList}
             unifiedHistoryAsJSON = json.dumps(unifiedHistory)
             hist.write(unifiedHistoryAsJSON)
+
+    # used for determining if it's ok to load a non-empty recent history when the persistent history to be loaded is empty
+    def __isEmptyPersistentHistoryAllowed__(self):
+        return False
 
     def __reconcileFiles__(self):
         raise NotImplementedError()
