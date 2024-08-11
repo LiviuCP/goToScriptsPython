@@ -303,9 +303,12 @@ class Navigation:
             print("")
             self.__displayFormattedNavFileContent__(consolidatedHistory, 0, recentHistoryEntriesCount)
             print("")
-            print("-- MOST VISITED --")
+            print("-- MOST VISITED (EXCLUDING FAVORITES)--")
             print("")
-            self.__displayFormattedNavFileContent__(consolidatedHistory, recentHistoryEntriesCount)
+            if len(consolidatedHistory) > recentHistoryEntriesCount:
+                self.__displayFormattedNavFileContent__(consolidatedHistory, recentHistoryEntriesCount)
+            else:
+                print("\tNo visited directories (only favorite paths have been visited)!")
         def displayFavoritesMenu():
             print("FAVORITE DIRECTORIES")
             print("")
