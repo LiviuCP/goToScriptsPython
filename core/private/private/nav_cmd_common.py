@@ -113,6 +113,7 @@ class NavCmdCommon:
         return os.path.isfile(self.settings.hist_file) and os.path.getmtime(self.settings.hist_file) > self.openingTime
 
     def __updateRecentHistory__(self, entry):
+        assert self.settings.r_hist_max_entries > 0, "Maximum number of recent history entries should not be 0!"
         if entry in self.recentHistory:
             self.recentHistory.remove(entry)
         elif len(self.recentHistory) == self.settings.r_hist_max_entries:

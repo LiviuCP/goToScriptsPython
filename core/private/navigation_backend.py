@@ -232,15 +232,18 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
             if not os.path.exists(path):
                 self.recentHistory.remove(path)
 
-    # prevent recent history "pollution" with "sub-paths" by removing the last visited path:
-    # - if it is a sub-path of the new path (dirPath)
-    # - if the new path is a sub-path of the last visited path
+    # prevent recent history pollution by removing the last visited path if the new path (dirPath) is one of its sub-paths
+    # if vice-versa (including same paths case), then the recent history would NOT get updated at all
     def __updateRecentHistory__(self, dirPath):
+        shouldUpdateRecentHistory = True
         if len(self.recentHistory) > 0:
             lastVisitedDirPath = self.recentHistory[0]
-            if dirPath.startswith(lastVisitedDirPath) or lastVisitedDirPath.startswith(dirPath):
+            if dirPath.startswith(lastVisitedDirPath) and lastVisitedDirPath != dirPath:
                 self.recentHistory.remove(lastVisitedDirPath)
-        super().__updateRecentHistory__(dirPath)
+            elif lastVisitedDirPath.startswith(dirPath):
+                shouldUpdateRecentHistory = False
+        if shouldUpdateRecentHistory:
+            super().__updateRecentHistory__(dirPath)
 
     def __updatePermanentHistory__(self, dirPath):
         if dirPath in self.excludedHistory.keys():
