@@ -132,7 +132,7 @@ class Application:
                 print("No navigation filter previously entered.")
         elif len(userInput) >= 2 and userInput[0:2] == ",,":
             navHistInput = userInput[2:]
-            if self.__isQuickNavigationPossible__(navHistInput):
+            if self.__isQuickNavigationPossible__(navHistInput, True):
                 result = self.__setContext__(contexts_dict["<"], "," + navHistInput)
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
@@ -321,15 +321,17 @@ class Application:
         self.isQuickHistEnabled = not self.isQuickHistEnabled
         print("Quick history enabled!") if self.isQuickHistEnabled else print("Quick history disabled!")
 
-    def __isQuickNavigationPossible__(self, navHistInput):
+    def __isQuickNavigationPossible__(self, navHistInput, isParentDirectoryRequested = False):
         isQuickNavPossible = False
         if len(self.currentContext) > 0: #quick history is only accessible from main navigation page (excluding help menus) - it should be visible when accessed!
             print("Quick history not accessible from current context. Please try again!")
         elif self.isQuickHistEnabled:
-            if self.nav.isValidQuickNavHistoryEntryNr(navHistInput):
+            if self.nav.isValidQuickNavHistoryEntryNr(navHistInput, isParentDirectoryRequested):
                 isQuickNavPossible = True
             else:
-                print("Invalid quick navigation history entry number! Please try again.")
+                print("Invalid quick navigation history entry number and/or ancestor depth suffix! Please try again.")
+                print("")
+                print("Note: ancestor depth suffix is not supported when addressing parent directory of the entry.")
         else:
             print("Quick history is disabled. Please enable it and try again!")
         return isQuickNavPossible

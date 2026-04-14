@@ -4,6 +4,8 @@ from settings import navigation_settings as navset
 from utilities import common
 from .private import nav_cmd_common as nvcdcmn
 
+ancestor_depths_dict = {"a" : 0, "b" : 1, "c" : 2, "d" : 3, "e" : 4}
+
 class NavigationBackend(nvcdcmn.NavCmdCommon):
     def __init__(self):
         super().__init__(navset)
@@ -128,6 +130,14 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         if not replacedPathInPHist:
             self.__computeFavorites__()
         return (replacedPath, replacingPath)
+
+    def isValidQuickHistoryParentEntryNr(self, userInput):
+        depthSuffixIndex, _ = retrieveAncestorDepthSuffixInfo(userInput)
+        return super().isValidQuickHistoryEntryNr(userInput) if depthSuffixIndex == -1 else False
+
+    def isValidQuickHistoryEntryNr(self, userInput):
+        depthSuffixIndex, _ = retrieveAncestorDepthSuffixInfo(userInput)
+        return super().isValidQuickHistoryEntryNr(userInput) if depthSuffixIndex == -1 else False if depthSuffixIndex == 0 else super().isValidQuickHistoryEntryNr(userInput[0:depthSuffixIndex])
 
     def __loadFiles__(self):
         # excluded history to be loaded first so __isEmptyPersistentHistoryAllowed__() can yield a correct result (it's being called from nav_cmd_common.py)
@@ -297,9 +307,36 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         elif len(userInput) > 1 and userInput[0] == "-" and common.isValidMenuEntryNr(userInput[1:], content):
             output = str(Path(content[int(userInput[1:])-1].strip("\n")).parent)
             userInput = ":preceding-" # used for further differentiation between entry directory and parent for setting target dir
+        # handle the ancestor depth suffix for "non-parent" access (only to be considered for valid directory entry numbers, otherwise handle as "regular input", e.g. a command)
+        elif len(userInput) > 0 and userInput[0] != ",":
+            depthSuffixIndex, ancestorDepth = retrieveAncestorDepthSuffixInfo(userInput)
+            updatedUserInput = userInput[0:depthSuffixIndex] if depthSuffixIndex > 0 else userInput
+            output, updatedUserInput, unused = super().__retrieveMenuEntry__(updatedUserInput, content)
+            assert output != ":3"
+            if output not in [":1", ":2", ":4"] and depthSuffixIndex > 0:
+                path = Path(output)
+                ancestorsCount = len(path.parents)
+                assert ancestorsCount > 0, "There should be at least one ancestor (root)"
+                assert ancestorDepth >= 0, "There should be no negative ancestor depth"
+                ancestorDepth = ancestorsCount - 1 if ancestorDepth >= ancestorsCount else ancestorDepth
+                output = str(path.parents[ancestorDepth])
+                userInput = updatedUserInput
+            else:
+                output, userInput, unused = super().__retrieveMenuEntry__(userInput, content)
+        # corner cases: empty input or invalid parent directory input
         else:
             output, userInput, unused = super().__retrieveMenuEntry__(userInput, content)
         return (output, userInput, unused)
+
+def retrieveAncestorDepthSuffixInfo(userInput):
+    depthSuffixIndex = -1
+    ancestorDepth = -1
+    for k in ancestor_depths_dict.keys():
+        if userInput.endswith(k):
+            depthSuffixIndex = userInput.rfind(k)
+            ancestorDepth = ancestor_depths_dict[k]
+            break
+    return depthSuffixIndex, ancestorDepth
 
 def isHomeDirectoryPath(dirPath):
     assert len(dirPath) > 0, "Empty directory path!"

@@ -134,6 +134,7 @@ A concrete example would be:
 Notes:
 - if the provided depth is larger than the number of current directory ancestors (including root), then the maximum depth is considered and the user switches to root directory. In the above example, entering ;5 would be the same as entering ;6 or ;1000 (the user navigates to /)
 - the user needs to enter a positive integer after ; (otherwise an error message is displayed and the current directory remains unchanged). Neither non-digit characters, negative numbers or number 0 are accepted. Entering nothing after ; is invalid as well. Trailing spaces are ignored.
+- it is possible to navigate to an ancestor directory of a directory entry from a navigation history menu. For more details see section 6.7.
 
 5.4. Adding a directory to favorites
 
@@ -514,6 +515,28 @@ Notes:
 - to modify the number of displayed entries, please change the variable q_hist_max_entries from navigation_settings.py (for navigation) or commands_settings.py (for commands) to the desired value (default is 5 and it is recommended to keep it small).
 - when accessing the parent directory, an empty entry number (namely entering only ,,) is considered invalid and an error is triggered. The user should retry by entering a valid entry number.
 - the quick history cannot be accessed when both the navigation and commands history are empty. Also, if both consolidated history menus are emptied while quick history is enabled, then it gets automatically disabled. It can be re-enabled as soon as at least one directory is visited and/or at least one command that has at least as many characters as contained within setup threshold (see section 5.15 for more details) is executed.
+
+6.7. Ancestor depth suffix
+
+This feature is available for any navigation history entry. By entering a corresponding suffix to the entry number if is possible to access an ancestor of the directory entry.
+
+The currently available suffixes are:
+- 'a': go to the parent of the directory (same as preceding the entry number by ',' or ",,")
+- 'b': go to the grandparent
+- 'c', 'd', 'e': go to the following ancestors
+
+To use it simply enter the entry number followed by suffix. In quick history one would need to enter the entry number preceded by < (for example <2a).
+
+Example: entry 2, directory /home/my/dir/to/visit/today
+- enter 2a: go to /home/my/dir/to/visit
+- enter 2b: go to /home/my/dir/to
+- enter 2c: go to /home/my/dir
+- enter 2d: go to /home/my
+- enter 2e: go to /home
+
+Notes:
+- the depth to navigate to is obviously capped by the root directory depth. For example if the entry from above example were /home/my/dir, then when entering 2e the visited directory would be /.
+- the ancestor depth suffix cannot be used in combination with the parent directory access functionality, i.e. entering ",2b" in navigation history menu or ",,2b" in quick navigation history is not taken into consideration as ancestor directory depth suffix. An error is displayed in either menu.
 
 7. FALLBACK FOR CURRENT DIRECTORY
 

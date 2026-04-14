@@ -176,9 +176,13 @@ class Navigation:
         else:
             print("No directories recently visited!")
 
-    """ checks the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent navigation history) """
-    def isValidQuickNavHistoryEntryNr(self, userInput):
-        return self.nav.isValidQuickHistoryEntryNr(userInput)
+    """
+    Checks:
+    - the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent navigation history)
+    - the ancestor depth suffix (if contained) is valid (when requesting parent directory no such suffix is applicable)
+    """
+    def isValidQuickNavHistoryEntryNr(self, userInput, isParentDirectoryRequested):
+        return self.nav.isValidQuickHistoryParentEntryNr(userInput) if isParentDirectoryRequested else self.nav.isValidQuickHistoryEntryNr(userInput)
 
     """ checks if the consolidated navigation history is empty """
     def isNavigationHistoryEmpty(self):
