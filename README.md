@@ -100,7 +100,7 @@ The history menu keeps track of the:
 
 The favorites menu contains the directories the user previously added to the list of preferred folders. The maximum number of entries is not limited, however it's recommended to use it for storing the so called entry-point directories (like Desktop, Pictures, Documents, etc). It can also be used for storing paths to temporarily mounted filesystems (like SD cards). When accessing a temporary filesystem, make sure it is mounted before doing any access attempt.
 
-When choosing an entry (enter the number and press ENTER) from one of the two menus, the app navigates to the chosen directory path. If entering ',' before the number, the parent directory of the folder contained within the entry is visited instead.
+When choosing an entry (enter the number and press ENTER) from one of the two menus, the app navigates to the chosen directory path. If entering an alphabetic ancestor depth suffix after the number, the ancestor directory of the folder contained within the entry is visited instead. For more details see section 6.7.
 
 The history menu (more precisely the most visited directories section) and favorites are sorted alphabetically by directory name for easy identification of the required entry. The recent history section is displayed in a stack-like mode, namely the most recently visited directory is on the first position (see also section 6.1).
 
@@ -187,7 +187,7 @@ All relevant clipboard commmands can be found in the clipboard help menu. Type ?
 It is also possible to move or copy files recursively from one/more source folder(s) to a setup destination (target) directory. In order to do this following steps should be performed:
 - Go to the destination directory, enter :td and hit ENTER to have it setup as target. Alternatively you can enter the navigation history or favorites menus and set:
   - entry dir as target dir by preceding the entry number with character '+' and hitting ENTER
-  - parent dir of entry dir as target by preceding the entry number with character '-' and hitting ENTER
+  - ancestor dir of entry dir as target by preceding the entry number by character '-' and then appending an ancestor depth suffix to the number (more details in section 6.7) and hitting ENTER
 - Go to the directory you need to move/copy files from and hit :M or :C (case sensitive) to enter the recursive move/copy mode.
 - For each item or group of items you require to transfer enter an appropriate keyword and hit ENTER. After transfer is done a new keyword will be requested for the next item or group.
 - After entering all keywords and transfering all required items, instead of entering a new keyword just hit ENTER to exit the recursive mode.
@@ -202,7 +202,7 @@ Notes:
 5) To setup a new target directory just (re-)enter :td and hit ENTER. If a target dir is already in place, it will get overridden by the new target folder.
 6) If the target directory is chosen from the navigation menu and the folder no longer exists, then the missing directory case is handled as follows:
    - for the missing directory contained within menu entry the same steps are required as when visiting the directory through the menu. For more details regarding missing directories from menu check section 5.14.
-   - if the parent was chosen as target dir and it no longer exists, a warning message will be shown and the target dir is not setup. No further actions are enforced from menu.
+   - if the ancestor was chosen as target dir and it no longer exists, a warning message will be shown and the target dir is not setup. No further actions are enforced from menu.
 
 All relevant recursive move/copy commmands can be found in the clipboard help menu. Type ?clip and hit ENTER to have this menu displayed.
 
@@ -316,7 +316,7 @@ In this case the user has two options:
 - remove the entry from the menus
 - remap the path to an existing one (for example when the directory has been renamed) in order to preserve the number of visits
 
-Note: this functionality is NOT available when choosing the parent dir from the entry. In this case only a warning message will be displayed asking to remove/map the entry. Generally speaking the actual removal/mapping is triggered when individually selecting each directory (not parent) from the navigation menu (history/favorites).
+Note: this functionality is NOT available when choosing the ancestor dir from the entry. In this case only a warning message will be displayed asking to remove/map the entry. Generally speaking the actual removal/mapping is triggered when individually selecting each directory (not ancestor) from the navigation menu (history/favorites).
 
 5.14.1. Removing the path
 
@@ -466,7 +466,7 @@ There is no excluded history for commands.
 
 Both for visited directories and executed commands it is possible to filter the persistent history (whole content) based on a search keyword. The search will find all matches but only display a limited number of results on screen. This limitation is implemented so the displayed entries are readable and thus usable. By modifying a variable in the navigation_settings.py or commands_settings.py it is possible to change this limit (however I recommend keeping it low).
 
-Once the search results are displayed, please select the number of the required entry from the menu so it is executed/visited. The filtered history menus behave the same as the consolidated menus regarding usage (for example for navigation one can enter ',' before the entry number in order to visit the parent directory of the entry).
+Once the search results are displayed, please select the number of the required entry from the menu so it is executed/visited. The filtered history menus behave the same as the consolidated menus regarding usage (for example for navigation one can enter the ancestor depth suffix after the entry number in order to visit the corresponding ancestor directory of the entry - more details see section 6.7).
 
 The same filtering mechanism also applies to favorite directories.
 
@@ -509,11 +509,10 @@ Another caveat is that the quick history can only be used from the places where 
 
 If the user attempts to access a quick entry from another context (e.g. enters <2 while in the filtered navigation history menu), then an error is triggered mentioning that the context is not appropriate. The context is automatically switched to main navigation page, and the user can re-enter the quick navigation choice. This time the navigation/command should be successful unless the quick history is disabled or the entry is invalid. The reason for implementing this menu(context)-based restriction is that it needs to be ensured the user is fully aware of the chosen entry before executing it. This is of utmost importance especially when executing commands.
 
-Last but not least, when using the navigation section of the quick menu, it is also possible to visit the parent directory of the chosen entry. To do this, instead of < enter ,, followed by entry number. For example, if directory /home/myUserName/Documents is displayed at position 2 in quick navigation history, then simply enter ,,2 in order to visit its parent /home/myUserName. All above mentioned quick history rules apply here.
+Last but not least, when using the navigation section of the quick menu, it is also possible to visit the ancestor directory of the chosen entry. To do this just append the corresponding ancestor depth suffix to the entry number (more details in section 6.7). For example, if directory /home/myUserName/Documents is displayed at position 2 in quick navigation history, then simply enter <2b in order to visit its ancestor /home. All above mentioned quick history rules apply here.
 
 Notes:
 - to modify the number of displayed entries, please change the variable q_hist_max_entries from navigation_settings.py (for navigation) or commands_settings.py (for commands) to the desired value (default is 5 and it is recommended to keep it small).
-- when accessing the parent directory, an empty entry number (namely entering only ,,) is considered invalid and an error is triggered. The user should retry by entering a valid entry number.
 - the quick history cannot be accessed when both the navigation and commands history are empty. Also, if both consolidated history menus are emptied while quick history is enabled, then it gets automatically disabled. It can be re-enabled as soon as at least one directory is visited and/or at least one command that has at least as many characters as contained within setup threshold (see section 5.15 for more details) is executed.
 
 6.7. Ancestor depth suffix
@@ -534,9 +533,7 @@ Example: entry 2, directory /home/my/dir/to/visit/today
 - enter 2d: go to /home/my
 - enter 2e: go to /home
 
-Notes:
-- the depth to navigate to is obviously capped by the root directory depth. For example if the entry from above example were /home/my/dir, then when entering 2e the visited directory would be /.
-- the ancestor depth suffix cannot be used in combination with the parent directory access functionality, i.e. entering ",2b" in navigation history menu or ",,2b" in quick navigation history is not taken into consideration as ancestor directory depth suffix. An error is displayed in either menu.
+Note: the depth to navigate to is obviously capped by the root directory depth. For example if the entry from above example were /home/my/dir, then when entering 2e the visited directory would be /.
 
 7. FALLBACK FOR CURRENT DIRECTORY
 

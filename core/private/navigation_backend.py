@@ -131,10 +131,6 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
             self.__computeFavorites__()
         return (replacedPath, replacingPath)
 
-    def isValidQuickHistoryParentEntryNr(self, userInput):
-        depthSuffixIndex, _ = retrieveAncestorDepthSuffixInfo(userInput)
-        return super().isValidQuickHistoryEntryNr(userInput) if depthSuffixIndex == -1 else False
-
     def isValidQuickHistoryEntryNr(self, userInput):
         depthSuffixIndex, _ = retrieveAncestorDepthSuffixInfo(userInput)
         return super().isValidQuickHistoryEntryNr(userInput) if depthSuffixIndex == -1 else False if depthSuffixIndex == 0 else super().isValidQuickHistoryEntryNr(userInput[0:depthSuffixIndex])
@@ -295,22 +291,15 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
 
     def __retrieveMenuEntry__(self, userInput, content):
         unused = "" # this variable is part of a tuple that has been kept in this form for (legacy) compatibility
-        # access parent dir of menu entry
-        if len(userInput) > 1 and userInput[0] == "," and common.isValidMenuEntryNr(userInput[1:], content):
-            output = str(Path(content[int(userInput[1:])-1].strip("\n")).parent)
-            userInput = ":parent" # used for further differentiation between entry directory and parent in case the returned path is invalid
         # retrieved path to be used for setting target dir from menu
-        elif len(userInput) > 1 and userInput[0] == "+" and common.isValidMenuEntryNr(userInput[1:], content):
+        if len(userInput) > 1 and userInput[0] == "+" and common.isValidMenuEntryNr(userInput[1:], content):
             output = str(Path(content[int(userInput[1:])-1].strip("\n")))
-            userInput = ":preceding+" # used for further differentiation between entry directory and parent for setting target dir
-        # retrieved parent path to be used for setting target dir from menu
-        elif len(userInput) > 1 and userInput[0] == "-" and common.isValidMenuEntryNr(userInput[1:], content):
-            output = str(Path(content[int(userInput[1:])-1].strip("\n")).parent)
-            userInput = ":preceding-" # used for further differentiation between entry directory and parent for setting target dir
-        # handle the ancestor depth suffix for "non-parent" access (only to be considered for valid directory entry numbers, otherwise handle as "regular input", e.g. a command)
-        elif len(userInput) > 0 and userInput[0] != ",":
+            userInput = ":preceding+" # used for further differentiation between entry directory and ancestors for setting target dir
+        # handle the ancestor depth suffix (only to be considered for valid (target) directory entry numbers, otherwise handle as "regular input", e.g. a command)
+        else:
             depthSuffixIndex, ancestorDepth = retrieveAncestorDepthSuffixInfo(userInput)
             updatedUserInput = userInput[0:depthSuffixIndex] if depthSuffixIndex > 0 else userInput
+            updatedUserInput = updatedUserInput[1:] if len(updatedUserInput) > 1 and updatedUserInput[0] == "-" else updatedUserInput
             output, updatedUserInput, unused = super().__retrieveMenuEntry__(updatedUserInput, content)
             assert output != ":3"
             if output not in [":1", ":2", ":4"] and depthSuffixIndex > 0:
@@ -320,12 +309,9 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
                 assert ancestorDepth >= 0, "There should be no negative ancestor depth"
                 ancestorDepth = ancestorsCount - 1 if ancestorDepth >= ancestorsCount else ancestorDepth
                 output = str(path.parents[ancestorDepth])
-                userInput = updatedUserInput
+                userInput = ":preceding-" if userInput[0] == "-" else ":ancestor" # both tags indicate an ancestor directory; ":preceding" indicates a more specialized use, namely for setting it as a target directory
             else:
                 output, userInput, unused = super().__retrieveMenuEntry__(userInput, content)
-        # corner cases: empty input or invalid parent directory input
-        else:
-            output, userInput, unused = super().__retrieveMenuEntry__(userInput, content)
         return (output, userInput, unused)
 
 def retrieveAncestorDepthSuffixInfo(userInput):

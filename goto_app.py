@@ -65,7 +65,7 @@ class Application:
         #any input starting with < and continuing with a character different from < is considered a quick navigation history request (no matter if valid or not, e.g. <a is invalid)
         def isQuickNavigationRequested(userInput):
             userInput = userInput.strip(' ')
-            isQuickNavHistInput = len(userInput) > 1 and ((userInput[0] == "<" and userInput[1] != "<") or userInput[0:2] == ",,")
+            isQuickNavHistInput = len(userInput) > 1 and userInput[0] == "<" and userInput[1] != "<"
             return isQuickNavHistInput
         #any input starting with "-" and not starting with "->" is considered a quick commands history request (no matter if valid or not, e.g. -a is invalid)
         def isQuickCommandRequested(userInput):
@@ -130,11 +130,6 @@ class Application:
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
             else:
                 print("No navigation filter previously entered.")
-        elif len(userInput) >= 2 and userInput[0:2] == ",,":
-            navHistInput = userInput[2:]
-            if self.__isQuickNavigationPossible__(navHistInput, True):
-                result = self.__setContext__(contexts_dict["<"], "," + navHistInput)
-                shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif len(userInput) >= 2 and userInput[0:2] in [":<", "::"]:
             result = self.__setContext__(contexts_dict[userInput[0:2]], userInput[2:])
             shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
@@ -321,12 +316,12 @@ class Application:
         self.isQuickHistEnabled = not self.isQuickHistEnabled
         print("Quick history enabled!") if self.isQuickHistEnabled else print("Quick history disabled!")
 
-    def __isQuickNavigationPossible__(self, navHistInput, isParentDirectoryRequested = False):
+    def __isQuickNavigationPossible__(self, navHistInput):
         isQuickNavPossible = False
         if len(self.currentContext) > 0: #quick history is only accessible from main navigation page (excluding help menus) - it should be visible when accessed!
             print("Quick history not accessible from current context. Please try again!")
         elif self.isQuickHistEnabled:
-            if self.nav.isValidQuickNavHistoryEntryNr(navHistInput, isParentDirectoryRequested):
+            if self.nav.isValidQuickNavHistoryEntryNr(navHistInput):
                 isQuickNavPossible = True
             else:
                 print("Invalid quick navigation history entry number and/or ancestor depth suffix! Please try again.")

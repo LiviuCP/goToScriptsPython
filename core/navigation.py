@@ -73,8 +73,8 @@ class Navigation:
             print(f"You exited the {menuName} menu!")
         elif dirPath != ":3":
             if not os.path.isdir(dirPath):
-                if menuVisitPassedInput in [":parent", ":preceding-"]:
-                    print(f"Invalid parent directory path: {dirPath}")
+                if menuVisitPassedInput in [":ancestor", ":preceding-"]:
+                    print(f"Invalid ancestor directory path: {dirPath}")
                     print("The directory might have been moved, renamed or deleted.")
                     print()
                     print("Please remove or map the directory and/or child directories within history and/or favorites menus.")
@@ -179,10 +179,10 @@ class Navigation:
     """
     Checks:
     - the entry number is a positive integer belonging to the range of entries contained in quick history (subset of recent navigation history)
-    - the ancestor depth suffix (if contained) is valid (when requesting parent directory no such suffix is applicable)
+    - the alphabetic ancestor depth suffix (if contained) is valid
     """
-    def isValidQuickNavHistoryEntryNr(self, userInput, isParentDirectoryRequested):
-        return self.nav.isValidQuickHistoryParentEntryNr(userInput) if isParentDirectoryRequested else self.nav.isValidQuickHistoryEntryNr(userInput)
+    def isValidQuickNavHistoryEntryNr(self, userInput):
+        return self.nav.isValidQuickHistoryEntryNr(userInput)
 
     """ checks if the consolidated navigation history is empty """
     def isNavigationHistoryEmpty(self):
@@ -337,9 +337,9 @@ class Navigation:
                 print(f"Applied filter: {filterKey}")
                 print("")
             print("Enter the number of the directory you want to navigate to. ", end='')
-            print("To navigate to parent directory enter character ',' before the number.")
+            print("To navigate to ancestor directory enter the corresponding alphabetic suffix after the number (see help menu for more details).")
             print("To set the directory as target dir enter '+' before the number. ", end='')
-            print("Enter '-' to set its parent as target.")
+            print("Enter '-' before the number and append the corresponding alphabetic suffix to set its ancestor as target.")
             print("")
             print(f"Enter :t to toggle to {toggleDict[choice]}.")
             print("")
