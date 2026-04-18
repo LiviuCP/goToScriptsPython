@@ -108,7 +108,7 @@ If an entry is not found within menu, one can enter the target path manually in 
 
 It is possible to navigate to a specific favorites entry without displaying the list of preferred directories. This can be done by entering operator > followed by the entry number (while on main navigation page or in another menu). For example, if directory /home/myUserName/Documents is entry number 2 in Favorites, then the user can enter >2 and hit the return key to visit it. If the string after the operator is not a valid entry number (which needs to be a positive integer between 1 and the number of favorite paths inclusively), then an error will be triggered.
 
-The same rapid access mode can also be obtained with navigation history (by entering < followed by entry number), yet in this case the quick history needs to be enabled beforehand. Same as for favorite directories, if the entry number is invalid (either not in range or containing invalid characters) an error will be triggered. For more details, please check the quick history section (6.6).
+The same rapid access mode can also be obtained with navigation history (by entering ',' followed by entry number), yet in this case the quick history needs to be enabled beforehand. Same as for favorite directories, if the entry number is invalid (either not in range or containing invalid characters) an error will be triggered. For more details, please check the quick history section (6.6).
 
 Notes:
 - due to its easy reachability, the user home directory is excluded from any history tracking (adding to favorites is also not allowed - an error is triggered when attempting this). This is in order to make most effective use of history entries, especially in quick history (see section 6.6 for more details).
@@ -499,7 +499,7 @@ The quick history is a subset of the recent history. It is available both for na
 
 The quick history navigation section contains the last visited directories. The number of displayed entries cannot exceed the size of the recent history (instead it can be smaller resulting in a subset). It is recommended to keep the count as small as possible in order to be able to identify the required entry rapidly (hence quick history) and then navigate to the directory.
 
-The navigation to the chosen entry is performed by entering < followed by entry number. Please note that the number should be valid, i.e. it needs to be a valid integer pointing to one of the listed entries. If the entry number is out-of-range or contains invalid (non-numeric) characters, then an error will be triggered. The user should correct the input and retry.
+The navigation to the chosen entry is performed by entering , followed by entry number. Please note that the number should be valid, i.e. it needs to be a valid integer pointing to one of the listed entries. If the entry number is out-of-range or contains invalid (non-numeric) characters, then an error will be triggered. The user should correct the input and retry.
 
 The quick history might also contain a commands section if a recent commands history is available. To access a command, enter character '-' followed by the entry number. This will trigger the execution of the chosen command. In order to edit it prior to executing, enter character '+' followed by entry number instead. Same rules as for navigation apply regarding entry number validity.
 
@@ -507,9 +507,9 @@ By default the quick history is disabled, so it doesn't clutter the main menu un
 
 Another caveat is that the quick history can only be used from the places where it is being displayed, namely the main navigation page (a.k.a. main menu / main context). Although the help sub-menus are also part of the main context, they are excluded from using this feature. When accessing either of the help options, the quick history is automatically disabled. The user can re-enable it by entering :q (help information is being cleared when doing this).
 
-If the user attempts to access a quick entry from another context (e.g. enters <2 while in the filtered navigation history menu), then an error is triggered mentioning that the context is not appropriate. The context is automatically switched to main navigation page, and the user can re-enter the quick navigation choice. This time the navigation/command should be successful unless the quick history is disabled or the entry is invalid. The reason for implementing this menu(context)-based restriction is that it needs to be ensured the user is fully aware of the chosen entry before executing it. This is of utmost importance especially when executing commands.
+If the user attempts to access a quick entry from another context (e.g. enters ,2 while in the filtered navigation history menu), then an error is triggered mentioning that the context is not appropriate. The context is automatically switched to main navigation page, and the user can re-enter the quick navigation choice. This time the navigation/command should be successful unless the quick history is disabled or the entry is invalid. The reason for implementing this menu(context)-based restriction is that it needs to be ensured the user is fully aware of the chosen entry before executing it. This is of utmost importance especially when executing commands.
 
-Last but not least, when using the navigation section of the quick menu, it is also possible to visit the ancestor directory of the chosen entry. To do this just append the corresponding ancestor depth suffix to the entry number (more details in section 6.7). For example, if directory /home/myUserName/Documents is displayed at position 2 in quick navigation history, then simply enter <2b in order to visit its ancestor /home. All above mentioned quick history rules apply here.
+Last but not least, when using the navigation section of the quick menu, it is also possible to visit the ancestor directory of the chosen entry. To do this just append the corresponding ancestor depth suffix to the entry number (more details in section 6.7). For example, if directory /home/myUserName/Documents is displayed at position 2 in quick navigation history, then simply enter ,2b in order to visit its ancestor /home. All above mentioned quick history rules apply here.
 
 Notes:
 - to modify the number of displayed entries, please change the variable q_hist_max_entries from navigation_settings.py (for navigation) or commands_settings.py (for commands) to the desired value (default is 5 and it is recommended to keep it small).
@@ -517,23 +517,25 @@ Notes:
 
 6.7. Ancestor depth suffix
 
-This feature is available for any navigation history entry. By entering a corresponding suffix to the entry number if is possible to access an ancestor of the directory entry.
+This feature is available for any navigation history entry. By entering a corresponding alphabetic suffix to the entry number it is possible to access an ancestor of the directory entry.
 
 The currently available suffixes are:
-- 'a': go to the parent of the directory (same as preceding the entry number by ',' or ",,")
-- 'b': go to the grandparent
-- 'c', 'd', 'e': go to the following ancestors
+- 'a': go to the parent of the directory (..)
+- 'b': go to the grandparent (../..)
+- 'c': go to third ancestor from the hierarchy (../../..)
+- 'd': go to fourth ancestor from the hierarchy (../../../..)
+- 'e': go to fifth ancestor from the hierarchy (../../../../..)
 
-To use it simply enter the entry number followed by suffix. In quick history one would need to enter the entry number preceded by < (for example <2a).
+To navigate to the ancestor directory located at one of the above mentioned depths simply add the suffix to the entry number. In quick history one would need to enter the entry number preceded by , and then append the suffix (for example ,2a). In any other navigation history/favorites menu just enter the number followed by suffix (for example 2a).
 
 Example: entry 2, directory /home/my/dir/to/visit/today
-- enter 2a: go to /home/my/dir/to/visit
-- enter 2b: go to /home/my/dir/to
-- enter 2c: go to /home/my/dir
-- enter 2d: go to /home/my
-- enter 2e: go to /home
+- enter 2a: go to /home/my/dir/to/visit (in quick navigation history enter: ,2a)
+- enter 2b: go to /home/my/dir/to (quick: ,2b)
+- enter 2c: go to /home/my/dir (quick: ,2c)
+- enter 2d: go to /home/my (quick: ,2d)
+- enter 2e: go to /home (quick: ,2e)
 
-Note: the depth to navigate to is obviously capped by the root directory depth. For example if the entry from above example were /home/my/dir, then when entering 2e the visited directory would be /.
+Note: the depth to navigate to is obviously capped by the root directory depth. For example if the entry from above example were /home/my/dir, then when entering 2e the visited directory would be / as there is no other directory above it.
 
 7. FALLBACK FOR CURRENT DIRECTORY
 

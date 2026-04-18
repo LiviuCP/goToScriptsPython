@@ -62,10 +62,10 @@ class Application:
                 self.__handleCloseApplication__(self.cmd.getPreviousCommand())
 
     def __handleUserInput__(self, userInput):
-        #any input starting with < and continuing with a character different from < is considered a quick navigation history request (no matter if valid or not, e.g. <a is invalid)
+        #any input starting with ',' and continuing with at least a character is considered a quick navigation history request (no matter if valid or not, e.g. ,a is invalid)
         def isQuickNavigationRequested(userInput):
             userInput = userInput.strip(' ')
-            isQuickNavHistInput = len(userInput) > 1 and userInput[0] == "<" and userInput[1] != "<"
+            isQuickNavHistInput = len(userInput) > 1 and userInput[0] == ","
             return isQuickNavHistInput
         #any input starting with "-" and not starting with "->" is considered a quick commands history request (no matter if valid or not, e.g. -a is invalid)
         def isQuickCommandRequested(userInput):
@@ -114,14 +114,14 @@ class Application:
             if isInputOk:
                 result = self.__setContext__(contexts_dict[userInput[0]], navHistInput)
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
-        elif len(userInput) >= 1 and userInput[0] == "<":
+        elif len(userInput) > 1 and userInput[0] == ",":
             navHistInput = userInput[1:]
-            isInputOk = True
-            if len(navHistInput) > 0:
-                isInputOk = self.__isQuickNavigationPossible__(navHistInput)
-            if isInputOk:
-                result = self.__setContext__(contexts_dict[userInput[0]], navHistInput)
+            if self.__isQuickNavigationPossible__(navHistInput):
+                result = self.__setContext__(contexts_dict["<"], navHistInput)
                 shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
+        elif len(userInput) == 1 and userInput[0] == "<":
+            result = self.__setContext__(contexts_dict[userInput[0]], "")
+            shouldSwitchToMainContext = isSwitchToMainContextRequired(result)
         elif userInput in [":n", ":N"]:
             prevNavigationFilter = self.nav.getPreviousNavigationFilter()
             if len(prevNavigationFilter) > 0:
@@ -284,7 +284,7 @@ class Application:
         elif self.currentContext in ["-f", "-h"]:
             status, passedInput, passedOutput = self.nav.executeGoToFromMenu(self.currentContext, userInput, self.cmd.getPreviousCommand())
             if len(userInput) > 0:
-                self.appStatus = 4 if status == 0 else 1 if status in [1, 4] else self.appStatus #forward user input if history menu is empty and the user enters <[entry_nr] (status == 4)
+                self.appStatus = 4 if status == 0 else 1 if status in [1, 4] else self.appStatus #forward user input if history menu is empty and the user enters ,[entry_nr] (status == 4)
             else:
                 self.appStatus = 4 if status <= 0 else 1 if status == 1 else self.appStatus
                 if status == -1:
