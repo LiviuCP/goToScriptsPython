@@ -11,3 +11,5 @@ e_hist_file = home_dir + ".excluded_navigation_history.json" # excluded navigati
 max_nr_of_item_name_chars = 25 # maximum number of characters to display for the file/dir name
 max_nr_of_path_chars = 75 # maximum number of characters to display for a path (of a directory)
 max_nr_of_displayed_items = 50 # maximum number of files/dirs listed from current directory in navigation mode
+
+ancestor_depth_suffixes_dict = {"a" : 0, "b" : 1, "c" : 2, "d" : 3, "e" : 4} # supported ancestor depth suffixes and their corresponding depth indexes (index 0 is for parent, 1 for grandparent and so on) which map to the indexes of the parents list provided by Path

@@ -4,8 +4,6 @@ from settings import navigation_settings as navset
 from utilities import common
 from .private import nav_cmd_common as nvcdcmn
 
-ancestor_depths_dict = {"a" : 0, "b" : 1, "c" : 2, "d" : 3, "e" : 4}
-
 class NavigationBackend(nvcdcmn.NavCmdCommon):
     def __init__(self):
         super().__init__(navset)
@@ -317,10 +315,10 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
 def retrieveAncestorDepthSuffixInfo(userInput):
     depthSuffixIndex = -1
     ancestorDepth = -1
-    for k in ancestor_depths_dict.keys():
+    for k in navset.ancestor_depth_suffixes_dict.keys():
         if userInput.endswith(k):
             depthSuffixIndex = userInput.rfind(k)
-            ancestorDepth = ancestor_depths_dict[k]
+            ancestorDepth = navset.ancestor_depth_suffixes_dict[k]
             break
     return depthSuffixIndex, ancestorDepth
 
