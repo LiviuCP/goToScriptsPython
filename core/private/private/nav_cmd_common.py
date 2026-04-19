@@ -50,11 +50,18 @@ class NavCmdCommon:
     def isHistoryMenuEmpty(self):
         return len(self.consolidatedHistory) == 0
 
+    def isValidConsolidatedHistoryEntryNr(self, userInput):
+        isValid = False
+        if len(userInput) > 0 and userInput.isdigit():
+            historyEntryNr = int(userInput)
+            isValid = historyEntryNr > 0 and historyEntryNr <= len(self.consolidatedHistory)
+        return isValid
+
     def isValidQuickHistoryEntryNr(self, userInput):
         isValid = False
         if len(userInput) > 0 and userInput.isdigit():
-            quickNavEntryNr = int(userInput)
-            isValid = quickNavEntryNr > 0 and quickNavEntryNr <= len(self.recentHistory) and quickNavEntryNr <= self.settings.q_hist_max_entries
+            quickHistoryEntryNr = int(userInput)
+            isValid = quickHistoryEntryNr > 0 and quickHistoryEntryNr <= len(self.recentHistory) and quickHistoryEntryNr <= self.settings.q_hist_max_entries
         return isValid
 
     def close(self):

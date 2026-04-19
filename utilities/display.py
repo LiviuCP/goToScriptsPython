@@ -128,6 +128,8 @@ def displayGeneralHelp(currentDir, fallbackOccurred):
     print("- for executing a command from quick history please enter '-' followed by the entry number: -[entry_number]")
     print("- for editing a command from quick history please enter '+' followed by the entry number: +[entry_number]")
     print("")
+    print("To edit a specific command from a command history menu (other than quick history) please precede the entry number with the /'_/' symbol: _[entry_number]. This works for both edit and execute mode.")
+    print("")
     print("Multiple search filters are allowed for navigation history, favorites and commands history filtering. Only results matching all filters are being displayed.")
     print("Use comma to separate the filters. Regex is supported.")
     print("")

@@ -128,6 +128,13 @@ class Commands:
                 os.system("clear")
         # process user choice
         userInput = userInput.strip()
+        editOverrideApplied = False
+        if len(userInput) > 0 and userInput[0] == '_':
+            entryNumberCandidate = userInput[1:]
+            isValidEntryNumberCandidate = self.cmd.isValidConsolidatedHistoryEntryNr(entryNumberCandidate) if len(filterKey) == 0 else common.isValidMenuEntryNr(entryNumberCandidate, filteredEntries)
+            if isValidEntryNumberCandidate:
+                userInput = entryNumberCandidate
+                editOverrideApplied = True
         commandsHistoryEntry, chooseCommandPassedInput, chooseCommandPassedOutput = self.cmd.chooseHistoryMenuEntry(userInput) if (len(filterKey) == 0 or isValidQuickHistEntryNr) else self.cmd.chooseFilteredMenuEntry(userInput, filteredEntries)
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the case when current dir becomes unreachable in the time interval between entering commands menu and entering choice
         if fallbackPerformed:
@@ -141,7 +148,7 @@ class Commands:
             commandExecStatus = status
             passedCommandExecInput = ""
             passedCommandExecOutput = ""
-            if mode == "--execute":
+            if mode == "--execute" and not editOverrideApplied:
                 commandToExecute = self.__expandCommand__(commandsHistoryEntry)
                 if cmd.isSensitiveCommand(commandToExecute):
                     commandToExecute = commandToExecute if userConfirmsCommandExecution(self.rawCommand) else None

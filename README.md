@@ -160,6 +160,8 @@ Same as for navigation history, the commands history has two sections: recently 
 
 The command history can also be accessed in edit mode by entering :: and pressing ENTER. In edit mode, when the number of a command is entered the string of the command is displayed for editing. After editing and pressing ENTER, the new command will be executed. If input hasn't been acknowledged by pressing ENTER, the command execution can be aborted by entering : at the end of the string and then pressing the RETURN key.
 
+In either the execute or edit mode of a command history menu a command can be previously edited before executing by entering '_' followed by the entry number. This opens the command editing dialog. Edit the command, press ENTER and it will get executed.
+
 Last but not least, commands can also be accessed by entering a quick history entry number when on main navigation page. More details in section 6.6.
 
 Important note: in navigation mode make sure you launch time consuming commands in the background by using the ampersand (&) unless you need to visualize the output of the executed command on screen in real time.
