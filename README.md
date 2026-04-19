@@ -543,14 +543,30 @@ In rare situations, the current directory might become unavailable. This might h
 
 When this is the case, the application uses a fallback mechanism that replaces the current dir with a preset fallback directory. It is highly recommended to use the home dir as fallback, yet if you would like to use another folder this can be setup in system_settings.py. However you should make sure the fallback dir is valid and accessible at any time.
 
-The fallback mechanism works as follows: when the user tries to execute an operation (e.g. go to another folder) the application performs a sync process. First it is being checked that the current directory is reachable. Then if the current dir is available it continues the operation as per normal process. However if the current dir is not reachable anymore, the app changes it to the fallback directory and warns the user that the requested operation could not be performed. The user can try again afterwards or choose to execute another operation by taking the current directory change into account.
+7.1. Scenarios
+
+There are two scenarios for fallback:
+- proactive scenario: the fallback was caused by an event external to the current terminal (e.g. the user erased the current directory from another terminal or from a GUI explorer)
+- reactive scenario: the fallback was caused by an operation initiated from current terminal
+
+7.1.1. Proactive fallback
+
+The proactive fallback mechanism works as follows: when the user tries to execute an operation (e.g. go to another folder) the application performs a sync process. First it is being checked that the current directory is reachable. Then if the current dir is available it continues the operation as per normal process. However if the current dir is not reachable anymore, the app changes it to the fallback directory and warns the user that the requested operation could not be performed. The user can try again afterwards or choose to execute another operation by taking the current directory change into account.
 
 To be noted:
 - the clipboard and recursive transfer operations are reset at fallback meaning the user will need to re-initiate these processes (with new parameters if required)
 - entering the help menus and exiting the application is still possible at any time. In these situations a "silent fallback" is performed. This process is made known to the user by displaying the "(fallback)" keyword along with the path of the current directory.
 - on MacOS if Finder synchronization is enabled, when a fallback is performed the sync is preserved and the Finder opens in the fallback directory
 
-The fallback mechanism has been designed for increasing the resiliency of the application by aiding in preventing unwanted crashes. Due to the complexity of the application, there might be some places (sub-menus) where it hasn't been implemented (in this case the app might crash), yet in practice it should be seldom required as in most of the situations the current directory should be fully available.
+7.1.2. Reactive fallback
+
+The reactive fallback mechanism works as follows: when the user executes an operation from current terminal that renders the current directory inaccessible an immediate fallback is performed and a warning message is displayed in the top part of the main navigation page right under the current/previous directory data. The current directory is replaced by the fallback directory. Comparing to the proactive scenario the fallback is a direct consequence of the last executed operation and does not prevent execution of the next operation (although the user still needs to take the current directory change into account).
+
+Note: same as for proactive fallback the clipboard and recursive transfer operations are reset when reactive fallback is performed. On MacOS synchronization with Finder is preserved.
+
+7.2. Final considerations
+
+The fallback mechanism has been designed for increasing the resilience of the application by aiding in preventing unwanted crashes. Due to the complexity of the application, there might be some places (sub-menus) where it hasn't been implemented (in this case the app might crash), yet in practice it should be seldom required as in most of the situations the current directory should be fully available.
 
 8. DATA RECONCILING
 

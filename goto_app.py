@@ -379,7 +379,10 @@ class Application:
 
     def __displayGeneralOutput__(self):
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
-        assert not fallbackPerformed, "Current dir fallback not allowed, should have already been performed!"
+        if fallbackPerformed:
+            self.__handleFallbackPerformed__()
+            print("")
+            print("!!! The previously executed operation made the current directory no longer reachable (probably deleted). It has been replaced by fallback directory. !!!")
         prevCommand = self.cmd.getPreviousCommand()
         out.displayGeneralOutputUpperSection(syncedCurrentDir, self.nav.getPreviousDirectory())
         if self.isQuickHistEnabled:
