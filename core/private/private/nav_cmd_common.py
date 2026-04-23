@@ -178,8 +178,8 @@ class NavCmdCommon:
     """
     def __retrieveMenuEntry__(self, userInput, content):
         if common.isValidMenuEntryNr(userInput, content):
-            userInput = int(userInput) - 1
-            output = content[userInput].strip("\n")
+            entryNr = int(userInput) - 1
+            output = content[entryNr].strip("\n")
         else:
             output = ":4" if len(content) == 0 else ":2" if userInput == '!' else ":1"
         return (output, userInput, "")
