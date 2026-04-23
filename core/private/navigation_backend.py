@@ -287,29 +287,35 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         for path, dirName in sorted(favDict.items(), key = lambda k:(k[1].lower(), k[0].lower())):
             self.favorites.append(path)
 
+    # :preceding+/- refers to using the directory as target dir (+ for directory entry, - for ancestor of directory entry)
+    # :ancestor is a tag for ancestor directory usage for navigation purposes only
     def __retrieveMenuEntry__(self, userInput, content):
+        userInputLength = len(userInput)
+        depthSuffixIndex, ancestorDepth = retrieveAncestorDepthSuffixInfo(userInput)
+        assert depthSuffixIndex != 0 and depthSuffixIndex < userInputLength
+        assert ancestorDepth >= 0 if depthSuffixIndex > 0 else ancestorDepth < 0
+        targetDirPrefix = ":td"
+        targetDirPrefixLength = len(targetDirPrefix)
+        isTargetDirRequested = userInput.startswith(targetDirPrefix) and userInputLength > targetDirPrefixLength
+        entryNumberStartIndex = targetDirPrefixLength if isTargetDirRequested else 0
+        entryNumberEndIndex = userInputLength if depthSuffixIndex < 0 else depthSuffixIndex if (not isTargetDirRequested or depthSuffixIndex > entryNumberStartIndex) else entryNumberStartIndex
+        entryNumberStr = userInput[entryNumberStartIndex:entryNumberEndIndex]
         unused = "" # this variable is part of a tuple that has been kept in this form for (legacy) compatibility
-        # retrieved path to be used for setting target dir from menu
-        if len(userInput) > 1 and userInput[0] == "+" and common.isValidMenuEntryNr(userInput[1:], content):
-            output = str(Path(content[int(userInput[1:])-1].strip("\n")))
-            userInput = ":preceding+" # used for further differentiation between entry directory and ancestors for setting target dir
-        # handle the ancestor depth suffix (only to be considered for valid (target) directory entry numbers, otherwise handle as "regular input", e.g. a command)
-        else:
-            depthSuffixIndex, ancestorDepth = retrieveAncestorDepthSuffixInfo(userInput)
-            updatedUserInput = userInput[0:depthSuffixIndex] if depthSuffixIndex > 0 else userInput
-            updatedUserInput = updatedUserInput[1:] if len(updatedUserInput) > 1 and updatedUserInput[0] == "-" else updatedUserInput
-            output, updatedUserInput, unused = super().__retrieveMenuEntry__(updatedUserInput, content)
-            assert output != ":3"
-            if output not in [":1", ":2", ":4"] and depthSuffixIndex > 0:
-                path = Path(output)
-                ancestorsCount = len(path.parents)
-                assert ancestorsCount > 0, "There should be at least one ancestor (root)"
-                assert ancestorDepth >= 0, "There should be no negative ancestor depth"
-                ancestorDepth = ancestorsCount - 1 if ancestorDepth >= ancestorsCount else ancestorDepth
-                output = str(path.parents[ancestorDepth])
-                userInput = ":preceding-" if userInput[0] == "-" else ":ancestor" # both tags indicate an ancestor directory; ":preceding" indicates a more specialized use, namely for setting it as a target directory
+        if common.isValidMenuEntryNr(entryNumberStr, content):
+            entryPath = Path(content[int(entryNumberStr) - 1].strip("\n"))
+            maxAncestorsCount = len(entryPath.parents)
+            if ancestorDepth >= 0 and maxAncestorsCount > 0:
+                ancestorDepth = maxAncestorsCount - 1 if ancestorDepth >= maxAncestorsCount else ancestorDepth
+            if isTargetDirRequested:
+                userInput = ":preceding+" if depthSuffixIndex < 0 or maxAncestorsCount == 0 else ":preceding-"
+                output = str(entryPath) if depthSuffixIndex < 0 or maxAncestorsCount == 0 else str(entryPath.parents[ancestorDepth])
+            elif depthSuffixIndex > 0:
+                userInput = ":ancestor"
+                output = str(entryPath.parents[ancestorDepth]) if maxAncestorsCount > 0 else str(entryPath)
             else:
-                output, userInput, unused = super().__retrieveMenuEntry__(userInput, content)
+                output, userInput, _ = super().__retrieveMenuEntry__(userInput, content)
+        else:
+            output, userInput, _ = super().__retrieveMenuEntry__(userInput, content)
         return (output, userInput, unused)
 
 def retrieveAncestorDepthSuffixInfo(userInput):
@@ -317,8 +323,11 @@ def retrieveAncestorDepthSuffixInfo(userInput):
     ancestorDepth = -1
     for k in navset.ancestor_depth_suffixes_dict.keys():
         if userInput.endswith(k):
-            depthSuffixIndex = userInput.rfind(k)
-            ancestorDepth = navset.ancestor_depth_suffixes_dict[k]
+            depthSuffixStartingPosition = userInput.rfind(k)
+            if depthSuffixStartingPosition > 0:
+                depthSuffixIndex = depthSuffixStartingPosition
+                ancestorDepth = navset.ancestor_depth_suffixes_dict[k]
+                assert ancestorDepth >= 0
             break
     return depthSuffixIndex, ancestorDepth
 

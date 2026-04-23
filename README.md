@@ -188,8 +188,8 @@ All relevant clipboard commmands can be found in the clipboard help menu. Type ?
 
 It is also possible to move or copy files recursively from one/more source folder(s) to a setup destination (target) directory. In order to do this following steps should be performed:
 - Go to the destination directory, enter :td and hit ENTER to have it setup as target. Alternatively you can enter the navigation history or favorites menus and set:
-  - entry dir as target dir by preceding the entry number with character '+' and hitting ENTER
-  - ancestor dir of entry dir as target by preceding the entry number by character '-' and then appending an ancestor depth suffix to the number (more details in section 6.7) and hitting ENTER
+  - entry dir as target dir by preceding the entry number with :td and hitting ENTER
+  - ancestor dir of entry dir as target by preceding the entry number with :td and then appending an ancestor depth suffix to the number (more details in section 6.7) and hitting ENTER
 - Go to the directory you need to move/copy files from and hit :M or :C (case sensitive) to enter the recursive move/copy mode.
 - For each item or group of items you require to transfer enter an appropriate keyword and hit ENTER. After transfer is done a new keyword will be requested for the next item or group.
 - After entering all keywords and transfering all required items, instead of entering a new keyword just hit ENTER to exit the recursive mode.
