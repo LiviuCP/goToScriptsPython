@@ -381,6 +381,8 @@ class Application:
         syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir()
         if fallbackPerformed:
             self.__handleFallbackPerformed__()
+            if self.guiSyncManager is not None:
+                self.guiSyncManager.checkSyncWithGui()
             print("")
             print("!!! The previously executed operation made the current directory no longer reachable (probably deleted). It has been replaced by fallback directory. !!!")
         prevCommand = self.cmd.getPreviousCommand()
