@@ -93,7 +93,7 @@ class Commands:
                 print("")
             print("Enter command number.")
             print("Enter :t to toggle to ", end='')
-            print("EDIT MODE.") if mode == "--execute" else print("EXECUTE MODE.")
+            print("EDIT MODE or enter character \'_\' followed by entry number to edit the command.") if mode == "--execute" else print("EXECUTE MODE.")
             print("")
             print("Enter ! to quit.")
             print("")
