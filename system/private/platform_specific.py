@@ -24,8 +24,9 @@ def buildCloseGuiCommand():
     def buildMacOsCloseGuiCommand():
         setDelays = "delayBeforeClose=0.1;" + "\n"
         closeFinder = "sleep $delayBeforeClose;" + "\n" + "osascript -e \'quit app \"Finder\"\';" + "\n"
-        handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n" + "fi"
-        closeFinderCommand = setDelays + closeFinder + handleClosingError
+        handleClosingError = "if [[ $? != 0 ]]; then echo \'An error occured when closing Finder\'; " + "\n" + "fi" + "\n"
+        reopenFinderWithoutWindowsCommand = "open -a Finder --hide;" # Finder should be reopened without windows to re-enable operations like emptying the Trash
+        closeFinderCommand = setDelays + closeFinder + handleClosingError + reopenFinderWithoutWindowsCommand
         return closeFinderCommand
     closeGuiCommand = None
     if platform == "darwin":
