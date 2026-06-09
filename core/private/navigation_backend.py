@@ -300,7 +300,6 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
         entryNumberStartIndex = targetDirPrefixLength if isTargetDirRequested else 0
         entryNumberEndIndex = userInputLength if depthSuffixIndex < 0 else depthSuffixIndex if (not isTargetDirRequested or depthSuffixIndex > entryNumberStartIndex) else entryNumberStartIndex
         entryNumberStr = userInput[entryNumberStartIndex:entryNumberEndIndex]
-        unused = "" # this variable is part of a tuple that has been kept in this form for (legacy) compatibility
         if common.isValidMenuEntryNr(entryNumberStr, content):
             entryPath = Path(content[int(entryNumberStr) - 1].strip("\n"))
             maxAncestorsCount = len(entryPath.parents)
@@ -313,10 +312,10 @@ class NavigationBackend(nvcdcmn.NavCmdCommon):
                 userInput = ":ancestor"
                 output = str(entryPath.parents[ancestorDepth]) if maxAncestorsCount > 0 else str(entryPath)
             else:
-                output, userInput, _ = super().__retrieveMenuEntry__(userInput, content)
+                output, userInput = super().__retrieveMenuEntry__(userInput, content)
         else:
-            output, userInput, _ = super().__retrieveMenuEntry__(userInput, content)
-        return (output, userInput, unused)
+            output, userInput = super().__retrieveMenuEntry__(userInput, content)
+        return (output, userInput)
 
 def retrieveAncestorDepthSuffixInfo(userInput):
     depthSuffixIndex = -1

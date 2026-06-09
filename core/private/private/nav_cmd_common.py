@@ -182,7 +182,7 @@ class NavCmdCommon:
             output = content[entryNr].strip("\n")
         else:
             output = ":4" if len(content) == 0 else ":2" if userInput == '!' else ":1"
-        return (output, userInput, "")
+        return (output, userInput)
 
 def buildFilteredHistory(rawContent, filterKeyword, maxFilteredHistEntries, filteredContent):
     assert len(filterKeyword) > 0, "Empty filter keyword found"

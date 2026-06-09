@@ -56,7 +56,7 @@ class Navigation:
     # negative statuses are special statuses and will be retrieved in conjunction with special characters preceding valid entry numbers (like + -> status -1); path is forwarded as input and used by main app
     def executeGoToFromMenu(self, menuChoice, userInput = "", previousCommand = ""):
         assert menuChoice in ["-f", "-ff", "-h", "-fh"], "Invalid menuChoice argument"
-        dirPath, menuVisitPassedInput, menuVisitPassedOutput = self.__visitNavigationMenu__(menuChoice, userInput, previousCommand)
+        dirPath, menuVisitPassedInput = self.__visitNavigationMenu__(menuChoice, userInput, previousCommand)
         status = 0 # default status, normal execution or missing dir successful removal/mapping
         passedInput = ""
         menuName = "favorites" if menuChoice == "-f" else "history" if menuChoice == "-h" else "filtered history" if menuChoice == "-fh" else "filtered favorites"
@@ -245,7 +245,7 @@ class Navigation:
                 out.printFallbackMessage()
             elif replacingDir == "<" or replacingDir == ">":
                 menuName = "history" if replacingDir == "<" else "favorites"
-                dirPath, menuVisitPassedInput, menuVisitPassedOutput = self.__visitNavigationMenu__("-h" if replacingDir == "<" else "-f")
+                dirPath, menuVisitPassedInput = self.__visitNavigationMenu__("-h" if replacingDir == "<" else "-f")
                 syncedCurrentDir, fallbackPerformed = sysfunc.syncCurrentDir() # handle the situation when current directory became inaccessible during the mapping process while in history/favorites menu
                 if fallbackPerformed:
                     doMapping = False
